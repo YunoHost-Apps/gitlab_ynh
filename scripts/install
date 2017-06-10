@@ -36,7 +36,7 @@ sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
 #sudo cp -a ../sources/. $src_path
 
 # Add gitlab repository
-sudo apt-get install curl openssh-server ca-certificates postfix
+sudo apt-get install curl openssh-server ca-certificates postfix apt-transport-https
 curl -L https://packages.gitlab.com/gitlab/gitlab-ce/gpgkey | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install debian-archive-keyring
