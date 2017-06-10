@@ -37,8 +37,8 @@ sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
 
 # Add gitlab repository
 sudo apt-get install curl openssh-server ca-certificates postfix
-sudo wget https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/jessie/gitlab-ce_9.2.5-ce.0_amd64.deb
-sudo dpkg -i gitlab-ce_9.2.5-ce.0_amd64.deb
+curl -s https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | sudo bash
+sudo apt-get install gitlab-ce
 
 
 # Gitlab configuration
