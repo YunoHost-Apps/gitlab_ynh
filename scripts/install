@@ -40,7 +40,7 @@ sudo apt-get install curl openssh-server ca-certificates postfix
 curl -L https://packages.gitlab.com/gitlab/gitlab-ce/gpgkey | sudo apt-key add -
 sudo apt-get update
 sudo apt-get install debian-archive-keyring
-sudo cat ../conf/gitlab-ce.list > /etc/apt/sources.list.d/gitlab-ce.list
+sudo cp ../conf/gitlab-ce.list /etc/apt/sources.list.d/gitlab-ce.list
 sudo apt-get update
 sudo apt-get install gitlab-ce
 
