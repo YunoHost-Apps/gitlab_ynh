@@ -1,6 +1,6 @@
 # Gitlab for Yunohost
 
-ETAT=NOT WORKING
+ETAT=IN PROGRESS
 - [Yunohost project](https://yunohost.org)
 - [gitlab website](https://gitlab.com)
 
