@@ -30,10 +30,6 @@ ynh_app_setting_set "$app" is_public "$is_public"
 sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
     || ynh_die "Path not available: ${domain}${path_url}"
 
-# Copy source files
-#src_path=/var/www/$app
-#sudo mkdir -p $src_path
-#sudo cp -a ../sources/. $src_path
 
 # Add gitlab repository
 sudo apt-get install -yy curl openssh-server ca-certificates postfix apt-transport-https
