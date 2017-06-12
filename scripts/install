@@ -44,6 +44,9 @@ sudo apt-get install -yy gitlab-ce
 # Gitlab configuration
 sudo gitlab-ctl reconfigure
 
+# Add variables
+$src_path=/etc/gitlab
+
 
 # Set permissions to app files
 # you may need to make some file and/or directory writeable by www-data (nginx user)
