@@ -44,8 +44,6 @@ sudo apt-get install -yy gitlab-ce
 # Gitlab configuration
 sudo gitlab-ctl reconfigure
 
-# Add variables
-$src_path=/etc/gitlab
 
 
 # Set permissions to app files
