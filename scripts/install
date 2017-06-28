@@ -19,12 +19,15 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
+admin=$YNH_APP_ARG_ADMIN
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
 # Save app settings
 ynh_app_setting_set "$app" is_public "$is_public"
+
+mailadmin=$(ynh_user_get_info $admin mail)
 
 # Check domain/path availability
 sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
@@ -42,7 +45,24 @@ sudo apt-get install -yy gitlab-ce
 
 
 # Gitlab configuration
+
+sed -i "s@GENERATED_EXTERNAL_URL@https://$domain@" ../conf/gitlab.rb
+sed -i "s@PORT@$port@" ../conf/gitlab.rb
+
+sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
 sudo gitlab-ctl reconfigure
+
+echo $admin
+echo $mailadmin
+
+echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"name\"=>'$admin', \"password\"=>'12345678'})
+newuser.admin = true
+newuser.confirmed_at = Time.now
+newuser.confirmation_token = nil
+newuser.save"  | sudo gitlab-rails console
+
+sudo gitlab-ctl reconfigure
+
 
 
 
