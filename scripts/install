@@ -28,6 +28,8 @@ source /usr/share/yunohost/helpers
 ynh_app_setting_set "$app" is_public "$is_public"
 
 mailadmin=$(ynh_user_get_info $admin mail)
+port=$(ynh_find_port 8080)
+rdmPass=$(ynh_string_random 30)
 
 # Check domain/path availability
 sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
@@ -52,10 +54,8 @@ sed -i "s@PORT@$port@" ../conf/gitlab.rb
 sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
 sudo gitlab-ctl reconfigure
 
-echo $admin
-echo $mailadmin
 
-echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"name\"=>'$admin', \"password\"=>'12345678'})
+echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"name\"=>'$admin', \"password\"=>'$rdmPass'})
 newuser.admin = true
 newuser.confirmed_at = Time.now
 newuser.confirmation_token = nil
