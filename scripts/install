@@ -74,6 +74,7 @@ sudo gitlab-ctl reconfigure
 # Modify Nginx configuration file and copy it to Nginx conf directory
 nginx_conf=../conf/nginx.conf
 sed -i "s@YNH_WWW_PATH@$path_url@g" $nginx_conf
+sed -i "s@PORT@$port@g" $nginx_conf
 # sed -i "s@YNH_WWW_ALIAS@$src_path/@g" $nginx_conf
 # If a dedicated php-fpm process is used:
 # Don't forget to modify ../conf/nginx.conf accordingly or your app will not work!
@@ -88,4 +89,6 @@ if [[ $is_public -eq 1 ]]; then
 fi
 
 # Reload services
+sudo yunohost app ssowatconf
 sudo service nginx reload
+sudo gitlab-ctl restart
