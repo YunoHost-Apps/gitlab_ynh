@@ -17,5 +17,7 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block
     user_filter: ''
 EOS
 
-nginx['listen_port'] = PORT
+nginx['listen_port'] = PORTNGINX
 nginx['listen_https'] = false
+
+unicorn['port'] = PORTUNICORN

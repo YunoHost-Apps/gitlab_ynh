@@ -28,7 +28,8 @@ source /usr/share/yunohost/helpers
 ynh_app_setting_set "$app" is_public "$is_public"
 
 mailadmin=$(ynh_user_get_info $admin mail)
-port=$(ynh_find_port 8080)
+portNginx=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 8080)
 rdmPass=$(ynh_string_random 30)
 
 # Check domain/path availability
@@ -49,7 +50,8 @@ sudo apt-get install -yy gitlab-ce
 # Gitlab configuration
 
 sed -i "s@GENERATED_EXTERNAL_URL@https://$domain@" ../conf/gitlab.rb
-sed -i "s@PORT@$port@" ../conf/gitlab.rb
+sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
+sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
 
 sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
 sudo gitlab-ctl reconfigure
