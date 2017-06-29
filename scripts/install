@@ -19,12 +19,18 @@ app=$YNH_APP_INSTANCE_NAME
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
+admin=$YNH_APP_ARG_ADMIN
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
 # Save app settings
 ynh_app_setting_set "$app" is_public "$is_public"
+
+mailadmin=$(ynh_user_get_info $admin mail)
+portNginx=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 9080)
+rdmPass=$(ynh_string_random 30)
 
 # Check domain/path availability
 sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
@@ -42,7 +48,23 @@ sudo apt-get install -yy gitlab-ce
 
 
 # Gitlab configuration
+
+sed -i "s@GENERATED_EXTERNAL_URL@https://$domain@" ../conf/gitlab.rb
+sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
+sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
+
+sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
 sudo gitlab-ctl reconfigure
+
+
+echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"name\"=>'$admin', \"password\"=>'$rdmPass'})
+newuser.admin = true
+newuser.confirmed_at = Time.now
+newuser.confirmation_token = nil
+newuser.save"  | sudo gitlab-rails console
+
+sudo gitlab-ctl reconfigure
+
 
 
 
@@ -54,7 +76,8 @@ sudo gitlab-ctl reconfigure
 # Modify Nginx configuration file and copy it to Nginx conf directory
 nginx_conf=../conf/nginx.conf
 sed -i "s@YNH_WWW_PATH@$path_url@g" $nginx_conf
-sed -i "s@YNH_WWW_ALIAS@$src_path/@g" $nginx_conf
+sed -i "s@PORT@$portNginx@g" $nginx_conf
+# sed -i "s@YNH_WWW_ALIAS@$src_path/@g" $nginx_conf
 # If a dedicated php-fpm process is used:
 # Don't forget to modify ../conf/nginx.conf accordingly or your app will not work!
 # sed -i "s@YNH_WWW_APP@$app@g" $nginx_conf
@@ -68,4 +91,6 @@ if [[ $is_public -eq 1 ]]; then
 fi
 
 # Reload services
+sudo yunohost app ssowatconf
 sudo service nginx reload
+sudo gitlab-ctl restart

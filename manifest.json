@@ -14,7 +14,7 @@
         "url": "http://example.com"
     },
     "requirements": {
-        "yunohost": ">> 2.4.0"
+        "yunohost": ">> 2.6.0"
     },
     "multi_instance": true,
     "services": [
@@ -43,7 +43,15 @@
                 "example": "/example",
                 "default": "/example"
             },
-          
+            {
+                "name": "admin",
+				"type": "user",
+                "ask": {
+                    "en": "Choose an admin user",
+                    "fr": "Choisissez l’administrateur"
+                },
+                "example": "johndoe"
+            },
             {
                 "name": "is_public",
                 "type": "boolean",
