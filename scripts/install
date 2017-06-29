@@ -29,7 +29,7 @@ ynh_app_setting_set "$app" is_public "$is_public"
 
 mailadmin=$(ynh_user_get_info $admin mail)
 portNginx=$(ynh_find_port 8080)
-portUnicorn=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 9080)
 rdmPass=$(ynh_string_random 30)
 
 # Check domain/path availability
