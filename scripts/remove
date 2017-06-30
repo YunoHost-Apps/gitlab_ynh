@@ -12,9 +12,9 @@ domain=$(ynh_app_setting_get "$app" domain)
 
 sudo apt-get remove gitlab-ce
 
-# sudo rm -rf /opt/gitlab
-# sudo rm -rf /etc/gitlab
-# sudo rm -rf /var/opt/gitlab
+sudo rm -rf /opt/gitlab
+sudo rm -rf /etc/gitlab
+sudo rm -rf /var/opt/gitlab
 
 # Remove apt sources-list
 sudo rm -f /etc/apt/sources.list.d/gitlab-ce.list
