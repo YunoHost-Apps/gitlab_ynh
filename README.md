@@ -4,7 +4,7 @@ ETAT=WORKING
 - [Yunohost project](https://yunohost.org)
 - [gitlab website](https://gitlab.com)
 
-Gitlab is a git server similar to github
+Gitlab is a git server similar to github.
 
 
 
