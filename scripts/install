@@ -71,6 +71,15 @@ sudo gitlab-ctl reconfigure
 # Set permissions to app files
 # you may need to make some file and/or directory writeable by www-data (nginx user)
 # sudo chown -R root: $src_path
+#=================================================
+# START GITLAB IN BACKGROUND
+#=================================================
+
+WARNING echo "Démarrage de gitlab"
+tempfile="$(mktemp)"
+tail -f -n1 /var/log/$app/gitlab.log > "$tempfile" &	# Suit le démarrage dans le log
+PID_TAIL=$!	# Récupère le PID de la commande tail, qui est passée en arrière plan.
+sudo systemctl start $app	# Démarre gitlab. Le démarrage est fait le plus tôt possible, car il est très long...
 
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
