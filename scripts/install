@@ -68,9 +68,6 @@ sudo gitlab-ctl reconfigure
 
 
 
-# Set permissions to app files
-# you may need to make some file and/or directory writeable by www-data (nginx user)
-# sudo chown -R root: $src_path
 
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
