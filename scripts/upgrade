@@ -3,7 +3,16 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-# See comments in install script
+# This is a multi-instance app, meaning it can be installed several times independently
+# The id of the app as stated in the manifest is available as $YNH_APP_ID
+# The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2", ...)
+# The app instance name is available as $YNH_APP_INSTANCE_NAME
+#    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
+#    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
+#    - ynhexample__{N} for the subsequent installations, with N=3,4, ...
+# The app instance name is probably what you are interested the most, since this is
+# guaranteed to be unique. This is a good unique identifier to define installation path,
+# db names, ...
 app=$YNH_APP_INSTANCE_NAME
 
 # Source YunoHost helpers
@@ -12,48 +21,37 @@ source /usr/share/yunohost/helpers
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 path_url=$(ynh_app_setting_get "$app" path_url)
-admin=$(ynh_app_setting_get "$app" admin)
-is_public=$(ynh_app_setting_get "$app" is_public)
-language=$(ynh_app_setting_get "$app" language)
+portNginx=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 9080)
 
-# Remove trailing "/" for next commands
-path_url=${path_url%/}
+# if path do not begin with / add a / at the begining
+if [ "${path_url:0:1}" != "/" ]; then
+       path_url="/$path_url"
+fi
 
-# Copy source files
-src_path=/var/www/$app
-sudo mkdir -p $src_path
-sudo cp -a ../sources/. $src_path
+sudo apt-get update
+sudo apt-get install -yy gitlab-ce
+
+# Gitlab configuration
+
+sed -i "s@GENERATED_EXTERNAL_URL@https://$domain@" ../conf/gitlab.rb
+sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
+sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
+
+sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
+sudo gitlab-ctl reconfigure
 
 # Set permissions to app files
 # you may need to make some file and/or directory writeable by www-data (nginx user)
-sudo chown -R root: $src_path
+# sudo chown -R root: $src_path
+
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 nginx_conf=../conf/nginx.conf
 sed -i "s@YNH_WWW_PATH@$path_url@g" $nginx_conf
-sed -i "s@YNH_WWW_ALIAS@$src_path/@g" $nginx_conf
-# If a dedicated php-fpm process is used:
-#
-# sed -i "s@YNH_WWW_APP@$app@g" $nginx_conf
+sed -i "s@PORT@$portNginx@g" $nginx_conf
 sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
 
-### PHP (remove if not used) ###
-# If a dedicated php-fpm process is used:
-# # Modify PHP-FPM pool configuration and copy it to the pool directory
-# sed -i "s@YNH_WWW_APP@$app@g" ../conf/php-fpm.conf
-# sed -i "s@YNH_WWW_ALIAS@$src_path/@g" ../conf/php-fpm.conf
-# finalphpconf=/etc/php5/fpm/pool.d/$app.conf
-# sudo cp ../conf/php-fpm.conf $finalphpconf
-# sudo chown root: $finalphpconf
-# sudo chmod 644 $finalphpconf
-# sudo service php5-fpm restart
-### PHP end ###
-
-# If app is public, add url to SSOWat conf as skipped_uris
-if [[ $is_public -eq 1 ]]; then
-  # See install script
-  ynh_app_setting_set "$app" unprotected_uris "/"
-fi
-
-# Reload nginx service
+# Reload services
+sudo yunohost app ssowatconf
 sudo service nginx reload
