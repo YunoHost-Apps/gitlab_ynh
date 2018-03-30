@@ -57,10 +57,7 @@ nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 # Change the domain for nginx
 if [ $change_domain -eq 1 ]
 then
-  ynh_delete_file_checksum "$nginx_conf_path"
   mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
-  # Store file checksum for the new config file location
-  ynh_store_file_checksum "/etc/nginx/conf.d/$new_domain.d/$app.conf"
   
   sudo sed -i "s@https://$old_domain@https://$new_domain@" /etc/gitlab/gitlab.rb
 fi
