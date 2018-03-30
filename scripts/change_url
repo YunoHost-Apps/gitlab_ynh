@@ -62,7 +62,7 @@ then
 
   ynh_replace_string "location ${old_path%/}/" "location ${new_path%/}/" "$nginx_conf_path"
   
-  ynh_replace_string "https://$old_domain${old_path%/}" "https://$new_domain${new_path%/}" "$gitlab_conf_path"
+  ynh_replace_string "https://$old_domain${old_path%/}" "https://$old_domain${new_path%/}" "$gitlab_conf_path"
 fi
 
 # Change the domain for nginx
