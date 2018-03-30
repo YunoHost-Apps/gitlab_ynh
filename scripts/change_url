@@ -52,11 +52,6 @@ fi
 #doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
 
 # Gitlab configuration
-
-sed -i "s@GENERATED_EXTERNAL_URL@https://$new_domain@" ../conf/gitlab.rb
-sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
-sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
-
-sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
+sudo sed -i "s@https://$old_domain@https://$new_domain@" /etc/gitlab/gitlab.rb
 
 sudo gitlab-ctl reconfigure
