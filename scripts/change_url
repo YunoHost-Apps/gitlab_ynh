@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+old_domain=$YNH_APP_OLD_DOMAIN
+old_path=$YNH_APP_OLD_PATH
+
+new_domain=$YNH_APP_NEW_DOMAIN
+new_path=$YNH_APP_NEW_PATH
+
+app=$YNH_APP_INSTANCE_NAME
+
+portNginx=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 9080)
+
+#=================================================
+# CHECK PATHS SYNTAX
+#=================================================
+
+test -n "$old_path" || old_path="/"
+test -n "$new_path" || new_path="/"
+new_path=$(ynh_normalize_url_path $new_path)
+old_path=$(ynh_normalize_url_path $old_path)
+
+#=================================================
+# CHECK WHICH PARTS SHOULD BE CHANGED
+#=================================================
+
+change_domain=0
+if [ "$old_domain" != "$new_domain" ]
+then
+	change_domain=1
+fi
+
+change_path=0
+if [ "$old_path" != "$new_path" ]
+then
+	change_path=1
+fi
+
+#doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
+
+# Gitlab configuration
+
+sed -i "s@GENERATED_EXTERNAL_URL@https://$new_domain@" ../conf/gitlab.rb
+sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
+sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
+
+sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
+
+sudo gitlab-ctl reconfigure
