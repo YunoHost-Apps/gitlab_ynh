@@ -59,7 +59,7 @@ then
   sudo gitlab-ctl stop unicorn
   sudo gitlab-ctl stop sidekiq
 
-  ynh_replace_string "location ${old_path%/}/" "location ${new_path%/}/" nginx_conf_path
+  ynh_replace_string "location ${old_path%/}/" "location ${new_path%/}/" "$nginx_conf_path"
 fi
 
 # Change the domain for nginx
@@ -67,7 +67,7 @@ if [ $change_domain -eq 1 ]
 then
   mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
   
-  ynh_replace_string "https://$old_domain" "https://$new_domain" /etc/gitlab/gitlab.rb
+  ynh_replace_string "https://$old_domain" "https://$new_domain" "/etc/gitlab/gitlab.rb"
 fi
 
 if [ $change_domain -eq 1 ] || [ $change_path -eq 1 ]
