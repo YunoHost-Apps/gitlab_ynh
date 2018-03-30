@@ -3,48 +3,8 @@
 # Exit on command errors and treat unset variables as an error
 set -eu
 
-# See comments in install script
-app=$YNH_APP_INSTANCE_NAME
-
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-path_url=$(ynh_app_setting_get "$app" path_url)
-portNginx=$(ynh_find_port 8080)
-portUnicorn=$(ynh_find_port 9080)
-
-path_url=${path_url%/} 
-
-# if path do not begin with / add a / at the begining
-if [ "${path_url:0:1}" != "/" ]; then
-       path_url="/$path_url"
-fi
-
 sudo apt-get update
 sudo apt-get install -yy gitlab-ce
-
-# Gitlab configuration
-
-sed -i "s@GENERATED_EXTERNAL_URL@https://$domain@" ../conf/gitlab.rb
-sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
-sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
-
-sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
-sudo gitlab-ctl reconfigure
-
-# Set permissions to app files
-# you may need to make some file and/or directory writeable by www-data (nginx user)
-# sudo chown -R root: $src_path
-
-
-# Modify Nginx configuration file and copy it to Nginx conf directory
-nginx_conf=../conf/nginx.conf
-sed -i "s@YNH_WWW_PATH@$path_url@g" $nginx_conf
-sed -i "s@PORT@$portNginx@g" $nginx_conf
-sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
-
-# Reload services
-sudo yunohost app ssowatconf
-sudo service nginx reload
