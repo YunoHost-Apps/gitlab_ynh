@@ -75,7 +75,7 @@ then
   sudo gitlab-ctl reconfigure
 fi
 
-if [ $change_domain -eq 1 ]
+if [ $change_path -eq 1 ]
 then
   sudo gitlab-ctl restart
 fi
