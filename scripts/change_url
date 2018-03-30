@@ -59,7 +59,7 @@ if [ $change_domain -eq 1 ]
 then
   mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
   
-  ynh_replace_string "https://$old_domain" "https://$new_domain@" /etc/gitlab/gitlab.rb
+  ynh_replace_string "https://$old_domain" "https://$new_domain" /etc/gitlab/gitlab.rb
 fi
 
 if [ $change_domain -eq 1 ] || [ $change_domain -eq 1 ]
