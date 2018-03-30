@@ -65,4 +65,4 @@ fi
 if [ $change_domain -eq 1 ] || [ $change_domain -eq 1 ]
 then
   sudo gitlab-ctl reconfigure
- fi
+fi
