@@ -6,12 +6,6 @@ ETAT=INPROGRESS
 
 Gitlab is a git server similar to github.
 
-
-
-
-Gitlab work only with a root domain
-
-
 **Upgrade this package:**  
 `sudo yunohost app upgrade --verbose gitlab -u https://github.com/YunoHost-Apps/gitlab_ynh`
 
