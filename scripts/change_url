@@ -33,6 +33,10 @@ test -n "$new_path" || new_path="/"
 new_path=$(ynh_normalize_url_path $new_path)
 old_path=$(ynh_normalize_url_path $old_path)
 
+# Check domain/path availability
+sudo yunohost app checkurl "${new_domain}${new_path}" -a "$app" \
+    || ynh_die "Path not available: ${new_domain}${new_path}"
+
 #=================================================
 # CHECK WHICH PARTS SHOULD BE CHANGED
 #=================================================
