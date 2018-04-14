@@ -24,7 +24,7 @@ admin=$YNH_APP_ARG_ADMIN
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Save app settings
+# Save app settings
 ynh_app_setting_set "$app" is_public "$is_public"
 
 mailadmin=$(ynh_user_get_info $admin mail)
@@ -49,9 +49,10 @@ sudo apt-get install -yy gitlab-ce
 
 # Gitlab configuration
 
-sed -i "s@GENERATED_EXTERNAL_URL@https://$domain@" ../conf/gitlab.rb
-sed -i "s@PORTNGINX@$portNginx@" ../conf/gitlab.rb
-sed -i "s@PORTUNICORN@$portUnicorn@" ../conf/gitlab.rb
+gitlab_conf_path=../conf/gitlab.rb
+ynh_replace_string "GENERATED_EXTERNAL_URL" "https://$domain${path_url%/}" $gitlab_conf_path
+ynh_replace_string "PORTNGINX" "$portNginx" $gitlab_conf_path
+ynh_replace_string "PORTUNICORN" "$portUnicorn" $gitlab_conf_path
 
 sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
 sudo gitlab-ctl reconfigure
@@ -65,18 +66,11 @@ newuser.save"  | sudo gitlab-rails console
 
 sudo gitlab-ctl reconfigure
 
-
-
-
-# Set permissions to app files
-# you may need to make some file and/or directory writeable by www-data (nginx user)
-# sudo chown -R root: $src_path
-
-
 # Modify Nginx configuration file and copy it to Nginx conf directory
 nginx_conf=../conf/nginx.conf
-sed -i "s@YNH_WWW_PATH@$path_url@g" $nginx_conf
-sed -i "s@PORT@$portNginx@g" $nginx_conf
+
+ynh_replace_string "YNH_WWW_PATH" "${path_url%/}/" $nginx_conf
+ynh_replace_string "PORT" "$portNginx" $nginx_conf
 sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 
