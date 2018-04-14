@@ -14,40 +14,24 @@ domain=$(ynh_app_setting_get "$app" domain)
 path_url=$(ynh_app_setting_get "$app" path_url)
 admin=$(ynh_app_setting_get "$app" admin)
 is_public=$(ynh_app_setting_get "$app" is_public)
-language=$(ynh_app_setting_get "$app" language)
 
-# Remove trailing "/" for next commands
-path_url=${path_url%/}
+portNginx=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 9080)
 
-# Copy source files
-src_path=/var/www/$app
-sudo mkdir -p $src_path
-sudo cp -a ../sources/. $src_path
+# Gitlab configuration
+gitlab_conf_path=../conf/gitlab.rb
+ynh_replace_string "GENERATED_EXTERNAL_URL" "https://$domain${path_url%/}" $gitlab_conf_path
+ynh_replace_string "PORTNGINX" "$portNginx" $gitlab_conf_path
+ynh_replace_string "PORTUNICORN" "$portUnicorn" $gitlab_conf_path
 
-# Set permissions to app files
-# you may need to make some file and/or directory writeable by www-data (nginx user)
-sudo chown -R root: $src_path
+sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
 nginx_conf=../conf/nginx.conf
-sed -i "s@YNH_WWW_PATH@$path_url@g" $nginx_conf
-sed -i "s@YNH_WWW_ALIAS@$src_path/@g" $nginx_conf
-# If a dedicated php-fpm process is used:
-#
-# sed -i "s@YNH_WWW_APP@$app@g" $nginx_conf
-sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
 
-### PHP (remove if not used) ###
-# If a dedicated php-fpm process is used:
-# # Modify PHP-FPM pool configuration and copy it to the pool directory
-# sed -i "s@YNH_WWW_APP@$app@g" ../conf/php-fpm.conf
-# sed -i "s@YNH_WWW_ALIAS@$src_path/@g" ../conf/php-fpm.conf
-# finalphpconf=/etc/php5/fpm/pool.d/$app.conf
-# sudo cp ../conf/php-fpm.conf $finalphpconf
-# sudo chown root: $finalphpconf
-# sudo chmod 644 $finalphpconf
-# sudo service php5-fpm restart
-### PHP end ###
+ynh_replace_string "YNH_WWW_PATH" "${path_url%/}/" $nginx_conf
+ynh_replace_string "PORT" "$portNginx" $nginx_conf
+sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
@@ -57,3 +41,4 @@ fi
 
 # Reload nginx service
 sudo service nginx reload
+sudo gitlab-ctl reconfigure
