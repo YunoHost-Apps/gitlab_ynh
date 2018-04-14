@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Exit on command errors and treat unset variables as an error
+set -eu
+
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+old_domain=$YNH_APP_OLD_DOMAIN
+old_path=$YNH_APP_OLD_PATH
+
+new_domain=$YNH_APP_NEW_DOMAIN
+new_path=$YNH_APP_NEW_PATH
+
+app=$YNH_APP_INSTANCE_NAME
+
+portNginx=$(ynh_find_port 8080)
+portUnicorn=$(ynh_find_port 9080)
+
+#=================================================
+# CHECK PATHS SYNTAX
+#=================================================
+
+test -n "$old_path" || old_path="/"
+test -n "$new_path" || new_path="/"
+new_path=$(ynh_normalize_url_path $new_path)
+old_path=$(ynh_normalize_url_path $old_path)
+
+# Check domain/path availability
+sudo yunohost app checkurl "${new_domain}${new_path}" -a "$app" \
+    || ynh_die "Path not available: ${new_domain}${new_path}"
+
+#=================================================
+# CHECK WHICH PARTS SHOULD BE CHANGED
+#=================================================
+
+change_domain=0
+if [ "$old_domain" != "$new_domain" ]
+then
+	change_domain=1
+fi
+
+change_path=0
+if [ "$old_path" != "$new_path" ]
+then
+	change_path=1
+fi
+
+#doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
+
+# Gitlab configuration
+nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
+gitlab_conf_path=/etc/gitlab/gitlab.rb
+
+if [ $change_path -eq 1 ]
+then
+  sudo gitlab-ctl stop unicorn
+  sudo gitlab-ctl stop sidekiq
+
+  ynh_replace_string "location ${old_path%/}/" "location ${new_path%/}/" "$nginx_conf_path"
+  
+  ynh_replace_string "https://$old_domain${old_path%/}" "https://$old_domain${new_path%/}" "$gitlab_conf_path"
+fi
+
+# Change the domain for nginx
+if [ $change_domain -eq 1 ]
+then
+  mv $nginx_conf_path /etc/nginx/conf.d/$new_domain.d/$app.conf
+  
+  ynh_replace_string "https://$old_domain" "https://$new_domain" "$gitlab_conf_path"
+fi
+
+if [ $change_domain -eq 1 ] || [ $change_path -eq 1 ]
+then
+  sudo gitlab-ctl reconfigure
+fi
+
+if [ $change_path -eq 1 ]
+then
+  sudo gitlab-ctl restart
+fi
