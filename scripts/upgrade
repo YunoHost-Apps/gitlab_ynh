@@ -33,6 +33,9 @@ ynh_replace_string "YNH_WWW_PATH" "${path_url%/}/" $nginx_conf
 ynh_replace_string "PORT" "$portNginx" $nginx_conf
 sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
 
+sudo apt-get update
+sudo apt-get install -yy gitlab-ce
+
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
   # See install script
@@ -41,4 +44,3 @@ fi
 
 # Reload nginx service
 sudo service nginx reload
-sudo gitlab-ctl reconfigure
