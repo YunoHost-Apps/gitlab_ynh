@@ -1,4 +1,4 @@
-external_url 'GENERATED_EXTERNAL_URL'
+external_url '__GENERATED_EXTERNAL_URL__'
 
 gitlab_rails['ldap_enabled'] = true
 gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block with 'EOS' below
@@ -17,7 +17,7 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block
     user_filter: ''
 EOS
 
-nginx['listen_port'] = PORTNGINX
+nginx['listen_port'] = __PORT__
 nginx['listen_https'] = false
 
-unicorn['port'] = PORTUNICORN
+unicorn['port'] = __PORTUNICORN__

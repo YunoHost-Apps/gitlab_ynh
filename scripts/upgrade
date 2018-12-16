@@ -1,40 +1,41 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+# Source YunoHost helpers
+source /usr/share/yunohost/helpers
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+# Load common variables and helpers
+source ./_common.sh
 
 # See comments in install script
 app=$YNH_APP_INSTANCE_NAME
-
-# Source YunoHost helpers
-source /usr/share/yunohost/helpers
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 path_url=$(ynh_app_setting_get "$app" path_url)
 admin=$(ynh_app_setting_get "$app" admin)
 is_public=$(ynh_app_setting_get "$app" is_public)
-
-portNginx=$(ynh_find_port 8080)
-portUnicorn=$(ynh_find_port 9080)
-
-# Gitlab configuration
-gitlab_conf_path=../conf/gitlab.rb
-ynh_replace_string "GENERATED_EXTERNAL_URL" "https://$domain${path_url%/}" $gitlab_conf_path
-ynh_replace_string "PORTNGINX" "$portNginx" $gitlab_conf_path
-ynh_replace_string "PORTUNICORN" "$portUnicorn" $gitlab_conf_path
-
-sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
+port=$(ynh_app_setting_get "$app" web_port)
+portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-nginx_conf=../conf/nginx.conf
+config_nginx
 
-ynh_replace_string "YNH_WWW_PATH" "${path_url%/}/" $nginx_conf
-ynh_replace_string "PORT" "$portNginx" $nginx_conf
-sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
+create_dir
 
-sudo apt-get update
-sudo apt-get install -yy gitlab-ce
+# Configure gitlab with gitlab.rb file
+config_gitlab
+
+# Add dependencies
+ynh_install_app_dependencies openssh-server
+
+# Update to the last version
+update_src_version
+
+# Update Gitlab
+setup_source $architecture
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then

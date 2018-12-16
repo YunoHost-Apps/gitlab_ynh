@@ -1,19 +1,17 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
 
-# This is a multi-instance app, meaning it can be installed several times independently
-# The id of the app as stated in the manifest is available as $YNH_APP_ID
-# The instance number is available as $YNH_APP_INSTANCE_NUMBER (equals "1", "2", ...)
-# The app instance name is available as $YNH_APP_INSTANCE_NAME
-#    - the first time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample
-#    - the second time the app is installed, YNH_APP_INSTANCE_NAME = ynhexample__2
-#    - ynhexample__{N} for the subsequent installations, with N=3,4, ...
-# The app instance name is probably what you are interested the most, since this is
-# guaranteed to be unique. This is a good unique identifier to define installation path,
-# db names, ...
-app=$YNH_APP_INSTANCE_NAME
+# IMPORT GENERIC HELPERS
+source /usr/share/yunohost/helpers
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+# Load common variables and helpers
+source ./_common.sh
 
 # Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
@@ -21,42 +19,46 @@ path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
 admin=$YNH_APP_ARG_ADMIN
 
-# Source YunoHost helpers
-source /usr/share/yunohost/helpers
+# Check domain/path availability
+ynh_webpath_available $domain $path_url || ynh_die "$domain is not available as domain, please use an other domain."
+ynh_webpath_register $app $domain $path_url
 
-# Save app settings
-ynh_app_setting_set "$app" is_public "$is_public"
+# Check user parameter
+ynh_user_exists "$admin" \
+  || ynh_die "The chosen admin user does not exist."
 
 mailadmin=$(ynh_user_get_info $admin mail)
-portNginx=$(ynh_find_port 8080)
+port=$(ynh_find_port 8080)
 portUnicorn=$(ynh_find_port 9080)
 rdmPass=$(ynh_string_random 30)
 
-# Check domain/path availability
-sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
-    || ynh_die "Path not available: ${domain}${path_url}"
+# Save app settings
+ynh_app_setting_set $app admin $admin
+ynh_app_setting_set $app path_url $path_url
+ynh_app_setting_set $app is_public $is_public
+ynh_app_setting_set $app web_port $port
+ynh_app_setting_set $app unicorn_port $portUnicorn
 
+#=================================================
+# STANDARD MODIFICATIONS
+#=================================================
 
-# Add gitlab repository
-sudo apt-get install -yy curl openssh-server ca-certificates postfix apt-transport-https
-curl -L https://packages.gitlab.com/gitlab/gitlab-ce/gpgkey | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install -yy debian-archive-keyring
-sudo cp ../conf/gitlab-ce.list /etc/apt/sources.list.d/gitlab-ce.list
-sudo apt-get update
-sudo apt-get install -yy gitlab-ce
+# Modify Nginx configuration file and copy it to Nginx conf directory
+config_nginx
 
+create_dir
 
-# Gitlab configuration
+# Configure gitlab with gitlab.rb file
+config_gitlab
 
-gitlab_conf_path=../conf/gitlab.rb
-ynh_replace_string "GENERATED_EXTERNAL_URL" "https://$domain${path_url%/}" $gitlab_conf_path
-ynh_replace_string "PORTNGINX" "$portNginx" $gitlab_conf_path
-ynh_replace_string "PORTUNICORN" "$portUnicorn" $gitlab_conf_path
+# Add dependencies
+ynh_install_app_dependencies openssh-server
 
-sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
-sudo gitlab-ctl reconfigure
+# Update to the last version
+update_src_version
 
+# Install gitlab
+setup_source $architecture
 
 echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"name\"=>'$admin', \"password\"=>'$rdmPass'})
 newuser.admin = true
@@ -66,21 +68,16 @@ newuser.save"  | sudo gitlab-rails console
 
 sudo gitlab-ctl reconfigure
 
-# Modify Nginx configuration file and copy it to Nginx conf directory
-nginx_conf=../conf/nginx.conf
-
-ynh_replace_string "YNH_WWW_PATH" "${path_url%/}/" $nginx_conf
-ynh_replace_string "PORT" "$portNginx" $nginx_conf
-sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
-
-
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
   # unprotected_uris allows SSO credentials to be passed anyway.
   ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
+# Configure logrotate
+#ynh_use_logrotate "/var/log/$app"
+
 # Reload services
-sudo yunohost app ssowatconf
-sudo service nginx reload
-sudo gitlab-ctl restart
+#sudo yunohost app ssowatconf
+#sudo service nginx reload
+#sudo gitlab-ctl restart
