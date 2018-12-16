@@ -2,25 +2,24 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
+    "version": "1.5.3~ynh1",
     "description": {
         "en": "Gitlab for Yunohost.",
         "fr": "Gitlab pour YunoHost."
     },
     "url": "https://gitlab.com",
-    "license": "free",
+    "license": "MIT",
     "maintainer": {
         "name": "rafi59",
         "email": "",
         "url": "http://example.com"
     },
     "requirements": {
-        "yunohost": ">> 2.6.0"
+        "yunohost": ">> 3.0.0"
     },
-    "multi_instance": true,
+    "multi_instance": false,
     "services": [
-        "nginx",
-        "php5-fpm",
-        "mysql"
+        "nginx"
     ],
     "arguments": {
         "install" : [
