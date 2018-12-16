@@ -36,8 +36,8 @@
                 "name": "path",
                 "type": "path",
                 "ask": {
-                    "en": "Choose a path for gitlab only / is accepted",
-                    "fr": "Choisissez un chemin pour gitlab seulement / est accepté"
+                    "en": "Choose a path for gitlab",
+                    "fr": "Choisissez un chemin pour gitlab"
                 },
                 "example": "/",
                 "default": "/"
