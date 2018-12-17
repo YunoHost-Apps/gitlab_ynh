@@ -20,7 +20,6 @@ is_public=$YNH_APP_ARG_IS_PUBLIC
 admin=$YNH_APP_ARG_ADMIN
 
 # Check domain/path availability
-ynh_webpath_available $domain $path_url || ynh_die "$domain is not available as domain, please use an other domain."
 ynh_webpath_register $app $domain $path_url
 
 # Check user parameter
