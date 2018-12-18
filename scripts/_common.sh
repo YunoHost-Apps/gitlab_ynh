@@ -24,17 +24,6 @@ else
 fi
 
 #=================================================
-# CONFIGURE NGINX
-#=================================================
-config_nginx() {
-    if [ "$path_url" != "/" ]
-    then
-        ynh_replace_string "^#sub_path_only" "" "../conf/nginx.conf"
-    fi
-    ynh_add_nginx_config
-}
-
-#=================================================
 # CREATE FOLDERS
 #=================================================
 create_dir() {
@@ -46,7 +35,7 @@ create_dir() {
 #=================================================
 config_gitlab() {
     create_dir
-    
+
 	gitlab_conf_path="$config_path/gitlab.rb"
 
     ynh_backup_if_checksum_is_different $gitlab_conf_path

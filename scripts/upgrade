@@ -55,7 +55,7 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-config_nginx
+ynh_add_nginx_config
 
 #=================================================
 # CONFIGURE GITLAB

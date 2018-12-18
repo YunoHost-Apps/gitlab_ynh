@@ -70,7 +70,7 @@ ynh_app_setting_set $app unicorn_port $portUnicorn
 #=================================================
 
 # Create a dedicated nginx config
-config_nginx
+ynh_add_nginx_config
 
 #=================================================
 # CONFIGURE GITLAB
