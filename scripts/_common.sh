@@ -6,7 +6,10 @@ app=$YNH_APP_INSTANCE_NAME
 config_path="/etc/$app"
 final_path="/opt/$app"
 
-# Detect the system architecture to download the right tarball
+#=================================================
+# DETECT THE SYSTEM ARCHITECTURE
+#=================================================
+# Detect the system architecture to download the right file
 # NOTE: `uname -m` is more accurate and universal than `arch`
 # See https://en.wikipedia.org/wiki/Uname
 if [ -n "$(uname -m | grep 64)" ]; then
@@ -20,6 +23,9 @@ else
         your hardware and the result of the command \"uname -m\"." 1
 fi
 
+#=================================================
+# CONFIGURE NGINX
+#=================================================
 config_nginx() {
     if [ "$path_url" != "/" ]
     then
@@ -28,11 +34,19 @@ config_nginx() {
     ynh_add_nginx_config
 }
 
+#=================================================
+# CREATE FOLDERS
+#=================================================
 create_dir() {
     mkdir -p "$config_path"
 }
 
+#=================================================
+# CONFIGURATION FILE FOR GITLAB
+#=================================================
 config_gitlab() {
+    create_dir
+    
 	gitlab_conf_path="$config_path/gitlab.rb"
 
     ynh_backup_if_checksum_is_different $gitlab_conf_path
@@ -47,10 +61,16 @@ config_gitlab() {
     ynh_store_file_checksum $gitlab_conf_path
 }
 
+#=================================================
+# REMOVE THE CONFIGURATION FILE FOR GITLAB
+#=================================================
 remove_config_gitlab() {
 	ynh_secure_remove "$config_path/gitlab.rb"
 }
 
+#=================================================
+# UPDATE SOURCES FILES
+#=================================================
 update_src_version() {
 	source ./upgrade.d/upgrade.sh
 	cp ../conf/arm.src.default ../conf/arm.src
@@ -62,8 +82,14 @@ update_src_version() {
 	ynh_replace_string "__SHA256_SUM__" "$gitlab_x86_64_source_sha256" "../conf/x86-64.src"
 }
 
-setup_source () {
+#=================================================
+# INSTALL GITLAB
+#=================================================
+# This function is inspired by the ynh_setup_source function, adapted to deal with .deb files
+setup_source() {
     local src_id=${1:-app} # If the argument is not given, source_id equals "app"
+
+    update_src_version # Update source file
 
     # Load value from configuration file (see above for a small doc about this file
     # format)

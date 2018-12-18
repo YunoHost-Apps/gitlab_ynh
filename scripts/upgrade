@@ -1,15 +1,21 @@
 #!/bin/bash
 
-# Source YunoHost helpers
-source /usr/share/yunohost/helpers
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
+# IMPORT GENERIC HELPERS
+source /usr/share/yunohost/helpers
 
 # Load common variables and helpers
 source ./_common.sh
 
-# See comments in install script
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
 app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
@@ -20,22 +26,62 @@ is_public=$(ynh_app_setting_get "$app" is_public)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
+
+# TODO: Backup and Restore Scripts
+## Backup the current version of the app
+#ynh_backup_before_upgrade
+#ynh_clean_setup () {
+#	# restore it if the upgrade fails
+#	ynh_restore_upgradebackup
+#}
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# CHECK THE PATH
+#=================================================
+
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
+
 # Modify Nginx configuration file and copy it to Nginx conf directory
 config_nginx
 
-create_dir
+#=================================================
+# CONFIGURE GITLAB
+#=================================================
 
 # Configure gitlab with gitlab.rb file
 config_gitlab
 
-# Add dependencies
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+
 ynh_install_app_dependencies openssh-server
 
-# Update to the last version
-update_src_version
+#=================================================
+# DOWNLOAD, CHECK AND INSTALL GITLAB
+#=================================================
 
 # Update Gitlab
 setup_source $architecture
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SETUP SSOWAT
+#=================================================
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
@@ -43,5 +89,9 @@ if [[ $is_public -eq 1 ]]; then
   ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
+#=================================================
+# RELOAD NGINX
+#=================================================
+
 # Reload nginx service
-sudo service nginx reload
+service nginx reload
