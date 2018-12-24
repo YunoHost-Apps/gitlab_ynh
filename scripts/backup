@@ -10,7 +10,7 @@
 source /usr/share/yunohost/helpers
 
 # Load common variables and helpers
-source ./_common.sh
+source ../settings/scripts/_common.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
