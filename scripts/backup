@@ -33,7 +33,6 @@ domain=$(ynh_app_setting_get "$app" domain)
 #=================================================
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
-ynh_backup "$final_path"
 
 #=================================================
 # BACKUP THE APP MAIN DIR
@@ -42,5 +41,6 @@ ynh_backup "$final_path"
 # Use gitlab-rake to backup
 gitlab-rake gitlab:backup:create
 
+ynh_backup "/var/opt/$app/backups/"
 ynh_backup "$config_path/gitlab-secrets.json"
 ynh_backup "$config_path/gitlab.rb"
