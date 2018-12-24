@@ -1,52 +1,59 @@
 #!/bin/bash
 
-# Note: each files and directories you've saved using the ynh_backup helper
-# will be located in the current directory, regarding the last argument.
-
-# Exit on command errors and treat unset variables as an error
-set -eu
-
-# See comments in install script
-app=$YNH_APP_INSTANCE_NAME
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Retrieve old app settings
+# Load common variables and helpers
+source ./_common.sh
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	true
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+# Copy NGINX configuration
 domain=$(ynh_app_setting_get "$app" domain)
-path_url=$(ynh_app_setting_get "$app" path_url)
 
-# Check domain/path availability
-sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
-    || ynh_die "Path not available: ${domain}${path_url}"
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
 
-# Restore sources & data
-src_path="/var/www/${app}"
-sudo cp -a ./sources "$src_path"
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-# Restore permissions to app files
-# you may need to make some file and/or directory writeable by www-data (nginx user)
-sudo chown -R root: "$src_path"
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
 
-### MySQL (remove if not used) ###
-# If a MySQL database is used:
-# # Create and restore the database
-# dbname=$app
-# dbuser=$app
-# dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
-# ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
-# ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./dump.sql
-### MySQL end ###
+gitlab-ctl stop unicorn
+gitlab-ctl stop sidekiq
 
-# Restore NGINX configuration
-sudo cp -a ./nginx.conf "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
+basename="/var/opt/gitlab/backups/"
+last_backup="${filename%_gitlab_backup.tar}"
 
-### PHP (remove if not used) ###
-# If a dedicated php-fpm process is used:
-# # Copy PHP-FPM pool configuration and reload the service
-# sudo cp -a ./php-fpm.conf "/etc/php5/fpm/pool.d/${app}.conf"
-# sudo service php5-fpm reload
-### PHP end ###
+# Use gitlab-rake to backup
+gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
 
-# Restart webserver
-sudo service nginx reload
+ynh_backup "$config_path/gitlab-secrets.json" "gitlab-secrets.json"
+ynh_backup "$config_path/gitlab.rb" "gitlab.rb"
+
+gitlab-ctl restart
+gitlab-rake gitlab:check SANITIZE=true

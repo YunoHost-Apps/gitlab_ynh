@@ -1,33 +1,49 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
-
-# See comments in install script
-app=$YNH_APP_INSTANCE_NAME
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Backup sources & data
-# Note: the last argument is where to save this path, see the restore script.
-ynh_backup "/var/www/${app}" "sources"
+# Load common variables and helpers
+source ./_common.sh
 
-### MySQL (remove if not used) ###
-# If a MySQL database is used:
-# # Dump the database
-# dbname=$app
-# dbuser=$app
-# dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
-# mysqldump -u "$dbuser" -p"$dbpass" --no-create-db "$dbname" > ./dump.sql
-### MySQL end ###
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	### Remove this function if there's nothing to clean before calling the remove script.
+	true
+}
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
 
 # Copy NGINX configuration
 domain=$(ynh_app_setting_get "$app" domain)
-ynh_backup "/etc/nginx/conf.d/${domain}.d/${app}.conf" "nginx.conf"
 
-### PHP (remove if not used) ###
-# If a dedicated php-fpm process is used:
-# # Copy PHP-FPM pool configuration
-# ynh_backup "/etc/php5/fpm/pool.d/${app}.conf" "php-fpm.conf"
-### PHP end ###
+#=================================================
+# STANDARD BACKUP STEPS
+#=================================================
+# BACKUP THE NGINX CONFIGURATION
+#=================================================
+
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+
+#=================================================
+# BACKUP THE APP MAIN DIR
+#=================================================
+
+# Use gitlab-rake to backup
+gitlab-rake gitlab:backup:create
+
+ynh_backup "$config_path/gitlab-secrets.json" "gitlab-secrets.json"
+ynh_backup "$config_path/gitlab.rb" "gitlab.rb"
