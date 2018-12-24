@@ -45,6 +45,14 @@ test ! -d $final_path \
 ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+
+ynh_restore_file "$final_path"
+
+ynh_restore_file "/var/opt/$app/backups/"
+
+#=================================================
 # SPECIFIC RESTORATION
 #=================================================
 # REINSTALL DEPENDENCIES
@@ -52,19 +60,16 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_install_app_dependencies openssh-server
 
-#=================================================
-# RESTORE THE APP MAIN DIR
-#=================================================
-
-setup_source $architecture
-
-ynh_restore_file "$/var/opt/$app/backups/"
+ln -s /opt/gitlab/bin/gitlab-ctl /usr/bin/gitlab-ctl
+ln -s /opt/gitlab/bin/gitlab-psql /usr/bin/gitlab-psql
+ln -s /opt/gitlab/bin/gitlab-rails /usr/bin/gitlab-rails
+ln -s /opt/gitlab/bin/gitlab-rake /usr/bin/gitlab-rake
 
 gitlab-ctl stop unicorn
 gitlab-ctl stop sidekiq
 
-fullfile=$(ls /var/opt/$app/backups/*_gitlab* --file -c1 | head -1)
-basename="/var/opt/$app/backups/"
+fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
+basename="/var/opt/gitlab/backups/"
 last_backup="${filename%_gitlab_backup.tar}"
 
 # Use gitlab-rake to backup
