@@ -16,10 +16,6 @@ source ../settings/scripts/_common.sh
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	### Remove this function if there's nothing to clean before calling the remove script.
-	true
-}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -29,6 +25,16 @@ ynh_abort_if_errors
 
 # Copy NGINX configuration
 domain=$(ynh_app_setting_get "$app" domain)
+path_url=$(ynh_app_setting_get "$app" path_url)
+
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
+
+ynh_webpath_available $domain $path_url \
+|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+|| ynh_die "There is already a directory: $final_path "
 
 #=================================================
 # STANDARD RESTORATION STEPS
@@ -42,6 +48,16 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 # RESTORE THE APP MAIN DIR
 #=================================================
 
+ynh_restore_file "$final_path"
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies openssh-server
+
 gitlab-ctl stop unicorn
 gitlab-ctl stop sidekiq
 
@@ -52,8 +68,8 @@ last_backup="${filename%_gitlab_backup.tar}"
 # Use gitlab-rake to backup
 gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
 
-ynh_backup "$config_path/gitlab-secrets.json" "gitlab-secrets.json"
-ynh_backup "$config_path/gitlab.rb" "gitlab.rb"
+ynh_restore_file "$config_path/gitlab-secrets.json"
+ynh_restore_file "$config_path/gitlab.rb"
 
 gitlab-ctl restart
 gitlab-rake gitlab:check SANITIZE=true

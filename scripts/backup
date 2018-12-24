@@ -16,10 +16,6 @@ source ../settings/scripts/_common.sh
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	### Remove this function if there's nothing to clean before calling the remove script.
-	true
-}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -37,6 +33,7 @@ domain=$(ynh_app_setting_get "$app" domain)
 #=================================================
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup "$final_path"
 
 #=================================================
 # BACKUP THE APP MAIN DIR
@@ -45,5 +42,5 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 # Use gitlab-rake to backup
 gitlab-rake gitlab:backup:create
 
-ynh_backup "$config_path/gitlab-secrets.json" "gitlab-secrets.json"
-ynh_backup "$config_path/gitlab.rb" "gitlab.rb"
+ynh_backup "$config_path/gitlab-secrets.json"
+ynh_backup "$config_path/gitlab.rb"
