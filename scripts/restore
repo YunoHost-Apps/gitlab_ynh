@@ -11,6 +11,7 @@ source /usr/share/yunohost/helpers
 
 # Load common variables and helpers
 source ../settings/scripts/_common.sh
+source ../settings/scripts/upgrade.d/upgrade.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
@@ -48,7 +49,9 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 # RESTORE THE APP MAIN DIR
 #=================================================
 
-ynh_restore_file "$final_path"
+ynh_install_app_dependencies openssh-server
+
+setup_source $architecture
 
 ynh_restore_file "/var/opt/$app/backups/"
 
@@ -57,13 +60,6 @@ ynh_restore_file "/var/opt/$app/backups/"
 #=================================================
 # REINSTALL DEPENDENCIES
 #=================================================
-
-ynh_install_app_dependencies openssh-server
-
-ln -s /opt/gitlab/bin/gitlab-ctl /usr/bin/gitlab-ctl
-ln -s /opt/gitlab/bin/gitlab-psql /usr/bin/gitlab-psql
-ln -s /opt/gitlab/bin/gitlab-rails /usr/bin/gitlab-rails
-ln -s /opt/gitlab/bin/gitlab-rake /usr/bin/gitlab-rake
 
 fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
 basename="/var/opt/gitlab/backups/"
