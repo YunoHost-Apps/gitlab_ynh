@@ -75,6 +75,7 @@ ynh_restore_file "/var/opt/$app/backups/"
 
 fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
 basename="/var/opt/gitlab/backups/"
+filename=$(basename -- "$fullfile")
 last_backup="${filename%_gitlab_backup.tar}"
 
 # Use gitlab-rake to backup
