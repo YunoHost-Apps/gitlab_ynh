@@ -60,6 +60,9 @@ ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 ynh_install_app_dependencies openssh-server
 
+ynh_restore_file "$config_path/gitlab-secrets.json"
+ynh_restore_file "$config_path/gitlab.rb"
+
 setup_source $architecture
 
 ynh_restore_file "/var/opt/$app/backups/"
@@ -76,9 +79,6 @@ last_backup="${filename%_gitlab_backup.tar}"
 
 # Use gitlab-rake to backup
 gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
-
-ynh_restore_file "$config_path/gitlab-secrets.json"
-ynh_restore_file "$config_path/gitlab.rb"
 
 gitlab-ctl restart
 gitlab-rake gitlab:check SANITIZE=true
