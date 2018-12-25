@@ -6,12 +6,19 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
+if [ ! -e _common.sh ]; then
+	# Get the _common.sh file if it's not in the current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+    mkdir ./upgrade.d
+	cp ../settings/upgrade.d/upgrade.sh ./upgrade.d/upgrade.sh
+	chmod a+rx _common.sh upgrade.d/upgrade.sh
+fi
+
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
 # Load common variables and helpers
-source ../settings/scripts/_common.sh
-source ../settings/scripts/upgrade.d/upgrade.sh
+source _common.sh
 
 #=================================================
 # MANAGE SCRIPT FAILURE
