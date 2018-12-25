@@ -65,9 +65,6 @@ ln -s /opt/gitlab/bin/gitlab-psql /usr/bin/gitlab-psql
 ln -s /opt/gitlab/bin/gitlab-rails /usr/bin/gitlab-rails
 ln -s /opt/gitlab/bin/gitlab-rake /usr/bin/gitlab-rake
 
-gitlab-ctl stop unicorn
-gitlab-ctl stop sidekiq
-
 fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
 basename="/var/opt/gitlab/backups/"
 last_backup="${filename%_gitlab_backup.tar}"
