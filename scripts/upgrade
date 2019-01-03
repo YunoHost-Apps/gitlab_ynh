@@ -1,40 +1,87 @@
 #!/bin/bash
 
-# Exit on command errors and treat unset variables as an error
-set -eu
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# See comments in install script
-app=$YNH_APP_INSTANCE_NAME
-
-# Source YunoHost helpers
+# IMPORT GENERIC HELPERS
 source /usr/share/yunohost/helpers
+
+# Load common variables and helpers
+source ./_common.sh
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get "$app" domain)
 path_url=$(ynh_app_setting_get "$app" path_url)
 admin=$(ynh_app_setting_get "$app" admin)
 is_public=$(ynh_app_setting_get "$app" is_public)
+port=$(ynh_app_setting_get "$app" web_port)
+portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
-portNginx=$(ynh_find_port 8080)
-portUnicorn=$(ynh_find_port 9080)
+#=================================================
+# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
+#=================================================
 
-# Gitlab configuration
-gitlab_conf_path=../conf/gitlab.rb
-ynh_replace_string "GENERATED_EXTERNAL_URL" "https://$domain${path_url%/}" $gitlab_conf_path
-ynh_replace_string "PORTNGINX" "$portNginx" $gitlab_conf_path
-ynh_replace_string "PORTUNICORN" "$portUnicorn" $gitlab_conf_path
+# TODO: Backup and Restore Scripts
+## Backup the current version of the app
+#ynh_backup_before_upgrade
+#ynh_clean_setup () {
+#	# restore it if the upgrade fails
+#	ynh_restore_upgradebackup
+#}
 
-sudo cp -f ../conf/gitlab.rb /etc/gitlab/gitlab.rb
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# CHECK THE PATH
+#=================================================
+
+# Normalize the URL path syntax
+path_url=$(ynh_normalize_url_path $path_url)
+
+#=================================================
+# STANDARD UPGRADE STEPS
+#=================================================
+# NGINX CONFIGURATION
+#=================================================
 
 # Modify Nginx configuration file and copy it to Nginx conf directory
-nginx_conf=../conf/nginx.conf
+ynh_add_nginx_config
 
-ynh_replace_string "YNH_WWW_PATH" "${path_url%/}/" $nginx_conf
-ynh_replace_string "PORT" "$portNginx" $nginx_conf
-sudo cp $nginx_conf /etc/nginx/conf.d/$domain.d/$app.conf
+#=================================================
+# CONFIGURE GITLAB
+#=================================================
 
-sudo apt-get update
-sudo apt-get install -yy gitlab-ce
+# Configure gitlab with gitlab.rb file
+config_gitlab
+
+#=================================================
+# UPGRADE DEPENDENCIES
+#=================================================
+
+ynh_install_app_dependencies openssh-server
+
+#=================================================
+# DOWNLOAD, CHECK AND INSTALL GITLAB
+#=================================================
+
+# Update Gitlab
+setup_source $architecture
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# SETUP SSOWAT
+#=================================================
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
@@ -42,5 +89,9 @@ if [[ $is_public -eq 1 ]]; then
   ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
+#=================================================
+# RELOAD NGINX
+#=================================================
+
 # Reload nginx service
-sudo service nginx reload
+service nginx reload

@@ -2,25 +2,24 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
+    "version": "1.6.0~ynh1",
     "description": {
         "en": "Gitlab for Yunohost.",
         "fr": "Gitlab pour YunoHost."
     },
     "url": "https://gitlab.com",
-    "license": "free",
+    "license": "MIT",
     "maintainer": {
         "name": "rafi59",
         "email": "",
         "url": "http://example.com"
     },
     "requirements": {
-        "yunohost": ">> 2.6.0"
+        "yunohost": ">> 3.0.0"
     },
-    "multi_instance": true,
+    "multi_instance": false,
     "services": [
-        "nginx",
-        "php5-fpm",
-        "mysql"
+        "nginx"
     ],
     "arguments": {
         "install" : [
@@ -37,8 +36,8 @@
                 "name": "path",
                 "type": "path",
                 "ask": {
-                    "en": "Choose a path for gitlab only / is accepted",
-                    "fr": "Choisissez un chemin pour gitlab seulement / est accepté"
+                    "en": "Choose a path for gitlab",
+                    "fr": "Choisissez un chemin pour gitlab"
                 },
                 "example": "/",
                 "default": "/"
@@ -60,9 +59,16 @@
                     "fr": "Est-ce une application publique ?"
                 },
                 "default": true
+            },
+            {
+                "name": "only_use_ldap",
+                "type": "boolean",
+                "ask": {
+                    "en": "Use only Yunohost account to sign in?",
+                    "fr": "Utiliser seulement les comptes Yunohost pour se connecter ?"
+                },
+                "default": true
             }
-           
-       
         ]
     }
 }

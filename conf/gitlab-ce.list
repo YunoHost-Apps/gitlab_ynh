@@ -1,2 +1,0 @@
-deb https://packages.gitlab.com/gitlab/gitlab-ce/debian/ jessie main
-deb-src https://packages.gitlab.com/gitlab/gitlab-ce/debian/ jessie main
