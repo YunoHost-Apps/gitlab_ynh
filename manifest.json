@@ -2,7 +2,7 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
-    "version": "1.5.3~ynh1",
+    "version": "1.6.0~ynh1",
     "description": {
         "en": "Gitlab for Yunohost.",
         "fr": "Gitlab pour YunoHost."
@@ -59,9 +59,16 @@
                     "fr": "Est-ce une application publique ?"
                 },
                 "default": true
+            },
+            {
+                "name": "only_use_ldap",
+                "type": "boolean",
+                "ask": {
+                    "en": "Use only Yunohost account to sign in?",
+                    "fr": "Utiliser seulement les comptes Yunohost pour se connecter ?"
+                },
+                "default": true
             }
-           
-       
         ]
     }
 }
