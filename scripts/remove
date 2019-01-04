@@ -1,27 +1,84 @@
 #!/bin/bash
 
-set -u
-# See comments in install script
-app=$YNH_APP_INSTANCE_NAME
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Retrieve app settings
+# Load common variables and helpers
+source ./_common.sh
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+# See comments in install script
+app=$YNH_APP_INSTANCE_NAME
 domain=$(ynh_app_setting_get "$app" domain)
+port=$(ynh_app_setting_get "$app" web_port)
+portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
-sudo apt-get -yy remove gitlab-ce
+#=================================================
+# STANDARD REMOVE
+#=================================================
+# REMOVE GITLAB
+#=================================================
 
-sudo rm -rf /opt/gitlab
-sudo rm -rf /etc/gitlab
-sudo rm -rf /var/opt/gitlab
+# Remove gitlab
+dpkg --remove  gitlab-ce
 
-# Remove apt sources-list
-sudo rm -f /etc/apt/sources.list.d/gitlab-ce.list
+#=================================================
+# REMOVE CONF GILE
+#=================================================
 
-# Remove nginx configuration file
-sudo rm -f /etc/nginx/conf.d/$domain.d/$app.conf
+# Remove Config
+remove_config_gitlab
 
+#=================================================
+# REMOVE DEPENDENCIES
+#=================================================
 
-# Reload nginx service
-sudo service nginx reload
+ynh_remove_app_dependencies
+
+#=================================================
+# REMOVE APP MAIN DIR
+#=================================================
+
+ynh_secure_remove "$final_path"
+ynh_secure_remove "$config_path"
+ynh_secure_remove "/var/opt/$app"
+
+# Remove the log files
+ynh_secure_remove "/var/log/$app"
+
+#=================================================
+# CLOSE PORTS
+#=================================================
+
+if yunohost firewall list | grep -q "\- $port$"
+then
+	echo "Close port $port" >&2
+	yunohost firewall disallow TCP $port 2>&1
+fi
+
+if yunohost firewall list | grep -q "\- $portUnicorn$"
+then
+	echo "Close port $portUnicorn" >&2
+	yunohost firewall disallow TCP $portUnicorn 2>&1
+fi
+
+#=================================================
+# REMOVE NGINX CONFIGURATION
+#=================================================
+
+ynh_remove_nginx_config
+
+#=================================================
+# REMOVE LOGROTATE CONFIGURATION
+#=================================================
+
+#ynh_remove_logrotate

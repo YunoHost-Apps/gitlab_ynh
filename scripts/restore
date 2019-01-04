@@ -1,52 +1,110 @@
 #!/bin/bash
 
-# Note: each files and directories you've saved using the ynh_backup helper
-# will be located in the current directory, regarding the last argument.
+#=================================================
+# GENERIC START
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
 
-# Exit on command errors and treat unset variables as an error
-set -eu
-
-# See comments in install script
-app=$YNH_APP_INSTANCE_NAME
+if [ ! -e _common.sh ]; then
+	# Get the _common.sh file if it's not in the current directory
+	cp ../settings/scripts/_common.sh ./_common.sh
+	mkdir ./upgrade.d
+	mkdir ../conf
+	cp ../settings/scripts/upgrade.d/upgrade.sh ./upgrade.d/upgrade.sh
+	cp ../settings/conf/*.default ../conf/
+	chmod a+rx _common.sh upgrade.d/upgrade.sh
+fi
 
 # Source YunoHost helpers
 source /usr/share/yunohost/helpers
 
-# Retrieve old app settings
+# Load common variables and helpers
+source _common.sh
+
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	
+    rm /var/opt/gitlab/backups/*_gitlab_backup.tar
+	true
+}
+
+# Exit if an error occurs during the execution of the script
+ynh_abort_if_errors
+
+#=================================================
+# LOAD SETTINGS
+#=================================================
+
+# Copy NGINX configuration
 domain=$(ynh_app_setting_get "$app" domain)
 path_url=$(ynh_app_setting_get "$app" path_url)
 
-# Check domain/path availability
-sudo yunohost app checkurl "${domain}${path_url}" -a "$app" \
-    || ynh_die "Path not available: ${domain}${path_url}"
+#=================================================
+# CHECK IF THE APP CAN BE RESTORED
+#=================================================
 
-# Restore sources & data
-src_path="/var/www/${app}"
-sudo cp -a ./sources "$src_path"
+ynh_webpath_available $domain $path_url \
+|| ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path \
+|| ynh_die "There is already a directory: $final_path "
 
-# Restore permissions to app files
-# you may need to make some file and/or directory writeable by www-data (nginx user)
-sudo chown -R root: "$src_path"
+#=================================================
+# STANDARD RESTORATION STEPS
+#=================================================
+# RESTORE THE NGINX CONFIGURATION
+#=================================================
 
-### MySQL (remove if not used) ###
-# If a MySQL database is used:
-# # Create and restore the database
-# dbname=$app
-# dbuser=$app
-# dbpass=$(ynh_app_setting_get "$app" mysqlpwd)
-# ynh_mysql_create_db "$dbname" "$dbuser" "$dbpass"
-# ynh_mysql_connect_as "$dbuser" "$dbpass" "$dbname" < ./dump.sql
-### MySQL end ###
+ynh_restore_file "/etc/nginx/conf.d/$domain.d/$app.conf"
 
-# Restore NGINX configuration
-sudo cp -a ./nginx.conf "/etc/nginx/conf.d/${domain}.d/${app}.conf"
+#=================================================
+# REINSTALL DEPENDENCIES
+#=================================================
 
-### PHP (remove if not used) ###
-# If a dedicated php-fpm process is used:
-# # Copy PHP-FPM pool configuration and reload the service
-# sudo cp -a ./php-fpm.conf "/etc/php5/fpm/pool.d/${app}.conf"
-# sudo service php5-fpm reload
-### PHP end ###
+ynh_install_app_dependencies openssh-server
 
-# Restart webserver
-sudo service nginx reload
+#=================================================
+# RESTORE CONF FILES
+#=================================================
+
+ynh_restore_file "$config_path/gitlab-secrets.json"
+ynh_restore_file "$config_path/gitlab.rb"
+
+#=================================================
+# RESTORE THE APP MAIN DIR
+#=================================================
+
+setup_source $architecture
+
+ynh_restore_file "/var/opt/$app/backups/"
+
+#=================================================
+# SPECIFIC RESTORATION
+#=================================================
+# RESTORE GITLAB DATABASE
+#=================================================
+
+fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
+basename="/var/opt/gitlab/backups/"
+filename=$(basename -- "$fullfile")
+last_backup="${filename%_gitlab_backup.tar}"
+
+gitlab-ctl stop unicorn
+gitlab-ctl stop sidekiq
+
+# Use gitlab-rake to backup
+gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
+
+gitlab-ctl restart
+gitlab-rake gitlab:check SANITIZE=true
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+# RELOAD NGINX
+#=================================================
+
+systemctl reload nginx
