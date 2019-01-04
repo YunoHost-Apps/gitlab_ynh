@@ -112,5 +112,13 @@ setup_source() {
     echo "${src_sum} ${src_filename}" | ${src_sumprg} -c --status \
         || ynh_die "Corrupt source"
 
-	dpkg -i $src_filename
+    #Fix for the CI
+    if sudo grep -qa container=lxc /proc/1/environ;
+    then
+        dpkg -i $src_filename || true # This command will fail in lxc env
+        sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
+        sudo gitlab-ctl reconfigure
+    else
+        dpkg -i $src_filename
+    fi;
 }
