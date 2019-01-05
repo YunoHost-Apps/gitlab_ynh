@@ -116,7 +116,7 @@ fi
 # RELOAD NGINX
 #=================================================
 
-service nginx reload
+systemctl reload nginx
 
 #Fix for the CI
 if sudo grep -qa container=lxc /proc/1/environ;

@@ -131,7 +131,7 @@ fi
 # RELOAD NGINX
 #=================================================
 
-service nginx reload
+systemctl reload nginx
 
 #=================================================
 # SETUP LOGROTATE
