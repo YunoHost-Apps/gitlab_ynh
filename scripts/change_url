@@ -122,4 +122,4 @@ service nginx reload
 if sudo grep -qa container=lxc /proc/1/environ;
 then
 	sleep 10;
-else
+fi;
