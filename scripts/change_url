@@ -117,3 +117,9 @@ fi
 #=================================================
 
 service nginx reload
+
+#Fix for the CI
+if sudo grep -qa container=lxc /proc/1/environ;
+then
+	sleep 10;
+else
