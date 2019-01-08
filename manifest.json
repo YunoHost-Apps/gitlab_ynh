@@ -2,7 +2,7 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
-    "version": "1.6.0~ynh1",
+    "version": "1.6.3~ynh1",
     "description": {
         "en": "Gitlab for Yunohost.",
         "fr": "Gitlab pour YunoHost."
