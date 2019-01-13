@@ -108,6 +108,7 @@ sudo gitlab-ctl reconfigure
 if [ $change_path -eq 1 ]
 then
   sudo gitlab-ctl restart
+  sudo gitlab-ctl restart unicorn
 fi
 
 #=================================================
@@ -118,17 +119,8 @@ fi
 
 systemctl reload nginx
 
-#Fix for the CI
-if sudo grep -qa container=lxc /proc/1/environ;
-then
-	status_code=$(curl -s -o /dev/null -w '%{http_code}' "$domain${path_url%/}")
-	inc=0
+#=================================================
+# WAIT
+#=================================================
 
-	# Have to wait the time that gitlab reload
-	while [ $status_code == "502" ] && [ $inc -lt 10 ]
-	do
-		sleep 10;
-		status_code=$(curl -s -o /dev/null -w '%{http_code}' "$domain${path_url%/}")
-		((inc++))
-	done;
-fi;
+waiting_to_start

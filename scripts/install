@@ -22,7 +22,7 @@ source ./_common.sh
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
-only_use_ldap=$YNH_APP_ARG_IS_PUBLIC
+use_web_account=$YNH_APP_ARG_USE_WEB_ACCOUNT
 admin=$YNH_APP_ARG_ADMIN
 
 #=================================================
@@ -50,7 +50,7 @@ ynh_user_exists "$admin" \
 ynh_app_setting_set $app admin $admin
 ynh_app_setting_set $app path_url $path_url
 ynh_app_setting_set $app is_public $is_public
-ynh_app_setting_set $app only_use_ldap $only_use_ldap
+ynh_app_setting_set $app use_web_account $use_web_account
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -107,7 +107,7 @@ newuser.admin = true
 newuser.confirmed_at = Time.now
 newuser.confirmation_token = nil
 newuser.save
-ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $only_use_ldap, signup_enabled: $only_use_ldap)"  | sudo gitlab-rails console
+ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)"  | sudo gitlab-rails console
 
 #=================================================
 # RESTART TO TAKE INTO ACCOUNT CHANGES
@@ -134,8 +134,7 @@ fi
 systemctl reload nginx
 
 #=================================================
-# SETUP LOGROTATE
+# WAIT
 #=================================================
 
-# Configure logrotate
-#ynh_use_logrotate "/var/log/$app"
+waiting_to_start

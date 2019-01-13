@@ -30,13 +30,12 @@ portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 
-# TODO: Backup and Restore Scripts
-## Backup the current version of the app
-#ynh_backup_before_upgrade
-#ynh_clean_setup () {
-#	# restore it if the upgrade fails
-#	ynh_restore_upgradebackup
-#}
+# Backup the current version of the app
+ynh_backup_before_upgrade
+ynh_clean_setup () {
+	# restore it if the upgrade fails
+	ynh_restore_upgradebackup
+}
 
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
@@ -96,17 +95,8 @@ fi
 # Reload nginx service
 systemctl reload nginx
 
-#Fix for the CI
-if sudo grep -qa container=lxc /proc/1/environ;
-then
-	status_code=$(curl -s -o /dev/null -w '%{http_code}' "$domain${path_url%/}")
-	inc=0
+#=================================================
+# WAIT
+#=================================================
 
-	# Have to wait the time that gitlab reload
-	while [ $status_code == "502" ] && [ $inc -lt 10 ]
-	do
-		sleep 10;
-		status_code=$(curl -s -o /dev/null -w '%{http_code}' "$domain${path_url%/}")
-		((inc++))
-	done;
-fi;
+waiting_to_start

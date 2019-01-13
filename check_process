@@ -3,7 +3,7 @@
 ;; Test complet
 	; Manifest
 		domain="domain.tld"	(DOMAIN)
-		path="/"	(PATH)
+		path="/gitlab"	(PATH)
 		admin="john"	(USER)
 		is_public=1	(PUBLIC|public=1|private=0)
   	password="pass"
