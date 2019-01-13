@@ -152,19 +152,16 @@ waiting_to_start() {
     tail -F -n1 "$log_path" > "$templog" &
     # get the PID of the tail command
     local pid_tail=$!
-    local inc=0
 
-    while ! grep --quiet "${line_match_new}" $templog && ! grep --quiet "${line_match_existing}" $templog
+    for i in $(seq 1 100)
     do
-        # Timeout
-        if [ $inc -gt 100 ]
+        if grep --quiet "${line_match_new}" $templog || grep --quiet "${line_match_existing}" $templog
         then
+            echo "Gitlab has correctly started." >&2
             break
         fi
-
         sleep 1
         echo -n "." >&2
-        ((inc++))
     done
 
     echo "Stop Waiting"
