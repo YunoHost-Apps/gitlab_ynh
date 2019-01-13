@@ -67,7 +67,7 @@
                     "en": "Allow account creation via the gitlab web interface?",
                     "fr": "Autoriser la création de compte via l'interface web de gitlab ?"
                 },
-                "default": true
+                "default": false
             }
         ]
     }
