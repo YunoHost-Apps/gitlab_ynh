@@ -61,11 +61,11 @@
                 "default": true
             },
             {
-                "name": "only_use_ldap",
+                "name": "use_web_account",
                 "type": "boolean",
                 "ask": {
-                    "en": "Use only Yunohost account to sign in?",
-                    "fr": "Utiliser seulement les comptes Yunohost pour se connecter ?"
+                    "en": "Allow account creation via the gitlab web interface?",
+                    "fr": "Autoriser la création de compte via l'interface web de gitlab ?"
                 },
                 "default": true
             }
