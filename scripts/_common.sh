@@ -117,8 +117,57 @@ setup_source() {
     then
         dpkg -i $src_filename || true # This command will fail in lxc env
         sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
-        sudo gitlab-ctl reconfigure
+        dpkg --configure gitlab-ce || true
     else
-        dpkg -i $src_filename
+        dpkg -i $src_filename || true
     fi;
+}
+
+#=================================================
+# WAIT
+#=================================================
+# This function is inspired by the ynh_systemd_action function
+waiting_to_start() {
+
+    echo "Start Waiting"
+
+    log_path="/var/log/gitlab/unicorn/current"
+
+    if [ ! -f "$log_path" ]
+    then
+        return 0
+    fi
+
+    line_match_new="adopted new unicorn master"
+    line_match_existing="adopted existing unicorn master"
+
+    clean_check_starting() {
+        # Stop the execution of tail
+        kill -s 15 $pid_tail 2>&1
+        ynh_secure_remove "$templog" 2>&1
+    }
+
+    # Following the starting of the app in its log
+    local templog="$(mktemp)"
+    tail -F -n1 "$log_path" > "$templog" &
+    # get the PID of the tail command
+    local pid_tail=$!
+    local inc=0
+
+    while ! grep --quiet "${line_match_new}" $templog && ! grep --quiet "${line_match_existing}" $templog
+    do
+        # Timeout
+        if [ $inc -gt 100 ]
+        then
+            break
+        fi
+
+        sleep 1
+        echo -n "." >&2
+        ((inc++))
+    done
+
+    echo "Stop Waiting"
+
+    clean_check_starting
 }

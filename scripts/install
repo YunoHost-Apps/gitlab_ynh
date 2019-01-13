@@ -22,7 +22,7 @@ source ./_common.sh
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
-only_use_ldap=$YNH_APP_ARG_IS_PUBLIC
+only_use_ldap=$YNH_APP_ARG_ONLY_USE_LDAP
 admin=$YNH_APP_ARG_ADMIN
 
 #=================================================
@@ -134,8 +134,7 @@ fi
 systemctl reload nginx
 
 #=================================================
-# SETUP LOGROTATE
+# WAIT
 #=================================================
 
-# Configure logrotate
-#ynh_use_logrotate "/var/log/$app"
+waiting_to_start
