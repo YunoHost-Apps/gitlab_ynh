@@ -22,3 +22,5 @@ nginx['listen_https'] = false
 nginx['listen_addresses'] = ["0.0.0.0", "[::]"] # listen on all IPv4 and IPv6 addresses
 
 unicorn['port'] = __PORTUNICORN__
+
+unicorn['worker_processes'] = 2
