@@ -32,16 +32,13 @@ Yes with LDAP support.
 
 #### Supported architectures
 
-* x86-64b - [![Build Status](https://ci-apps.yunohost.org/jenkins/job/gitlab%20(Community)/badge/icon)](https://ci-apps.yunohost.org/jenkins/job/gitlab%20(Community)/)
-* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/jenkins/job/gitlab%20(Community)%20(%7EARM%7E)/badge/icon)](https://ci-apps-arm.yunohost.org/jenkins/job/gitlab%20(Community)%20(%7EARM%7E)/)
-* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/jenkins/job/gitlab%20(Community)/badge/icon)](https://ci-stretch.nohost.me/jenkins/job/gitlab%20(Community)/)
+* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/gitlab%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/gitlab%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/gitlab/)
+* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/gitlab%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/gitlab/)
 
 ## Limitations
 
 * Not compatible with a 32-bit architecture.
-
-**More information on the documentation page:**  
-https://yunohost.org/packaging_apps
 
 ## Links
 
@@ -63,3 +60,6 @@ sudo yunohost app install https://github.com/YunoHost-Apps/gitlab_ynh/tree/testi
 or
 sudo yunohost app upgrade gitlab -u https://github.com/YunoHost-Apps/gitlab_ynh/tree/testing --debug
 ```
+
+**More information on the documentation page:**  
+https://yunohost.org/packaging_apps
