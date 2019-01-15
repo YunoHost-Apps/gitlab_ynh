@@ -153,7 +153,7 @@ waiting_to_start() {
     # get the PID of the tail command
     local pid_tail=$!
 
-    for i in $(seq 1 100)
+    for i in $(seq 1 500)
     do
         if grep --quiet "${line_match_new}" $templog || grep --quiet "${line_match_existing}" $templog
         then
