@@ -61,7 +61,7 @@ remove_config_gitlab() {
 # UPDATE SOURCES FILES
 #=================================================
 update_src_version() {
-	source ./upgrade.d/upgrade.sh
+	source ./upgrade.d/upgrade.last.sh
 	cp ../conf/arm.src.default ../conf/arm.src
 	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/arm.src"
 	ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/arm.src"
