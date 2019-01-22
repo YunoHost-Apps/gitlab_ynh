@@ -60,7 +60,7 @@ ynh_app_setting_set $app use_web_account $use_web_account
 
 # Find free ports
 port=$(ynh_find_port 8080)
-portUnicorn=$(ynh_find_port 9080)
+portUnicorn=$(ynh_find_port $(($port + 1)))
 
 yunohost firewall allow --no-upnp TCP $port 2>&1
 yunohost firewall allow --no-upnp TCP $portUnicorn 2>&1
