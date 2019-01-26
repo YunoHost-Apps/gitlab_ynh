@@ -7,7 +7,7 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block
     host: 'localhost'
     port: 389
     uid: 'uid'
-    method: 'plain' # "tls" or "ssl" or "plain"
+    encryption: 'plain' # "start_tls" or "simple_tls" or "plain"
     bind_dn: ''
     password: ''
     active_directory: false
