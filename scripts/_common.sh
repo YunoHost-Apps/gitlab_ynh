@@ -27,18 +27,20 @@ fi
 # CREATE FOLDERS
 #=================================================
 create_dir() {
-    mkdir -p "$config_path"
+	mkdir -p "$config_path"
 }
 
 #=================================================
 # CONFIGURATION FILE FOR GITLAB
 #=================================================
 config_gitlab() {
-    create_dir
+	ynh_print_info "Configuring Gitlab..."
+
+	create_dir
 
 	gitlab_conf_path="$config_path/gitlab.rb"
 
-    ynh_backup_if_checksum_is_different $gitlab_conf_path
+	ynh_backup_if_checksum_is_different $gitlab_conf_path
 
 	# Gitlab configuration
 	cp -f ../conf/gitlab.rb $gitlab_conf_path
@@ -47,13 +49,15 @@ config_gitlab() {
 	ynh_replace_string "__PORT__" "$port" $gitlab_conf_path
 	ynh_replace_string "__PORTUNICORN__" "$portUnicorn" $gitlab_conf_path
 
-    ynh_store_file_checksum $gitlab_conf_path
+	ynh_store_file_checksum $gitlab_conf_path
 }
 
 #=================================================
 # REMOVE THE CONFIGURATION FILE FOR GITLAB
 #=================================================
 remove_config_gitlab() {
+	ynh_print_info "Removing the configuration file..."
+
 	ynh_secure_remove "$config_path/gitlab.rb"
 }
 
@@ -76,51 +80,52 @@ update_src_version() {
 #=================================================
 # This function is inspired by the ynh_setup_source function, adapted to deal with .deb files
 setup_source() {
-    local src_id=${1:-app} # If the argument is not given, source_id equals "app"
+	local src_id=${1:-app} # If the argument is not given, source_id equals "app"
 
-    update_src_version # Update source file
+	update_src_version # Update source file
 
-    # Load value from configuration file (see above for a small doc about this file
-    # format)
-    local src_url=$(grep 'SOURCE_URL=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
-    local src_sum=$(grep 'SOURCE_SUM=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
-    local src_sumprg=$(grep 'SOURCE_SUM_PRG=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
-    local src_format=$(grep 'SOURCE_FORMAT=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
-    local src_extract=$(grep 'SOURCE_EXTRACT=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
-    local src_in_subdir=$(grep 'SOURCE_IN_SUBDIR=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
-    local src_filename=$(grep 'SOURCE_FILENAME=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	# Load value from configuration file (see above for a small doc about this file
+	# format)
+	local src_url=$(grep 'SOURCE_URL=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	local src_sum=$(grep 'SOURCE_SUM=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	local src_sumprg=$(grep 'SOURCE_SUM_PRG=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	local src_format=$(grep 'SOURCE_FORMAT=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	local src_extract=$(grep 'SOURCE_EXTRACT=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	local src_in_subdir=$(grep 'SOURCE_IN_SUBDIR=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
+	local src_filename=$(grep 'SOURCE_FILENAME=' "$YNH_CWD/../conf/${src_id}.src" | cut -d= -f2-)
 
-    # Default value
-    src_sumprg=${src_sumprg:-sha256sum}
-    src_in_subdir=${src_in_subdir:-true}
-    src_format=${src_format:-tar.gz}
-    src_format=$(echo "$src_format" | tr '[:upper:]' '[:lower:]')
-    src_extract=${src_extract:-true}
-    if [ "$src_filename" = "" ] ; then
-        src_filename="${src_id}.${src_format}"
-    fi
-    local local_src="/opt/yunohost-apps-src/${YNH_APP_ID}/${src_filename}"
+	# Default value
+	src_sumprg=${src_sumprg:-sha256sum}
+	src_in_subdir=${src_in_subdir:-true}
+	src_format=${src_format:-tar.gz}
+	src_format=$(echo "$src_format" | tr '[:upper:]' '[:lower:]')
+	src_extract=${src_extract:-true}
+	if [ "$src_filename" = "" ]; then
+		src_filename="${src_id}.${src_format}"
+	fi
+	local local_src="/opt/yunohost-apps-src/${YNH_APP_ID}/${src_filename}"
 
-    if test -e "$local_src"
-    then    # Use the local source file if it is present
-        cp $local_src $src_filename
-    else    # If not, download the source
-        local out=`wget -nv -O $src_filename $src_url 2>&1` || ynh_print_err $out
-    fi
+	ynh_print_info "Downloading Gitlab files..."
 
-    # Check the control sum
-    echo "${src_sum} ${src_filename}" | ${src_sumprg} -c --status \
-        || ynh_die "Corrupt source"
+	if test -e "$local_src"; then # Use the local source file if it is present
+		cp $local_src $src_filename
+	else # If not, download the source
+		wget -q --show-progress -O $src_filename $src_url
+	fi
 
-    #Fix for the CI
-    if sudo grep -qa container=lxc /proc/1/environ;
-    then
-        dpkg -i $src_filename || true # This command will fail in lxc env
-        sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
-        dpkg --configure gitlab-ce || true
-    else
-        dpkg -i $src_filename || true
-    fi;
+	# Check the control sum
+	echo "${src_sum} ${src_filename}" | ${src_sumprg} -c --status ||
+		ynh_die "Corrupt source"
+
+	ynh_print_info "Installing Gitlab..."
+	#Fix for the CI
+	if sudo grep -qa container=lxc /proc/1/environ; then
+		dpkg -i $src_filename || true # This command will fail in lxc env
+		sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
+		dpkg --configure gitlab-ce || true
+	else
+		dpkg -i $src_filename || true
+	fi
 }
 
 #=================================================
@@ -129,42 +134,37 @@ setup_source() {
 # This function is inspired by the ynh_systemd_action function
 waiting_to_start() {
 
-    echo "Start Waiting"
+	ynh_print_info "Waiting for a response from Gitlab..."
 
-    log_path="/var/log/gitlab/unicorn/current"
+	log_path="/var/log/gitlab/unicorn/current"
 
-    if [ ! -f "$log_path" ]
-    then
-        return 0
-    fi
+	if [ ! -f "$log_path" ]; then
+		return 0
+	fi
 
-    line_match_new="adopted new unicorn master"
-    line_match_existing="adopted existing unicorn master"
+	line_match_new="adopted new unicorn master"
+	line_match_existing="adopted existing unicorn master"
 
-    clean_check_starting() {
-        # Stop the execution of tail
-        kill -s 15 $pid_tail 2>&1
-        ynh_secure_remove "$templog" 2>&1
-    }
+	clean_check_starting() {
+		# Stop the execution of tail
+		kill -s 15 $pid_tail 2>&1
+		ynh_secure_remove "$templog" 2>&1
+	}
 
-    # Following the starting of the app in its log
-    local templog="$(mktemp)"
-    tail -F -n1 "$log_path" > "$templog" &
-    # get the PID of the tail command
-    local pid_tail=$!
+	# Following the starting of the app in its log
+	local templog="$(mktemp)"
+	tail -F -n1 "$log_path" >"$templog" &
+	# get the PID of the tail command
+	local pid_tail=$!
 
-    for i in $(seq 1 500)
-    do
-        if grep --quiet "${line_match_new}" $templog || grep --quiet "${line_match_existing}" $templog
-        then
-            echo "Gitlab has correctly started." >&2
-            break
-        fi
-        sleep 1
-        echo -n "." >&2
-    done
+	for i in $(seq 1 500); do
+		if grep --quiet "${line_match_new}" $templog || grep --quiet "${line_match_existing}" $templog; then
+			echo "Gitlab has correctly started." >&2
+			break
+		fi
+		sleep 1
+		echo -n "." >&2
+	done
 
-    echo "Stop Waiting"
-
-    clean_check_starting
+	clean_check_starting
 }

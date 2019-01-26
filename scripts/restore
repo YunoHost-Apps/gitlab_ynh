@@ -17,9 +17,9 @@ if [ ! -e _common.sh ]; then
 	cp ../settings/scripts/_common.sh ./_common.sh
 	mkdir ./upgrade.d
 	mkdir ../conf
-	cp ../settings/scripts/upgrade.d/*.sh ./upgrade.d/*.sh
+	cp ../settings/scripts/upgrade.d/*.sh ./upgrade.d/
 	cp ../settings/conf/*.default ../conf/
-	chmod a+rx _common.sh upgrade.d/*.sh
+	chmod a+rx _common.sh upgrade.d/*
 fi
 
 # Load common variables and helpers
@@ -29,9 +29,9 @@ source _common.sh
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	
-    rm /var/opt/gitlab/backups/*_gitlab_backup.tar
+ynh_clean_setup() {
+
+	rm /var/opt/gitlab/backups/*_gitlab_backup.tar
 	true
 }
 
@@ -47,10 +47,10 @@ path_url=$(ynh_app_setting_get "$app" path_url)
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
 
-ynh_webpath_available $domain $path_url \
-|| ynh_die "Path not available: ${domain}${path_url}"
-test ! -d $final_path \
-|| ynh_die "There is already a directory: $final_path "
+ynh_webpath_available $domain $path_url ||
+	ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path ||
+	ynh_die "There is already a directory: $final_path "
 
 #=================================================
 # STANDARD RESTORATION STEPS
@@ -70,6 +70,8 @@ ynh_install_app_dependencies openssh-server
 # RESTORE CONF FILES
 #=================================================
 
+ynh_print_info "Restoring configuration files of Gitlab..."
+
 ynh_restore_file "$config_path/gitlab-secrets.json"
 ynh_restore_file "$config_path/gitlab.rb"
 
@@ -86,6 +88,8 @@ ynh_restore_file "/var/opt/$app/backups/"
 #=================================================
 # RESTORE GITLAB DATABASE
 #=================================================
+
+ynh_print_info "Restoring Gitlab..."
 
 fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
 basename="/var/opt/gitlab/backups/"
