@@ -32,7 +32,7 @@ portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
-ynh_clean_setup () {
+ynh_clean_setup() {
 	# restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
@@ -84,8 +84,8 @@ setup_source $architecture
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
-  # See install script
-  ynh_app_setting_set "$app" unprotected_uris "/"
+	# See install script
+	ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
 #=================================================

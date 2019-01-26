@@ -40,8 +40,8 @@ ynh_webpath_register $app $domain $path_url
 #=================================================
 
 # Check user parameter
-ynh_user_exists "$admin" \
-  || ynh_die "The chosen admin user does not exist."
+ynh_user_exists "$admin" ||
+	ynh_die "The chosen admin user does not exist."
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
@@ -111,7 +111,7 @@ newuser.admin = true
 newuser.confirmed_at = Time.now
 newuser.confirmation_token = nil
 newuser.save
-ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)"  | sudo gitlab-rails console
+ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | sudo gitlab-rails console
 
 #=================================================
 # RESTART TO TAKE INTO ACCOUNT CHANGES
@@ -125,8 +125,8 @@ sudo gitlab-ctl reconfigure
 
 # If app is public, add url to SSOWat conf as skipped_uris
 if [[ $is_public -eq 1 ]]; then
-  # unprotected_uris allows SSO credentials to be passed anyway.
-  ynh_app_setting_set "$app" unprotected_uris "/"
+	# unprotected_uris allows SSO credentials to be passed anyway.
+	ynh_app_setting_set "$app" unprotected_uris "/"
 fi
 
 #=================================================

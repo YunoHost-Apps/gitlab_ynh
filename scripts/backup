@@ -16,9 +16,9 @@ source ../settings/scripts/_common.sh
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	
-    rm /var/opt/gitlab/backups/*_gitlab_backup.tar
+ynh_clean_setup() {
+
+	rm /var/opt/gitlab/backups/*_gitlab_backup.tar
 	true
 }
 

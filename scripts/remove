@@ -31,7 +31,7 @@ portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 ynh_print_info "Removing Gitlab..."
 
 # Remove gitlab
-dpkg --remove  gitlab-ce
+dpkg --remove gitlab-ce
 
 #=================================================
 # REMOVE CONF GILE
@@ -61,14 +61,12 @@ ynh_secure_remove "/var/log/$app"
 # CLOSE PORTS
 #=================================================
 
-if yunohost firewall list | grep -q "\- $port$"
-then
+if yunohost firewall list | grep -q "\- $port$"; then
 	echo "Close port $port" >&2
 	yunohost firewall disallow TCP $port 2>&1
 fi
 
-if yunohost firewall list | grep -q "\- $portUnicorn$"
-then
+if yunohost firewall list | grep -q "\- $portUnicorn$"; then
 	echo "Close port $portUnicorn" >&2
 	yunohost firewall disallow TCP $portUnicorn 2>&1
 fi

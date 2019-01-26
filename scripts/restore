@@ -29,9 +29,9 @@ source _common.sh
 # MANAGE SCRIPT FAILURE
 #=================================================
 
-ynh_clean_setup () {
-	
-    rm /var/opt/gitlab/backups/*_gitlab_backup.tar
+ynh_clean_setup() {
+
+	rm /var/opt/gitlab/backups/*_gitlab_backup.tar
 	true
 }
 
@@ -47,10 +47,10 @@ path_url=$(ynh_app_setting_get "$app" path_url)
 # CHECK IF THE APP CAN BE RESTORED
 #=================================================
 
-ynh_webpath_available $domain $path_url \
-|| ynh_die "Path not available: ${domain}${path_url}"
-test ! -d $final_path \
-|| ynh_die "There is already a directory: $final_path "
+ynh_webpath_available $domain $path_url ||
+	ynh_die "Path not available: ${domain}${path_url}"
+test ! -d $final_path ||
+	ynh_die "There is already a directory: $final_path "
 
 #=================================================
 # STANDARD RESTORATION STEPS
