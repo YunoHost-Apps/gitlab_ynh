@@ -110,7 +110,7 @@ setup_source() {
 	if test -e "$local_src"; then # Use the local source file if it is present
 		cp $local_src $src_filename
 	else # If not, download the source
-		ynh_print_info $(wget -q --show-progress -O $src_filename $src_url)
+		wget -q --show-progress -O $src_filename $src_url
 	fi
 
 	# Check the control sum
