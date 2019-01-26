@@ -17,9 +17,9 @@ if [ ! -e _common.sh ]; then
 	cp ../settings/scripts/_common.sh ./_common.sh
 	mkdir ./upgrade.d
 	mkdir ../conf
-	cp ../settings/scripts/upgrade.d/*.sh ./upgrade.d/*.sh
+	cp ../settings/scripts/upgrade.d/*.sh ./upgrade.d/
 	cp ../settings/conf/*.default ../conf/
-	chmod a+rx _common.sh upgrade.d/*.sh
+	chmod a+rx _common.sh upgrade.d/*
 fi
 
 # Load common variables and helpers
