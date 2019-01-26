@@ -58,6 +58,8 @@ ynh_app_setting_set $app use_web_account $use_web_account
 # FIND AND OPEN PORTS
 #=================================================
 
+ynh_print_info "Getting ports..."
+
 # Find free ports
 port=$(ynh_find_port 8080)
 portUnicorn=$(ynh_find_port $(($port + 1)))
@@ -98,6 +100,8 @@ setup_source $architecture
 #=================================================
 # GETTING ADMIN INFO AND ADD AS A GITLAB USER AND CONFIGURE SIGN IN SYSTEM
 #=================================================
+
+ynh_print_info "Creating an administrator user..."
 
 mailadmin=$(ynh_user_get_info $admin mail)
 rdmPass=$(ynh_string_random 30)

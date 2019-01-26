@@ -34,6 +34,8 @@ create_dir() {
 # CONFIGURATION FILE FOR GITLAB
 #=================================================
 config_gitlab() {
+    ynh_print_info "Configuring Gitlab..."
+
     create_dir
 
 	gitlab_conf_path="$config_path/gitlab.rb"
@@ -54,6 +56,8 @@ config_gitlab() {
 # REMOVE THE CONFIGURATION FILE FOR GITLAB
 #=================================================
 remove_config_gitlab() {
+    ynh_print_info "Removing the configuration file..."
+
 	ynh_secure_remove "$config_path/gitlab.rb"
 }
 
@@ -101,17 +105,20 @@ setup_source() {
     fi
     local local_src="/opt/yunohost-apps-src/${YNH_APP_ID}/${src_filename}"
 
+    ynh_print_info "Downloading Gitlab files..."
+
     if test -e "$local_src"
     then    # Use the local source file if it is present
         cp $local_src $src_filename
     else    # If not, download the source
-        local out=`wget -nv -O $src_filename $src_url 2>&1` || ynh_print_err $out
+        ynh_print_info $(wget -q --show-progress -O $src_filename $src_url)
     fi
 
     # Check the control sum
     echo "${src_sum} ${src_filename}" | ${src_sumprg} -c --status \
         || ynh_die "Corrupt source"
 
+    ynh_print_info "Installing Gitlab..."
     #Fix for the CI
     if sudo grep -qa container=lxc /proc/1/environ;
     then
@@ -129,7 +136,7 @@ setup_source() {
 # This function is inspired by the ynh_systemd_action function
 waiting_to_start() {
 
-    echo "Start Waiting"
+    ynh_print_info "Waiting for a response from Gitlab..."
 
     log_path="/var/log/gitlab/unicorn/current"
 
@@ -163,8 +170,6 @@ waiting_to_start() {
         sleep 1
         echo -n "." >&2
     done
-
-    echo "Stop Waiting"
 
     clean_check_starting
 }

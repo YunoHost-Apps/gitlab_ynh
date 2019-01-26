@@ -70,6 +70,8 @@ ynh_install_app_dependencies openssh-server
 # RESTORE CONF FILES
 #=================================================
 
+ynh_print_info "Restoring configuration files of Gitlab..."
+
 ynh_restore_file "$config_path/gitlab-secrets.json"
 ynh_restore_file "$config_path/gitlab.rb"
 
@@ -86,6 +88,8 @@ ynh_restore_file "/var/opt/$app/backups/"
 #=================================================
 # RESTORE GITLAB DATABASE
 #=================================================
+
+ynh_print_info "Restoring Gitlab..."
 
 fullfile=$(ls /var/opt/gitlab/backups/*_gitlab* --file -c1 | head -1)
 basename="/var/opt/gitlab/backups/"
