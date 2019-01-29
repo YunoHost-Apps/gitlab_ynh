@@ -24,3 +24,5 @@ nginx['listen_addresses'] = ["0.0.0.0", "[::]"] # listen on all IPv4 and IPv6 ad
 unicorn['port'] = __PORTUNICORN__
 
 unicorn['worker_processes'] = 2
+
+sidekiq['concurrency'] = 5 # base: 25
