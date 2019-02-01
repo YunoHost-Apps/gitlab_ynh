@@ -30,6 +30,8 @@ portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
 ynh_print_info "Removing Gitlab..."
 
+gitlab-ctl stop
+
 # Remove gitlab
 dpkg --remove gitlab-ce
 
