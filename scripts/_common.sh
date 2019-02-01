@@ -144,6 +144,7 @@ waiting_to_start() {
 
 	line_match_new="adopted new unicorn master"
 	line_match_existing="adopted existing unicorn master"
+	line_match_error="master failed to start"
 
 	clean_check_starting() {
 		# Stop the execution of tail
@@ -156,6 +157,10 @@ waiting_to_start() {
 	tail -F -n1 "$log_path" >"$templog" &
 	# get the PID of the tail command
 	local pid_tail=$!
+
+	if grep --quiet "${line_match_error}" $templog; then # error, so restart gitlab
+		gitlab-ctl restart
+	fi
 
 	for i in $(seq 1 3600); do
 		if grep --quiet "${line_match_new}" $templog || grep --quiet "${line_match_existing}" $templog; then
