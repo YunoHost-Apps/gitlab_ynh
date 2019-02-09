@@ -119,7 +119,7 @@ setup_source() {
 
 	ynh_print_info "Installing Gitlab..."
 	#Fix for the CI
-	if sudo grep -qa container=lxc /proc/1/environ; then
+	if grep -qa container=lxc /proc/1/environ; then
 		dpkg -i $src_filename || true # This command will fail in lxc env
 		sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
 		dpkg --configure gitlab-ce || true

@@ -74,8 +74,8 @@ nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 if [ $change_path -eq 1 ]; then
 	ynh_print_info "Changing path..."
 
-	sudo gitlab-ctl stop unicorn
-	sudo gitlab-ctl stop sidekiq
+	gitlab-ctl stop unicorn
+	gitlab-ctl stop sidekiq
 
 	# Make a backup of the original nginx config file if modified
 	ynh_backup_if_checksum_is_different "$nginx_conf_path"
@@ -103,11 +103,11 @@ fi
 
 config_gitlab
 
-sudo gitlab-ctl reconfigure
+gitlab-ctl reconfigure
 
 if [ $change_path -eq 1 ]; then
-	sudo gitlab-ctl restart
-	sudo gitlab-ctl restart unicorn
+	gitlab-ctl restart
+	gitlab-ctl restart unicorn
 fi
 
 #=================================================
