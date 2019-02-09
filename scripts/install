@@ -111,13 +111,13 @@ newuser.admin = true
 newuser.confirmed_at = Time.now
 newuser.confirmation_token = nil
 newuser.save
-ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | sudo gitlab-rails console
+ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
 #=================================================
 # RESTART TO TAKE INTO ACCOUNT CHANGES
 #=================================================
 
-sudo gitlab-ctl reconfigure
+gitlab-ctl reconfigure
 
 #=================================================
 # SETUP SSOWAT
