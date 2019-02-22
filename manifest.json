@@ -2,7 +2,7 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
-    "version": "11.7.5~ynh3",
+    "version": "11.8.0~ynh1",
     "description": {
         "en": "GitLab is a Git-repository manager.",
         "fr": "GitLab est un gestionnaire de dépôts Git."
@@ -10,12 +10,11 @@
     "url": "https://gitlab.com",
     "license": "MIT",
     "maintainer": {
-        "name": "rafi59",
-        "email": "",
-        "url": "http://example.com"
+        "name": "kay0u",
+        "email": "pierre@kayou.io"
     },
     "requirements": {
-        "yunohost": ">> 3.0.0"
+        "yunohost": ">> 3.3.0"
     },
     "multi_instance": false,
     "services": [
