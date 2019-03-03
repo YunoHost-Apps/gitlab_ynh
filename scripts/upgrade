@@ -27,6 +27,52 @@ port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
 #=================================================
+# ENSURE DOWNWARD COMPATIBILITY
+#=================================================
+
+# Fix is_public as a boolean value
+if [ "$is_public" = "Yes" ]; then
+	ynh_app_setting_set $app is_public 1
+	is_public=1
+elif [ "$is_public" = "No" ]; then
+	ynh_app_setting_set $app is_public 0
+	is_public=0
+fi
+
+# If domain doesn't exist, retrieve it
+if [ -z "$domain" ]; then
+	domain=$(grep "external_url" "/etc/gitlab/gitlab.rb" | cut -d'/' -f3) # retrieve $domain from conf file
+	if [ ${domain: -1} == "'" ]; then # if the last char of $domain is ' remove it
+		domain=${domain:0:-1}
+	fi
+	ynh_app_setting_set $app domain $domain
+fi
+
+# If path_url doesn't exist, retrieve it
+if [ -z "$path_url" ]; then
+	path_url=$(grep "location" "/etc/nginx/conf.d/${domain}.d/gitlab.conf" | cut -d' ' -f2)
+	path_url=$(ynh_normalize_url_path $path_url)
+	ynh_app_setting_set $app path_url path_url
+fi
+
+# If port doesn't exist, retrieve it
+if [ -z "$port" ]; then
+	port=$(grep -F "nginx['listen_port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
+	ynh_app_setting_set $app web_port $port
+fi
+
+# If port doesn't exist, retrieve it
+if [ -z "$portUnicorn" ]; then
+	portUnicorn=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
+	ynh_app_setting_set $app unicorn_port $portUnicorn
+fi
+
+# if this source file exist, remove it
+if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
+	ynh_secure_remove "/etc/apt/sources.list.d/gitlab-ce.list"
+fi
+
+#=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
 
