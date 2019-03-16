@@ -3,3 +3,5 @@ gitlab_version="11.8.2"
 gitlab_x86_64_source_sha256="c1ea774a39b14c57a0821916d6c75c1c8f757d3222f7d38e6c3270a47799a34f"
 
 gitlab_arm_source_sha256="886193a183a642e662923c6590c07c3b3d5cc1c2108e3818bcd84ab628e00bc3"
+
+gitlab_filename="gitlab-ce.deb"

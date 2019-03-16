@@ -6,101 +6,160 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
+source _common.sh
 source /usr/share/yunohost/helpers
 
+#=================================================
+# MANAGE SCRIPT FAILURE
+#=================================================
+
+ynh_clean_setup () {
+	ynh_secure_remove "$tempdir" 2>&1
+
+	ynh_clean_check_starting
+}
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
-# Load common variables and helpers
-source ./_common.sh
-
 #=================================================
-# RETRIEVE ARGUMENTS
+# RETRIEVE ARGUMENTS FROM THE MANIFEST
 #=================================================
 
-# Retrieve arguments
 domain=$YNH_APP_ARG_DOMAIN
 path_url=$YNH_APP_ARG_PATH
 is_public=$YNH_APP_ARG_IS_PUBLIC
 use_web_account=$YNH_APP_ARG_USE_WEB_ACCOUNT
 admin=$YNH_APP_ARG_ADMIN
 
-#=================================================
-# REGISTER DOMAIN
-#=================================================
+app=$YNH_APP_INSTANCE_NAME
 
-# Normalize the url path syntax
+#=================================================
+# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+#=================================================
+ynh_print_info "Validating installation parameters..."
+
+config_path=/etc/$app
+final_path=/opt/$app
+test ! -e "$final_path" || ynh_die "This path already contains a folder"
+
+# Detect the system architecture
+if [ -n "$(uname -m | grep 64)" ]; then
+	architecture="x86-64"
+elif [ -n "$(uname -m | grep 86)" ]; then
+	ynh_die "Gitlab is not compatible with x86 architecture"
+elif [ -n "$(uname -m | grep arm)" ]; then
+	architecture="arm"
+else
+	ynh_die "Unable to detect your achitecture, please open a bug describing \
+        your hardware and the result of the command \"uname -m\"." 1
+fi
+
 path_url=$(ynh_normalize_url_path $path_url)
 
-# This function check also the availability of this one
+# Register (book) web path
 ynh_webpath_register $app $domain $path_url
-
-#=================================================
-# REGISTER DOMAIN
-#=================================================
-
-# Check user parameter
-ynh_user_exists "$admin" ||
-	ynh_die "The chosen admin user does not exist."
 
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
+ynh_print_info "Storing installation settings..."
 
 ynh_app_setting_set $app admin $admin
 ynh_app_setting_set $app path_url $path_url
 ynh_app_setting_set $app is_public $is_public
 ynh_app_setting_set $app use_web_account $use_web_account
+ynh_app_setting_set $app final_path $final_path
+ynh_app_setting_set $app config_path $config_path
+ynh_app_setting_set $app architecture $architecture
 
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
-# FIND AND OPEN PORTS
+# FIND AND OPEN A PORT
 #=================================================
-
-ynh_print_info "Getting ports..."
+ynh_print_info "Configuring firewall..."
 
 # Find free ports
 port=$(ynh_find_port 8080)
 portUnicorn=$(ynh_find_port $(($port + 1)))
 
+# Open these port
 yunohost firewall allow --no-upnp TCP $port 2>&1
 yunohost firewall allow --no-upnp TCP $portUnicorn 2>&1
 ynh_app_setting_set $app web_port $port
 ynh_app_setting_set $app unicorn_port $portUnicorn
 
 #=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+ynh_print_info "Installing dependencies..."
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# PRECONFIGURE GITLAB
+#=================================================
+ynh_print_info "Preconfigure gitlab..."
+
+mkdir -p $config_path
+
+cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+
+ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
+ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
+ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+
+#=================================================
+# STORE THE CONFIG FILE CHECKSUM
+#=================================================
+
+ynh_store_file_checksum "$config_path/gitlab.rb"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_print_info "Setting up source files..."
+
+update_src_version() {
+	source ./upgrade.d/upgrade.last.sh
+	cp ../conf/arm.src.default ../conf/arm.src
+	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/arm.src"
+	ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/arm.src"
+	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/arm.src"
+
+	cp ../conf/x86-64.src.default ../conf/x86-64.src
+	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/x86-64.src"
+	ynh_replace_string "__SHA256_SUM__" "$gitlab_x86_64_source_sha256" "../conf/x86-64.src"
+	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/x86-64.src"
+}
+
+update_src_version
+
+tempdir="$(mktemp -d)"
+
+ynh_setup_source $tempdir $architecture
+
+if IS_PACKAGE_CHECK; then
+	dpkg -i $tempdir/$gitlab_filename || true # This command will fail in lxc env
+	sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
+	dpkg --configure gitlab-ce
+else
+	dpkg -i $tempdir/$gitlab_filename
+fi
+
+#=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Configuring nginx web server..."
 
 # Create a dedicated nginx config
 ynh_add_nginx_config
 
 #=================================================
-# CONFIGURE GITLAB
-#=================================================
-
-# Configure gitlab with gitlab.rb file
-config_gitlab
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-
-ynh_install_app_dependencies openssh-server
-
-#=================================================
-# DOWNLOAD, CHECK AND INSTALL GITLAB
-#=================================================
-
-setup_source $architecture
-
-#=================================================
 # SPECIFIC SETUP
 #=================================================
-# GETTING ADMIN INFO AND ADD AS A GITLAB USER AND CONFIGURE SIGN IN SYSTEM
+# ADD USER AND CONFIGURE SIGN IN SYSTEM
 #=================================================
-
 ynh_print_info "Creating an administrator user..."
 
 mailadmin=$(ynh_user_get_info $admin mail)
@@ -114,31 +173,41 @@ newuser.save
 ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
 #=================================================
-# RESTART TO TAKE INTO ACCOUNT CHANGES
+# RECONFIGURE TO TAKE INTO ACCOUNT CHANGES
 #=================================================
+ynh_print_info "Reconfigure gitlab..."
 
 gitlab-ctl reconfigure
 
 #=================================================
+# GENERIC FINALIZATION
+#=================================================
 # SETUP SSOWAT
 #=================================================
+ynh_print_info "Configuring SSOwat..."
 
-# If app is public, add url to SSOWat conf as skipped_uris
-if [[ $is_public -eq 1 ]]; then
+# Make app public if necessary
+if [ $is_public -eq 1 ]; then
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set "$app" unprotected_uris "/"
+	ynh_app_setting_set $app unprotected_uris "/"
 fi
 
 #=================================================
-# GENERIC FINALISATION
+# RESTART GITLAB
+#=================================================
+ynh_print_info "Restarting gitlab..."
+
+gitlab_ctl_action --action=restart --line_match="adopted new unicorn master" --log_path="/var/log/gitlab/unicorn/current" --timeout=3600
+
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
-systemctl reload nginx
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
-# WAIT
+# END OF SCRIPT
 #=================================================
 
-waiting_to_start
+ynh_print_info "Installation of $app completed"

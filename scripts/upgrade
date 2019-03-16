@@ -23,8 +23,11 @@ domain=$(ynh_app_setting_get "$app" domain)
 path_url=$(ynh_app_setting_get "$app" path_url)
 admin=$(ynh_app_setting_get "$app" admin)
 is_public=$(ynh_app_setting_get "$app" is_public)
+final_path=$(ynh_app_setting_get $app final_path)
+config_path=$(ynh_app_setting_get $app config_path)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
+architecture=$(ynh_app_setting_get "$app" architecture)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -37,6 +40,34 @@ if [ "$is_public" = "Yes" ]; then
 elif [ "$is_public" = "No" ]; then
 	ynh_app_setting_set $app is_public 0
 	is_public=0
+fi
+
+# If final_path doesn't exist, create it
+if [ -z "$final_path" ]; then
+	final_path=/opt/$app
+	ynh_app_setting_set $app final_path $final_path
+fi
+
+# If config_path doesn't exist, create it
+if [ -z "$config_path" ]; then
+	config_path=/etc/$app
+	ynh_app_setting_set $app config_path $config_path
+fi
+
+# If architecture doesn't exist, create it
+if [ -z "$architecture" ]; then
+	# Detect the system architecture
+	if [ -n "$(uname -m | grep 64)" ]; then
+		architecture="x86-64"
+	elif [ -n "$(uname -m | grep 86)" ]; then
+		ynh_die "Gitlab is not compatible with x86 architecture"
+	elif [ -n "$(uname -m | grep arm)" ]; then
+		architecture="arm"
+	else
+		ynh_die "Unable to detect your achitecture, please open a bug describing \
+			your hardware and the result of the command \"uname -m\"." 1
+	fi
+	ynh_app_setting_set $app architecture $architecture
 fi
 
 # If domain doesn't exist, retrieve it
@@ -75,14 +106,18 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
+ynh_print_info "Backing up the app before upgrading (may take a while)..."
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
-ynh_clean_setup() {
+ynh_clean_setup () {
+	ynh_secure_remove "$tempdir" 2>&1
+	
+	ynh_clean_check_starting
+
 	# restore it if the upgrade fails
 	ynh_restore_upgradebackup
 }
-
 # Exit if an error occurs during the execution of the script
 ynh_abort_if_errors
 
@@ -96,31 +131,68 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
+# INSTALL DEPENDENCIES
+#=================================================
+ynh_print_info "Installing dependencies..."
+
+ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# PRECONFIGURE GITLAB
+#=================================================
+ynh_print_info "Preconfigure gitlab..."
+
+ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
+
+mkdir -p $config_path
+
+cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+
+ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
+ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
+ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+
+ynh_store_file_checksum "$config_path/gitlab.rb"
+
+#=================================================
+# DOWNLOAD, CHECK AND UNPACK SOURCE
+#=================================================
+ynh_print_info "Setting up source files..."
+
+update_src_version() {
+	source ./upgrade.d/upgrade.last.sh
+	cp ../conf/arm.src.default ../conf/arm.src
+	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/arm.src"
+	ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/arm.src"
+	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/arm.src"
+
+	cp ../conf/x86-64.src.default ../conf/x86-64.src
+	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/x86-64.src"
+	ynh_replace_string "__SHA256_SUM__" "$gitlab_x86_64_source_sha256" "../conf/x86-64.src"
+	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/x86-64.src"
+}
+
+update_src_version
+
+tempdir="$(mktemp -d)"
+
+ynh_setup_source $tempdir $architecture
+
+if IS_PACKAGE_CHECK; then
+	dpkg -i $tempdir/$gitlab_filename || true # This command will fail in lxc env
+	sed -i 's/command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"/command \"cat \/etc\/sysctl.conf\"/g' $final_path/embedded/cookbooks/package/resources/sysctl.rb
+	dpkg --configure gitlab-ce
+else
+	dpkg -i $tempdir/$gitlab_filename
+fi
+
+#=================================================
 # NGINX CONFIGURATION
 #=================================================
+ynh_print_info "Configuring nginx web server..."
 
-# Modify Nginx configuration file and copy it to Nginx conf directory
+# Create a dedicated nginx config
 ynh_add_nginx_config
-
-#=================================================
-# CONFIGURE GITLAB
-#=================================================
-
-# Configure gitlab with gitlab.rb file
-config_gitlab
-
-#=================================================
-# UPGRADE DEPENDENCIES
-#=================================================
-
-ynh_install_app_dependencies openssh-server
-
-#=================================================
-# DOWNLOAD, CHECK AND INSTALL GITLAB
-#=================================================
-
-# Update Gitlab
-setup_source $architecture
 
 #=================================================
 # GENERIC FINALIZATION
@@ -135,14 +207,22 @@ if [[ $is_public -eq 1 ]]; then
 fi
 
 #=================================================
+# RESTART GITLAB
+#=================================================
+ynh_print_info "Restarting gitlab..."
+
+gitlab_ctl_action --action=restart --line_match="adopted new unicorn master" --log_path="/var/log/gitlab/unicorn/current" --timeout=3600
+
+#=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
-# Reload nginx service
-systemctl reload nginx
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
-# WAIT
+# END OF SCRIPT
 #=================================================
 
-waiting_to_start
+ynh_print_info "Upgrade of $app completed"
+
