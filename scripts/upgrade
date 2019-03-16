@@ -163,8 +163,13 @@ update_src_version() {
 	source ./upgrade.d/upgrade.last.sh
 	cp ../conf/$architecture.src.default ../conf/$architecture.src
 	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/$architecture.src"
-	ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/$architecture.src"
 	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/$architecture.src"
+
+	if [ $architecture = "x86-64" ]; then
+		ynh_replace_string "__SHA256_SUM__" "$gitlab_x86_64_source_sha256" "../conf/$architecture.src"
+	elif [ $architecture = "arm" ]; then
+		ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/$architecture.src"
+	fi
 }
 
 update_src_version
