@@ -161,15 +161,10 @@ ynh_print_info "Setting up source files..."
 
 update_src_version() {
 	source ./upgrade.d/upgrade.last.sh
-	cp ../conf/arm.src.default ../conf/arm.src
-	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/arm.src"
-	ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/arm.src"
-	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/arm.src"
-
-	cp ../conf/x86-64.src.default ../conf/x86-64.src
-	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/x86-64.src"
-	ynh_replace_string "__SHA256_SUM__" "$gitlab_x86_64_source_sha256" "../conf/x86-64.src"
-	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/x86-64.src"
+	cp ../conf/$architecture.src.default ../conf/$architecture.src
+	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/$architecture.src"
+	ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/$architecture.src"
+	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/$architecture.src"
 }
 
 update_src_version
