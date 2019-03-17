@@ -141,8 +141,8 @@ ynh_setup_source $tempdir $architecture
 
 if IS_PACKAGE_CHECK; then
 	if [ ! dpkg -i $tempdir/$gitlab_filename ]; then # This command will fail in lxc env
-	ynh_replace_string "command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" "command \"cat \/etc\/sysctl.conf\"" "$final_path/embedded/cookbooks/package/resources/sysctl.rb"
-	dpkg --configure gitlab-ce
+		ynh_replace_string "command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" "command \"cat \/etc\/sysctl.conf\"" "$final_path/embedded/cookbooks/package/resources/sysctl.rb"
+		dpkg --configure gitlab-ce
 	fi
 else
 	dpkg -i $tempdir/$gitlab_filename
@@ -198,7 +198,7 @@ fi
 #=================================================
 ynh_print_info "Restarting gitlab..."
 
-gitlab_ctl_action --action=restart --line_match="adopted new unicorn master" --log_path="/var/log/gitlab/unicorn/current" --timeout=3600
+gitlab_ctl_action --action=restart --timeout=3600
 
 #=================================================
 # RELOAD NGINX

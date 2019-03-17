@@ -117,7 +117,7 @@ ynh_store_file_checksum "$config_path/gitlab.rb"
 
 gitlab-ctl reconfigure
 
-gitlab_ctl_action --action=restart --line_match="adopted new unicorn master" --log_path="/var/log/gitlab/unicorn/current" --timeout=3600
+gitlab_ctl_action --action=restart --timeout=3600
 
 #=================================================
 # GENERIC FINALISATION
