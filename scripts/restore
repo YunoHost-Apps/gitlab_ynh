@@ -95,7 +95,7 @@ tempdir="$(mktemp -d)"
 ynh_setup_source $tempdir $architecture
 
 if IS_PACKAGE_CHECK; then
-	if [ ! dpkg -i $tempdir/$gitlab_filename ]; then # This command will fail in lxc env
+	if ! dpkg -i $tempdir/$gitlab_filename ; then # This command will fail in lxc env
 		ynh_replace_string "command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" "command \"cat \/etc\/sysctl.conf\"" "$final_path/embedded/cookbooks/package/resources/sysctl.rb"
 		dpkg --configure gitlab-ce
 	fi
