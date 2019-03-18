@@ -137,16 +137,16 @@ gitlab_ctl_action() {
     local action=${action:-start}
     local timeout=${timeout:-300}
 
-    # Start to read the log
-    local templog="$(mktemp)"
-    # Read the specified log file
-    tail -F -n0 "$log_path" > "$templog" 2>&1 &
-    # Get the PID of the tail command
-    local pid_tail=$!
-
     ynh_print_info --message="${action^} gitlab"
 
     gitlab-ctl $action
+
+    # Start to read the log
+    local templog="$(mktemp)"
+    # Read the specified log file
+    tail -F -n1 "$log_path" > "$templog" 2>&1 &
+    # Get the PID of the tail command
+    local pid_tail=$!
 
     # Start the timeout and try to find line_match_new or line_match_existing
     local i=0
@@ -168,17 +168,16 @@ gitlab_ctl_action() {
             ynh_print_warn "Error during ${action}ing, reconfiguring and restarting gitlab"
             ynh_clean_check_starting
 
-            # Start to read the log
-            local templog="$(mktemp)"
-            # Read the specified log file
-            tail -F -n0 "$log_path" > "$templog" 2>&1 &
-            # Get the PID of the tail command
-            local pid_tail=$!
-            gitlab-ctl reconfigure
-
             gitlab-ctl restart
             # Force restart unicorn
             gitlab-ctl restart unicorn
+
+            # Start to read the log
+            local templog="$(mktemp)"
+            # Read the specified log file
+            tail -F -n1 "$log_path" > "$templog" 2>&1 &
+            # Get the PID of the tail command
+            local pid_tail=$!
         fi
         if [ $i -eq 3 ]; then
             echo -n "Please wait, Gitlab is ${action}ing" >&2

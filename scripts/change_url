@@ -105,6 +105,9 @@ mkdir -p $config_path
 
 cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
 
+domain="$new_domain"
+path_url="$new_path"
+
 ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
@@ -115,9 +118,12 @@ ynh_store_file_checksum "$config_path/gitlab.rb"
 # RECONFIGURE GITLAB
 #=================================================
 
-gitlab-ctl reconfigure
+gitlab_ctl_action --action=reconfigure --timeout=3600
 
-gitlab_ctl_action --action=restart --timeout=3600
+if [ $change_path -eq 1 ]; then
+	gitlab-ctl restart
+	gitlab_ctl_action --action="restart unicorn" --timeout=3600
+fi
 
 #=================================================
 # GENERIC FINALISATION
