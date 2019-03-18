@@ -118,12 +118,16 @@ ynh_store_file_checksum "$config_path/gitlab.rb"
 # RECONFIGURE GITLAB
 #=================================================
 
-gitlab_ctl_action --action=reconfigure --timeout=3600
+gitlab-ctl reconfigure
 
 if [ $change_path -eq 1 ]; then
 	gitlab-ctl restart
-	gitlab_ctl_action --action="restart unicorn" --timeout=3600
+	gitlab-ctl restart unicorn
 fi
+
+ynh_print_info "Waiting for gitlab..."
+
+gitlab_ctl_waiting --timeout=3600
 
 #=================================================
 # GENERIC FINALISATION

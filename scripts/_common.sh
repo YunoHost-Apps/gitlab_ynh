@@ -117,13 +117,11 @@ ynh_systemd_action() {
 
 # Start (or other actions) a service,  print a log in case of failure and optionnaly wait until the service is completely started
 #
-# usage: ynh_systemd_action [-a action] [ [-t timeout] ]
-# | arg: -a, --action=       - Action to perform with systemctl. Default: start
+# usage: gitlab_ctl_waiting [ [-t timeout] ]
 # | arg: -t, --timeout=      - Timeout - The maximum time to wait before ending the watching. Default : 300 seconds.
-gitlab_ctl_action() {
+gitlab_ctl_waiting() {
     # Declare an array to define the options of this helper.
-    declare -Ar args_array=( [a]=action= [t]=timeout= )
-    local action
+    declare -Ar args_array=( [t]=timeout= )
     local timeout
 
     # Manage arguments with getopts
@@ -134,53 +132,25 @@ gitlab_ctl_action() {
 	local line_match_error="master failed to start"
     local log_path="/var/log/gitlab/unicorn/current"
 
-    local action=${action:-start}
     local timeout=${timeout:-300}
 
-    ynh_print_info --message="${action^} gitlab"
-
-    gitlab-ctl $action
-
-    # Start to read the log
+    # Following the starting of the app in its log
     local templog="$(mktemp)"
-    # Read the specified log file
-    tail -F -n1 "$log_path" > "$templog" 2>&1 &
-    # Get the PID of the tail command
+    tail -F -n1 "$log_path" >"$templog" &
+    # get the PID of the tail command
     local pid_tail=$!
+
+    if grep --quiet "${line_match_error}" $templog; then # error, so restart gitlab
+        gitlab-ctl restart
+    fi
 
     # Start the timeout and try to find line_match_new or line_match_existing
     local i=0
     for i in $(seq 1 $timeout)
     do
-        # Read the log until the sentence is found, that means the app finished to start. Or run until the timeout
-        if grep --quiet "$line_match_new" "$templog"
-        then
+        if grep --quiet "${line_match_new}" "$templog" || grep --quiet "${line_match_existing}" "$templog"; then
             ynh_print_info --message="Gitlab has correctly started."
             break
-        fi
-        if grep --quiet "$line_match_existing" "$templog"
-        then
-            ynh_print_info --message="Gitlab has correctly started."
-            break
-        fi
-        if grep --quiet "$line_match_error" "$templog"
-        then
-            ynh_print_warn "Error during ${action}ing, reconfiguring and restarting gitlab"
-            ynh_clean_check_starting
-
-            gitlab-ctl restart
-            # Force restart unicorn
-            gitlab-ctl restart unicorn
-
-            # Start to read the log
-            local templog="$(mktemp)"
-            # Read the specified log file
-            tail -F -n1 "$log_path" > "$templog" 2>&1 &
-            # Get the PID of the tail command
-            local pid_tail=$!
-        fi
-        if [ $i -eq 3 ]; then
-            echo -n "Please wait, Gitlab is ${action}ing" >&2
         fi
         if [ $i -ge 3 ]; then
             echo -n "." >&2

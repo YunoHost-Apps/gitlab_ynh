@@ -210,9 +210,9 @@ fi
 #=================================================
 # RESTART GITLAB
 #=================================================
-ynh_print_info "Restarting gitlab..."
+ynh_print_info "Waiting for gitlab..."
 
-gitlab_ctl_action --action=restart --timeout=3600
+gitlab_ctl_waiting --timeout=3600
 
 #=================================================
 # RELOAD NGINX
