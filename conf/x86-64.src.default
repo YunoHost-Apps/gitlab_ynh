@@ -1,6 +1,6 @@
 SOURCE_URL=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/stretch/gitlab-ce___VERSION__-ce.0_amd64.deb/download.deb
 SOURCE_SUM=__SHA256_SUM__
 SOURCE_SUM_PRG=sha256sum
-SOURCE_FILENAME=gitlab-ce___VERSION__-ce.0_amd64.deb
+SOURCE_FILENAME=__SOURCE_FILENAME__
 SOURCE_EXTRACT=false
 SOURCE_FORMAT=deb

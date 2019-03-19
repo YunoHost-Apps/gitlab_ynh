@@ -1,19 +1,13 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
+# GENERIC STARTING
 #=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# IMPORT GENERIC HELPERS
+source _common.sh
 source /usr/share/yunohost/helpers
-
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-# Import common cmd
-source ./_common.sh
 
 #=================================================
 # RETRIEVE ARGUMENTS
@@ -30,21 +24,22 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # LOAD SETTINGS
 #=================================================
+ynh_print_info "Loading installation settings..."
 
+# Needed for helper "ynh_add_nginx_config"
+final_path=$(ynh_app_setting_get $app final_path)
+config_path=$(ynh_app_setting_get $app config_path)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 
 #=================================================
-# CHECK PATHS SYNTAX
+# CHECK THE SYNTAX OF THE PATHS
 #=================================================
 
 test -n "$old_path" || old_path="/"
 test -n "$new_path" || new_path="/"
 new_path=$(ynh_normalize_url_path $new_path)
 old_path=$(ynh_normalize_url_path $old_path)
-
-domain="$new_domain"
-path_url="$new_path"
 
 #=================================================
 # CHECK WHICH PARTS SHOULD BE CHANGED
@@ -63,16 +58,16 @@ fi
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
-# MODIFY URL IN NGINX
+# MODIFY URL IN NGINX CONF
 #=================================================
+ynh_print_info "Updating nginx web server configuration..."
 
-#doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
-
-# Gitlab configuration
 nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 
 if [ $change_path -eq 1 ]; then
 	ynh_print_info "Changing path..."
+
+	#doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
 
 	gitlab-ctl stop unicorn
 	gitlab-ctl stop sidekiq
@@ -98,10 +93,30 @@ if [ $change_domain -eq 1 ]; then
 fi
 
 #=================================================
+# SPECIFIC MODIFICATIONS
+#=================================================
 # CONFIGURE GITLAB
 #=================================================
+ynh_print_info "Configure gitlab..."
 
-config_gitlab
+ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
+
+mkdir -p $config_path
+
+cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+
+domain="$new_domain"
+path_url="$new_path"
+
+ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
+ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
+ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+
+ynh_store_file_checksum "$config_path/gitlab.rb"
+
+#=================================================
+# RECONFIGURE GITLAB
+#=================================================
 
 gitlab-ctl reconfigure
 
@@ -110,16 +125,21 @@ if [ $change_path -eq 1 ]; then
 	gitlab-ctl restart unicorn
 fi
 
+ynh_print_info "Waiting for gitlab..."
+
+gitlab_ctl_waiting --timeout=3600
+
 #=================================================
 # GENERIC FINALISATION
 #=================================================
 # RELOAD NGINX
 #=================================================
+ynh_print_info "Reloading nginx web server..."
 
-systemctl reload nginx
+ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
-# WAIT
+# END OF SCRIPT
 #=================================================
 
-waiting_to_start
+ynh_print_info "Change of URL completed for $app"
