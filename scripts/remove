@@ -25,6 +25,16 @@ config_path=$(ynh_app_setting_get $app config_path)
 #=================================================
 # STANDARD REMOVE
 #=================================================
+# REMOVE SERVICE FROM ADMIN PANEL
+#=================================================
+
+if yunohost service status "gitlab-runsvdir" >/dev/null 2>&1
+then
+	ynh_print_info "Removing $app service"
+	yunohost service remove "gitlab-runsvdir"
+fi
+
+#=================================================
 # STOP GITLAB
 #=================================================
 ynh_print_info "Stopping gitlab"

@@ -183,6 +183,12 @@ gitlab-ctl reconfigure
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log /var/log/$app/gitlab-rails/api_json.log /var/log/$app/gitlab-rails/production.log /var/log/$app/gitlab-rails/production_json.log /var/log/$app/gitlab-rails/sidekiq.log /var/log/$app/unicorn/unicorn_stderr.log /var/log/$app/unicorn/current /var/log/$app/alertmanager/current /var/log/$app/gitaly/current /var/log/$app/gitlab-monitor/current /var/log/$app/gitlab-shell/gitlab-shell.log /var/log/$app/gitlab-workhorse/current /var/log/$app/logrotate/current /var/log/$app/nginx/current /var/log/$app/nginx/access.log /var/log/$app/nginx/error.log /var/log/$app/nginx/gitlab_access.log /var/log/$app/nginx/gitlab_error.log /var/log/$app/node-exporter/current /var/log/$app/postgres-exporter/current /var/log/$app/postgresql/current /var/log/$app/prometheus/current /var/log/$app/redis/current /var/log/$app/redis-exporter/current"
+
+#=================================================
 # SETUP SSOWAT
 #=================================================
 ynh_print_info "Configuring SSOwat..."
@@ -194,11 +200,12 @@ if [ $is_public -eq 1 ]; then
 fi
 
 #=================================================
-# RESTART GITLAB
+# WAITING GITLAB
 #=================================================
 ynh_print_info "Waiting for gitlab..."
 
-gitlab_ctl_waiting --timeout=3600
+# Action status to just wait the service
+ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --timeout=3600
 
 #=================================================
 # RELOAD NGINX
