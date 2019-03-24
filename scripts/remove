@@ -96,7 +96,7 @@ fi
 ynh_secure_remove "/var/opt/$app"
 
 # Remove the log files
-ynh_secure_remove "/var/log/$app/"
+ynh_secure_remove "/var/log/$app"
 
 #=================================================
 # END OF SCRIPT
