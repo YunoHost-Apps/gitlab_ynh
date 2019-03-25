@@ -131,7 +131,7 @@ fi
 ynh_print_info "Waiting for gitlab..."
 
 # Action status to just wait the service
-ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --timeout=3600
+ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="unicorn master" --timeout=3600
 
 #=================================================
 # GENERIC FINALISATION
