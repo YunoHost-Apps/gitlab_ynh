@@ -113,62 +113,6 @@ ynh_systemd_action() {
     fi
 }
 
-# This function is inspired by the ynh_systemd_action function
-
-# Start (or other actions) a service,  print a log in case of failure and optionnaly wait until the service is completely started
-#
-# usage: gitlab_ctl_waiting [ [-t timeout] ]
-# | arg: -t, --timeout=      - Timeout - The maximum time to wait before ending the watching. Default : 300 seconds.
-gitlab_ctl_waiting() {
-    # Declare an array to define the options of this helper.
-    declare -Ar args_array=( [t]=timeout= )
-    local timeout
-
-    # Manage arguments with getopts
-    ynh_handle_getopts_args "$@"
-
-	local line_match_new="adopted new unicorn master"
-	local line_match_existing="adopted existing unicorn master"
-	local line_match_error="master failed to start"
-    local log_path="/var/log/gitlab/unicorn/current"
-
-    local timeout=${timeout:-300}
-
-    # Following the starting of the app in its log
-    local templog="$(mktemp)"
-    tail -F -n1 "$log_path" >"$templog" &
-    # get the PID of the tail command
-    local pid_tail=$!
-
-    if grep --quiet "${line_match_error}" $templog; then # error, so restart gitlab
-        gitlab-ctl restart
-    fi
-
-    # Start the timeout and try to find line_match_new or line_match_existing
-    local i=0
-    for i in $(seq 1 $timeout)
-    do
-        if grep --quiet "${line_match_new}" "$templog" || grep --quiet "${line_match_existing}" "$templog"; then
-            ynh_print_info --message="Gitlab has correctly started."
-            break
-        fi
-        if [ $i -ge 3 ]; then
-            echo -n "." >&2
-        fi
-        sleep 1
-    done
-    if [ $i -ge 3 ]; then
-        echo "" >&2
-    fi
-    if [ $i -eq $timeout ]
-    then
-        ynh_print_warn --message="Gitlab didn't fully started before the timeout."
-        ynh_print_warn --message="Please find here an extract of the end of the log of Gitlab:"
-        test -e "$log_path" && echo "--" >&2 && tail --lines=$length "$log_path" >&2
-    fi
-    ynh_clean_check_starting
-}
-
 # Clean temporary process and file used by ynh_check_starting
 # (usually used in ynh_clean_setup scripts)
 #
