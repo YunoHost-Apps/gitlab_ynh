@@ -28,6 +28,7 @@ config_path=$(ynh_app_setting_get $app config_path)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
 architecture=$(ynh_app_setting_get "$app" architecture)
+unicorn_worker_processes=$(ynh_app_setting_get "$app" unicorn_worker_processes)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -52,6 +53,21 @@ fi
 if [ -z "$config_path" ]; then
 	config_path=/etc/$app
 	ynh_app_setting_set $app config_path $config_path
+fi
+
+if [ -z "$unicorn_worker_processes" ]; then
+	# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
+	unicorn_worker_processes=$(($(nproc) + 1 ))
+
+	# If the server has at least 2GB of RAM
+	if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then
+		# Min 3 worker processes
+		unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+	else
+		# 2 worker processes
+		unicorn_worker_processes=2
+	fi
+	ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
 fi
 
 # If architecture doesn't exist, create it
@@ -151,6 +167,7 @@ cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
 ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
 
 ynh_store_file_checksum "$config_path/gitlab.rb"
 
