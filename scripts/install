@@ -54,6 +54,18 @@ else
         your hardware and the result of the command \"uname -m\"." 1
 fi
 
+# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
+unicorn_worker_processes=$(($(nproc) + 1 ))
+
+# If the server has at least 2GB of RAM
+if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then
+	# Min 3 worker processes
+	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+else
+	# 2 worker processes
+	unicorn_worker_processes=2
+fi
+
 path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
@@ -71,6 +83,7 @@ ynh_app_setting_set $app use_web_account $use_web_account
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app config_path $config_path
 ynh_app_setting_set $app architecture $architecture
+ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -108,6 +121,7 @@ cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
 ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -183,6 +197,12 @@ gitlab-ctl reconfigure
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
+# ADVERTISE SERVICE IN ADMIN PANEL
+#=================================================
+
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log /var/log/$app/gitlab-rails/api_json.log /var/log/$app/gitlab-rails/production.log /var/log/$app/gitlab-rails/production_json.log /var/log/$app/gitlab-rails/sidekiq.log /var/log/$app/unicorn/unicorn_stderr.log /var/log/$app/unicorn/current /var/log/$app/alertmanager/current /var/log/$app/gitaly/current /var/log/$app/gitlab-monitor/current /var/log/$app/gitlab-shell/gitlab-shell.log /var/log/$app/gitlab-workhorse/current /var/log/$app/logrotate/current /var/log/$app/nginx/current /var/log/$app/nginx/access.log /var/log/$app/nginx/error.log /var/log/$app/nginx/gitlab_access.log /var/log/$app/nginx/gitlab_error.log /var/log/$app/node-exporter/current /var/log/$app/postgres-exporter/current /var/log/$app/postgresql/current /var/log/$app/prometheus/current /var/log/$app/redis/current /var/log/$app/redis-exporter/current"
+
+#=================================================
 # SETUP SSOWAT
 #=================================================
 ynh_print_info "Configuring SSOwat..."
@@ -192,13 +212,6 @@ if [ $is_public -eq 1 ]; then
 	# unprotected_uris allows SSO credentials to be passed anyway.
 	ynh_app_setting_set $app unprotected_uris "/"
 fi
-
-#=================================================
-# RESTART GITLAB
-#=================================================
-ynh_print_info "Waiting for gitlab..."
-
-gitlab_ctl_waiting --timeout=3600
 
 #=================================================
 # RELOAD NGINX

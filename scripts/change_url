@@ -31,6 +31,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
+unicorn_worker_processes=$(ynh_app_setting_get "$app" unicorn_worker_processes)
 
 #=================================================
 # CHECK THE SYNTAX OF THE PATHS
@@ -111,6 +112,7 @@ path_url="$new_path"
 ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
 
 ynh_store_file_checksum "$config_path/gitlab.rb"
 
@@ -125,9 +127,13 @@ if [ $change_path -eq 1 ]; then
 	gitlab-ctl restart unicorn
 fi
 
+#=================================================
+# WAITING GITLAB
+#=================================================
 ynh_print_info "Waiting for gitlab..."
 
-gitlab_ctl_waiting --timeout=3600
+# Action status to just wait the service
+ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
 
 #=================================================
 # GENERIC FINALISATION
