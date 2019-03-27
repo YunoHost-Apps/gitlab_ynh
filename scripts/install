@@ -54,6 +54,18 @@ else
         your hardware and the result of the command \"uname -m\"." 1
 fi
 
+# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
+unicorn_worker_processes=$(($(nproc) + 1 ))
+
+# If the server has at least 2GB of RAM
+if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then
+	# Min 3 worker processes
+	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+else
+	# 2 worker processes
+	unicorn_worker_processes=2
+fi
+
 path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
@@ -71,6 +83,7 @@ ynh_app_setting_set $app use_web_account $use_web_account
 ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app config_path $config_path
 ynh_app_setting_set $app architecture $architecture
+ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -108,6 +121,7 @@ cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
 ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
+ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
