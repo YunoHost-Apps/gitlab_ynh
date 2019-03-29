@@ -66,6 +66,9 @@ else
 	unicorn_worker_processes=2
 fi
 
+# Could be an option?
+client_max_body_size="250m"
+
 path_url=$(ynh_normalize_url_path $path_url)
 
 # Register (book) web path
@@ -84,6 +87,7 @@ ynh_app_setting_set $app final_path $final_path
 ynh_app_setting_set $app config_path $config_path
 ynh_app_setting_set $app architecture $architecture
 ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
+ynh_app_setting_set $app client_max_body_size $client_max_body_size
 
 #=================================================
 # STANDARD MODIFICATIONS
@@ -122,6 +126,7 @@ ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
 ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
+ynh_replace_string "__CLIENT_MAX_BODY_SIZE__" "$client_max_body_size" "$config_path/gitlab.rb"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -168,7 +173,7 @@ fi
 ynh_print_info "Configuring nginx web server..."
 
 # Create a dedicated nginx config
-ynh_add_nginx_config
+ynh_add_nginx_config $client_max_body_size
 
 #=================================================
 # SPECIFIC SETUP

@@ -20,6 +20,7 @@ EOS
 nginx['listen_port'] = __PORT__
 nginx['listen_https'] = false
 nginx['listen_addresses'] = ["0.0.0.0", "[::]"] # listen on all IPv4 and IPv6 addresses
+nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 
 unicorn['port'] = __PORTUNICORN__
 
