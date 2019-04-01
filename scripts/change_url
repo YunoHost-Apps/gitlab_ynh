@@ -80,7 +80,7 @@ if [ $change_path -eq 1 ]; then
 	domain="$old_domain"
 	path_url="$new_path"
 	# Create a dedicated nginx config
-	ynh_add_nginx_config $client_max_body_size
+	ynh_add_nginx_config client_max_body_size
 fi
 
 # Change the domain for nginx
