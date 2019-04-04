@@ -27,6 +27,7 @@ final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
+portSidekiq=$(ynh_app_setting_get "$app" sidekiq_port)
 architecture=$(ynh_app_setting_get "$app" architecture)
 unicorn_worker_processes=$(ynh_app_setting_get "$app" unicorn_worker_processes)
 client_max_body_size=$(ynh_app_setting_get "$app" client_max_body_size)
@@ -69,6 +70,12 @@ if [ -z "$unicorn_worker_processes" ]; then
 		unicorn_worker_processes=2
 	fi
 	ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
+fi
+
+if [ -z "$portSidekiq" ]; then
+	portSidekiq=$(ynh_find_port $(($portUnicorn + 1)))
+	
+	ynh_app_setting_set $app sidekiq_port $portSidekiq
 fi
 
 # If architecture doesn't exist, create it
@@ -177,6 +184,7 @@ ynh_replace_string "__UNICORN_PORT__" "$portUnicorn" "$config_path/gitlab.rb"
 ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
 ynh_replace_string "__CLIENT_MAX_BODY_SIZE__" "$client_max_body_size" "$config_path/gitlab.rb"
 ynh_replace_string "__SSH_PORT__" "$ssh_port" "$config_path/gitlab.rb"
+ynh_replace_string "__SIDEKIQ_PORT__" "$portSidekiq" "$config_path/gitlab.rb"
 
 ynh_store_file_checksum "$config_path/gitlab.rb"
 

@@ -705,7 +705,7 @@ unicorn['port'] = __UNICORN_PORT__
 sidekiq['concurrency'] = 5
 # sidekiq['metrics_enabled'] = true
 # sidekiq['listen_address'] = "localhost"
-# sidekiq['listen_port'] = 8082
+sidekiq['listen_port'] = __SIDEKIQ_PORT__
 
 ################################################################################
 ## gitlab-shell
