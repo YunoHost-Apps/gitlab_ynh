@@ -169,12 +169,14 @@ ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
 mkdir -p $config_path
 
 cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
 ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
 ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
 ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
 ynh_replace_string "__CLIENT_MAX_BODY_SIZE__" "$client_max_body_size" "$config_path/gitlab.rb"
+ynh_replace_string "__SSH_PORT__" "$ssh_port" "$config_path/gitlab.rb"
 
 ynh_store_file_checksum "$config_path/gitlab.rb"
 

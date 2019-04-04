@@ -1,5 +1,6 @@
 external_url '__GENERATED_EXTERNAL_URL__'
 
+gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 gitlab_rails['ldap_enabled'] = true
 gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block with 'EOS' below
   main: # 'main' is the GitLab 'provider ID' of this LDAP server
