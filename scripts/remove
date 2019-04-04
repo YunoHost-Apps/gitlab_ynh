@@ -77,6 +77,7 @@ ynh_remove_nginx_config
 # CLOSE A PORT
 #=================================================
 
+# These ports are no longer open but were in previous versions
 if yunohost firewall list | grep -q "\- $port$"; then
 	ynh_print_info "Closing port $port"
 	ynh_exec_warn_less yunohost firewall disallow TCP $port
