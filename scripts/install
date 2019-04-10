@@ -89,6 +89,9 @@ ynh_app_setting_set $app architecture $architecture
 ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
 ynh_app_setting_set $app client_max_body_size $client_max_body_size
 
+ynh_app_setting_set $app overwrite_nginx "1"
+ynh_app_setting_set $app overwrite_gitlab_config "1"
+
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
