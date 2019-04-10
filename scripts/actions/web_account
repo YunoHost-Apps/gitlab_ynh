@@ -1,0 +1,57 @@
+#!/bin/bash
+
+#=================================================
+# GENERIC STARTING
+#=================================================
+# IMPORT GENERIC HELPERS
+#=================================================
+
+source scripts/_common.sh
+source /usr/share/yunohost/helpers
+
+#=================================================
+# RETRIEVE ARGUMENTS
+#=================================================
+
+# Get use_web_account
+use_web_account=${YNH_ACTION_USE_WEB_ACCOUNT}
+
+app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
+
+#=================================================
+# CHECK IF ARGUMENTS ARE CORRECT
+#=================================================
+
+#=================================================
+# CHECK IF AN ACTION HAS TO BE DONE
+#=================================================
+
+use_web_account_old=$(ynh_app_setting_get $app use_web_account)
+
+if [ $use_web_account -eq $use_web_account_old ]
+then
+	ynh_die "use_web_account is already set as $use_web_account." 0
+fi
+
+#=================================================
+# SPECIFIC ACTION
+#=================================================
+# SET USER CREATION POLICY
+#=================================================
+if [ $use_web_account -eq 0 ]; then
+	web_account="Enable"
+else
+	web_account="Disable"
+fi
+ynh_print_info --message="$web_account web user creation..."
+
+echo "ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
+
+# Update the config of the app
+ynh_app_setting_set $app use_web_account $use_web_account
+
+#=================================================
+# END OF SCRIPT
+#=================================================
+
+ynh_print_info --message="Execution completed"

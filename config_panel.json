@@ -1,0 +1,57 @@
+{
+    "name": "GitLab configuration panel",
+    "version": "0.1",
+    "panel": [
+        {
+            "name": "GitLab configuration",
+            "id": "main",
+            "sections": [
+                {
+                    "name": "Public access",
+                    "id": "is_public",
+                    "options": [
+                        {
+                            "name": "Is it a public app ?",
+                            "id": "is_public",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    ]
+                },
+                {
+                    "name": "Overwriting config files",
+                    "id": "overwrite_files",
+                    "options": [
+                        {
+                            "name": "Overwrite the nginx config file ?",
+                            "help": "If the file is overwritten, a backup will be created.",
+                            "id": "overwrite_nginx",
+                            "type": "boolean",
+                            "default": true
+                        },
+                        {
+                            "name": "Overwrite the gitlab.rb config file ?",
+                            "help": "If the file is overwritten, a backup will be created.",
+                            "id": "overwrite_gitlab_config",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    ]
+                },
+                {
+                    "name": "External users",
+                    "id": "users",
+                    "options": [
+                        {
+                            "name": "Authorized external user creation ?",
+                            "help": "Allow user to be created without yunohost account.",
+                            "id": "use_web_account",
+                            "type": "boolean",
+                            "default": true
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
