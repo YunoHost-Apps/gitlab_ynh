@@ -27,19 +27,23 @@ app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
 
 # is_public
 old_is_public="$(ynh_app_setting_get $app is_public)"
+old_is_public=$(bool_to_true_false $old_is_public)
 is_public="${YNH_CONFIG_MAIN_IS_PUBLIC_IS_PUBLIC:-$old_is_public}"
 
 # Overwrite nginx configuration
 old_overwrite_nginx="$(ynh_app_setting_get $app overwrite_nginx)"
+old_overwrite_nginx=$(bool_to_true_false $old_overwrite_nginx)
 overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwrite_nginx}"
 
 # Overwrite gitlab.rb configuration
 old_overwrite_gitlab_config="$(ynh_app_setting_get $app overwrite_gitlab_config)"
+old_overwrite_gitlab_config=$(bool_to_true_false $old_overwrite_gitlab_config)
 overwrite_gitlab_config="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_GITLAB_CONFIG:-$old_overwrite_gitlab_config}"
 
 # use_web_account
 old_use_web_account="$(ynh_app_setting_get $app use_web_account)"
-use_web_account="${YNH_CONFIG_MAIN_GLOBAL_CONFIG_EMAIL_TYPE:-$old_admin_mail_html}"
+old_use_web_account=$(bool_to_true_false $old_use_web_account)
+use_web_account="${YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT:-$old_use_web_account}"
 
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
@@ -63,10 +67,20 @@ show_config() {
 
 apply_config() {
 	# Change public accessibility
-	yunohost app action run $app public_private --args $is_public
+	if [ "$is_public" = "true" ]
+	then
+		yunohost app action run $app public_private --args is_public=1
+	else
+		yunohost app action run $app public_private --args is_public=0
+	fi
 
 	# Change use_web_account
-	yunohost app action run $app web_account --args $use_web_account
+	if [ "$use_web_account" = "true" ]
+	then
+		yunohost app action run $app web_account --args use_web_account=1
+	else
+		yunohost app action run $app web_account --args use_web_account=0
+	fi
 
 	# Set overwrite_nginx
 	ynh_app_setting_set $app overwrite_nginx "$overwrite_nginx"
@@ -81,6 +95,6 @@ apply_config() {
 #=================================================
 
 case $1 in
-	show) show_config ;;
-	apply) apply_config ;;
+  show) show_config;;
+  apply) apply_config;;
 esac

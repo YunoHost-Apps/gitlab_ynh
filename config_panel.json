@@ -13,7 +13,7 @@
                         {
                             "name": "Is it a public app ?",
                             "id": "is_public",
-                            "type": "boolean",
+                            "type": "bool",
                             "default": true
                         }
                     ]
@@ -26,14 +26,14 @@
                             "name": "Overwrite the nginx config file ?",
                             "help": "If the file is overwritten, a backup will be created.",
                             "id": "overwrite_nginx",
-                            "type": "boolean",
+                            "type": "bool",
                             "default": true
                         },
                         {
                             "name": "Overwrite the gitlab.rb config file ?",
                             "help": "If the file is overwritten, a backup will be created.",
                             "id": "overwrite_gitlab_config",
-                            "type": "boolean",
+                            "type": "bool",
                             "default": true
                         }
                     ]
@@ -46,7 +46,7 @@
                             "name": "Authorized external user creation ?",
                             "help": "Allow user to be created without yunohost account.",
                             "id": "use_web_account",
-                            "type": "boolean",
+                            "type": "bool",
                             "default": true
                         }
                     ]
