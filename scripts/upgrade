@@ -31,6 +31,8 @@ portSidekiq=$(ynh_app_setting_get "$app" sidekiq_port)
 architecture=$(ynh_app_setting_get "$app" architecture)
 unicorn_worker_processes=$(ynh_app_setting_get "$app" unicorn_worker_processes)
 client_max_body_size=$(ynh_app_setting_get "$app" client_max_body_size)
+overwrite_nginx=$(ynh_app_setting_get "$app" overwrite_nginx)
+overwrite_gitlab_config=$(ynh_app_setting_get "$app" overwrite_gitlab_config)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
