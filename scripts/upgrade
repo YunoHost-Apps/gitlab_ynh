@@ -27,9 +27,12 @@ final_path=$(ynh_app_setting_get $app final_path)
 config_path=$(ynh_app_setting_get $app config_path)
 port=$(ynh_app_setting_get "$app" web_port)
 portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
+portSidekiq=$(ynh_app_setting_get "$app" sidekiq_port)
 architecture=$(ynh_app_setting_get "$app" architecture)
 unicorn_worker_processes=$(ynh_app_setting_get "$app" unicorn_worker_processes)
 client_max_body_size=$(ynh_app_setting_get "$app" client_max_body_size)
+overwrite_nginx=$(ynh_app_setting_get "$app" overwrite_nginx)
+overwrite_gitlab_config=$(ynh_app_setting_get "$app" overwrite_gitlab_config)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -71,6 +74,12 @@ if [ -z "$unicorn_worker_processes" ]; then
 	ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
 fi
 
+if [ -z "$portSidekiq" ]; then
+	portSidekiq=$(ynh_find_port $(($portUnicorn + 1)))
+	
+	ynh_app_setting_set $app sidekiq_port $portSidekiq
+fi
+
 # If architecture doesn't exist, create it
 if [ -z "$architecture" ]; then
 	# Detect the system architecture
@@ -90,6 +99,18 @@ fi
 # If client_max_body_size doesn't exist, create it
 if [ -z "$client_max_body_size" ]; then
 	client_max_body_size="250m"
+fi
+
+# If overwrite_nginx doesn't exist, create it
+if [ -z "$overwrite_nginx" ]; then
+	overwrite_nginx=1
+	ynh_app_setting_set $app overwrite_nginx $overwrite_nginx
+fi
+
+# If overwrite_gitlab_config doesn't exist, create it
+if [ -z "$overwrite_gitlab_config" ]; then
+	overwrite_gitlab_config=1
+	ynh_app_setting_set $app overwrite_gitlab_config $overwrite_gitlab_config
 fi
 
 # If domain doesn't exist, retrieve it
@@ -162,21 +183,29 @@ ynh_install_app_dependencies $pkg_dependencies
 #=================================================
 # PRECONFIGURE GITLAB
 #=================================================
-ynh_print_info "Preconfigure gitlab..."
 
-ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
+# Overwrite the gitlab.rb configuration only if it's allowed
+if [ $overwrite_gitlab_config -eq 1 ]
+then
+	ynh_print_info "Preconfigure gitlab..."
 
-mkdir -p $config_path
+	ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
 
-cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+	mkdir -p $config_path
 
-ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
-ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
-ynh_replace_string "__PORTUNICORN__" "$portUnicorn" "$config_path/gitlab.rb"
-ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
-ynh_replace_string "__CLIENT_MAX_BODY_SIZE__" "$client_max_body_size" "$config_path/gitlab.rb"
+	cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+	ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
-ynh_store_file_checksum "$config_path/gitlab.rb"
+	ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
+	ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
+	ynh_replace_string "__UNICORN_PORT__" "$portUnicorn" "$config_path/gitlab.rb"
+	ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
+	ynh_replace_string "__CLIENT_MAX_BODY_SIZE__" "$client_max_body_size" "$config_path/gitlab.rb"
+	ynh_replace_string "__SSH_PORT__" "$ssh_port" "$config_path/gitlab.rb"
+	ynh_replace_string "__SIDEKIQ_PORT__" "$portSidekiq" "$config_path/gitlab.rb"
+
+	ynh_store_file_checksum "$config_path/gitlab.rb"
+fi
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -214,10 +243,14 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Configuring nginx web server..."
 
-# Create a dedicated nginx config
-ynh_add_nginx_config client_max_body_size
+# Overwrite the nginx configuration only if it's allowed
+if [ $overwrite_nginx -eq 1 ]
+then
+	ynh_print_info "Configuring nginx web server..."
+	# Create a dedicated nginx config
+	ynh_add_nginx_config client_max_body_size
+fi
 
 #=================================================
 # GENERIC FINALIZATION

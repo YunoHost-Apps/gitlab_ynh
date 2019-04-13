@@ -1,0 +1,46 @@
+[
+    {
+        "id": "public_private",
+        "name": "Move to public or private",
+        "command": "/bin/bash scripts/actions/public_private",
+        "user": "root",
+        "accepted_return_codes": [
+            0
+        ],
+        "description": {
+            "en": "Change the public access of the app."
+        },
+        "arguments": [
+            {
+                "name": "is_public",
+                "type": "boolean",
+                "ask": {
+                    "en": "Is it a public app ?"
+                },
+                "default": true
+            }
+        ]
+    },
+    {
+        "id": "web_account",
+        "name": "External users",
+        "command": "/bin/bash scripts/actions/web_account",
+        "user": "root",
+        "accepted_return_codes": [
+            0
+        ],
+        "description": {
+            "en": "Allow user to be created without yunohost account."
+        },
+        "arguments": [
+            {
+                "name": "use_web_account",
+                "type": "boolean",
+                "ask": {
+                    "en": "Authorized external user creation ?"
+                },
+                "default": true
+            }
+        ]
+    }
+]
