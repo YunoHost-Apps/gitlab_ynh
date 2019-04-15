@@ -2031,3 +2031,5 @@ nginx['listen_https'] = false
 #     handler: 'failover_pgbouncer'
 #   }
 # }
+
+from_file '/etc/gitlab/gitlab-persistent.rb'

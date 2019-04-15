@@ -62,6 +62,7 @@ ynh_print_info "Backuping configuration files of Gitlab..."
 
 ynh_backup "$config_path/gitlab-secrets.json"
 ynh_backup "$config_path/gitlab.rb"
+ynh_backup "$config_path/gitlab-persistent.rb"
 
 #=================================================
 # END OF SCRIPT
