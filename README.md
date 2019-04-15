@@ -18,7 +18,7 @@ GitLab is a web-based Git-repository manager providing wiki, issue-tracking and 
 
 ## Configuration
 
-How to configure this app: by an admin panel
+How to configure this app: by an admin panel and via the file: `/etc/gitlab/gitlab-persistent.rb`
 
 ## Documentation
 
