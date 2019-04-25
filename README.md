@@ -10,7 +10,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 
 GitLab is a web-based Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features, using an open-source license, developed by GitLab Inc.
 
-**Shipped version:** 11.9.8
+**Shipped version:** 11.10.1
 
 ## Screenshots
 
@@ -18,7 +18,9 @@ GitLab is a web-based Git-repository manager providing wiki, issue-tracking and 
 
 ## Configuration
 
-How to configure this app: by an admin panel
+How to configure this app: 
+- An admin panel
+- The file: `/etc/gitlab/gitlab-persistent.rb` (use `sudo gitlab-ctl reconfigure` after any modification of this file)
 
 ## Documentation
 

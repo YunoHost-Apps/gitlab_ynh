@@ -68,6 +68,7 @@ ynh_print_info "Restoring configuration files of Gitlab..."
 
 ynh_restore_file "$config_path/gitlab-secrets.json"
 ynh_restore_file "$config_path/gitlab.rb"
+ynh_restore_file "$config_path/gitlab-persistent.rb"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
