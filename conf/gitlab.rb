@@ -1,3 +1,20 @@
+################################################################################
+################################################################################
+##                             FOR YUNOHOST USERS                             ##
+################################################################################
+################################################################################
+
+# Please do not modify this file, it will be reset with the next update.
+# You can create or modify the file:
+# /etc/gitlab/gitlab-persistent.rb
+# and add all the configuration you want.
+# Options you add in gitlab-presistent.rb will overide these one,
+# but you can use options and documentations in this file to know what
+# is it possible to do.
+
+################################################################################
+################################################################################
+
 ## GitLab configuration settings
 ##! This file is generated during initial installation and **is not** modified
 ##! during upgrades.
@@ -719,6 +736,10 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # gitlab_shell['custom_hooks_dir'] = "/opt/gitlab/embedded/service/gitlab-shell/hooks"
 
 # gitlab_shell['auth_file'] = "/var/opt/gitlab/.ssh/authorized_keys"
+
+### Migration to Go feature flags
+###! Docs: https://gitlab.com/gitlab-org/gitlab-shell#migration-to-go-feature-flags
+# gitlab_shell['migration'] = { enabled: true, features: [] }
 
 ### Git trace log file.
 ###! If set, git commands receive GIT_TRACE* environment variables
@@ -1525,16 +1546,36 @@ nginx['listen_https'] = false
 # grafana['gitlab_secret'] = 'GITLAB_SECRET'
 # grafana['env_directory'] = '/opt/gitlab/etc/grafana/env'
 # grafana['allowed_groups'] = []
-# grafana['gitlab_auth_endpoint'] = "http://gitlab.example.com/oauth/authorize"
-# grafana['gitlab_token_endpoint'] = "http://gitlab.example.com/oauth/token"
-# grafana['gitlab_user_api_endpoint'] = "http://gitlab.example.com/api/v4/user"
+# grafana['gitlab_auth_sign_up'] = true
 # grafana['env'] = {
 #   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
 # }
 
+### Dashboards
+#
+# See: http://docs.grafana.org/administration/provisioning/#dashboards
+#
+# NOTE: Setting this will override the default.
+#
+# grafana['dashboards'] = [
+#   {
+#     'name' => 'GitLab Omnibus',
+#     'orgId' => 1,
+#     'folder' => 'GitLab Omnibus',
+#     'type' => 'file',
+#     'disableDeletion' => true,
+#     'updateIntervalSeconds' => 600,
+#     'options' => {
+#       'path' => '/opt/gitlab/embedded/service/grafana-dashboards',
+#     }
+#   }
+# ]
+
 ### Datasources
 #
 # See: http://docs.grafana.org/administration/provisioning/#example-datasource-config-file
+#
+# NOTE: Setting this will override the default.
 #
 # grafana['datasources'] = [
 #   {
@@ -1578,6 +1619,7 @@ nginx['listen_https'] = false
 # gitaly['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
 # gitaly['auth_token'] = '<secret>'
 # gitaly['auth_transitioning'] = false # When true, auth is logged to Prometheus but NOT enforced
+# gitaly['graceful_restart_timeout'] = '1m' # Grace time for a gitaly process to finish ongoing requests
 # gitaly['ruby_max_rss'] = 300000000 # RSS threshold in bytes for triggering a gitaly-ruby restart
 # gitaly['ruby_graceful_restart_timeout'] = '10m' # Grace time for a gitaly-ruby process to finish ongoing requests
 # gitaly['ruby_restart_delay'] = '5m' # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
