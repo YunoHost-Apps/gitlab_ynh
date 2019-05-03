@@ -10,7 +10,7 @@ If you don't have YunoHost, please see [here](https://yunohost.org/#/install) to
 
 GitLab is a web-based Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features, using an open-source license, developed by GitLab Inc.
 
-**Shipped version:** 11.10.2
+**Shipped version:** 11.10.4
 
 ## Screenshots
 
@@ -34,9 +34,9 @@ Yes with LDAP support.
 
 #### Supported architectures
 
-* x86-64b - [![](https://ci-apps.yunohost.org/ci/logs/gitlab%20%28Community%29.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
-* ARMv8-A - [![](https://ci-apps-arm.yunohost.org/ci/logs/gitlab%20%28Community%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/gitlab/)
-* Jessie x86-64b - [![](https://ci-stretch.nohost.me/ci/logs/gitlab%20%28Community%29.svg)](https://ci-stretch.nohost.me/ci/apps/gitlab/)
+* x86-64b - [![Build Status](https://ci-apps.yunohost.org/ci/logs/gitlab%20%28Apps%29.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+* ARMv8-A - [![Build Status](https://ci-apps-arm.yunohost.org/ci/logs/gitlab%20%28Apps%29.svg)](https://ci-apps-arm.yunohost.org/ci/apps/gitlab/)
+* Jessie x86-64b - [![Build Status](https://ci-stretch.nohost.me/ci/logs/gitlab%20%28Apps%29.svg)](https://ci-stretch.nohost.me/ci/apps/gitlab/)
 
 ## Limitations
 
