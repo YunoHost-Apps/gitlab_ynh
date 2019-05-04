@@ -35,11 +35,6 @@ old_overwrite_nginx="$(ynh_app_setting_get $app overwrite_nginx)"
 old_overwrite_nginx=$(bool_to_true_false $old_overwrite_nginx)
 overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwrite_nginx}"
 
-# Overwrite gitlab.rb configuration
-old_overwrite_gitlab_config="$(ynh_app_setting_get $app overwrite_gitlab_config)"
-old_overwrite_gitlab_config=$(bool_to_true_false $old_overwrite_gitlab_config)
-overwrite_gitlab_config="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_GITLAB_CONFIG:-$old_overwrite_gitlab_config}"
-
 # use_web_account
 old_use_web_account="$(ynh_app_setting_get $app use_web_account)"
 old_use_web_account=$(bool_to_true_false $old_use_web_account)
@@ -56,7 +51,6 @@ show_config() {
 	echo "YNH_CONFIG_MAIN_IS_PUBLIC_IS_PUBLIC=$is_public"
 
 	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
-	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_GITLAB_CONFIG=$overwrite_gitlab_config"
 
 	echo "YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT=$use_web_account"
 }
@@ -84,8 +78,6 @@ apply_config() {
 
 	# Set overwrite_nginx
 	ynh_app_setting_set $app overwrite_nginx "$overwrite_nginx"
-	# Set overwrite_gitlab_config
-	ynh_app_setting_set $app overwrite_gitlab_config "$overwrite_gitlab_config"
 }
 
 #=================================================
