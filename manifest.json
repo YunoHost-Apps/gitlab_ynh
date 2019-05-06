@@ -14,7 +14,7 @@
         "email": "pierre@kayou.io"
     },
     "requirements": {
-        "yunohost": ">> 3.3.0"
+        "yunohost": ">= 3.5.0"
     },
     "multi_instance": false,
     "services": [

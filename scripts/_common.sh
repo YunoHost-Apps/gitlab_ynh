@@ -33,110 +33,140 @@ bool_to_true_false () {
 }
 
 #=================================================
-# WAIT
+# EXPERIMENTAL HELPERS
 #=================================================
-# Start (or other actions) a service,  print a log in case of failure and optionnaly wait until the service is completely started
+
+# Add swap
 #
-# usage: ynh_systemd_action [-n service_name] [-a action] [ [-l "line to match"] [-p log_path] [-t timeout] [-e length] ]
-# | arg: -n, --service_name= - Name of the service to start. Default : $app
-# | arg: -a, --action=       - Action to perform with systemctl. Default: start
-# | arg: -l, --line_match=   - Line to match - The line to find in the log to attest the service have finished to boot.
-#                              If not defined it don't wait until the service is completely started.
-#                              WARNING: When using --line_match, you should always add `ynh_clean_check_starting` into your
-#                                `ynh_clean_setup` at the beginning of the script. Otherwise, tail will not stop in case of failure
-#                                of the script. The script will then hang forever.
-# | arg: -p, --log_path=     - Log file - Path to the log file. Default : /var/log/$app/$app.log
-# | arg: -t, --timeout=      - Timeout - The maximum time to wait before ending the watching. Default : 300 seconds.
-# | arg: -e, --length=       - Length of the error log : Default : 20
-ynh_systemd_action() {
-    # Declare an array to define the options of this helper.
-    declare -Ar args_array=( [n]=service_name= [a]=action= [l]=line_match= [p]=log_path= [t]=timeout= [e]=length= )
-    local service_name
-    local action
-    local line_match
-    local length
-    local log_path
-    local timeout
+# usage: ynh_add_swap --size=SWAP in Mb
+# | arg: -s, --size= - Amount of SWAP to add in Mb.
+ynh_add_swap () {
+	# Declare an array to define the options of this helper.
+	declare -Ar args_array=( [s]=size= )
+	local size
+	# Manage arguments with getopts
+	ynh_handle_getopts_args "$@"
 
-    # Manage arguments with getopts
-    ynh_handle_getopts_args "$@"
+	local swap_max_size=$(( $size * 1024 ))
 
-    local service_name="${service_name:-$app}"
-    local action=${action:-start}
-    local log_path="${log_path:-/var/log/$service_name/$service_name.log}"
-    local length=${length:-20}
-    local timeout=${timeout:-300}
+	local free_space=$(df --output=avail / | sed 1d)
+	# Because we don't want to fill the disk with a swap file, divide by 2 the available space.
+	local usable_space=$(( $free_space / 2 ))
 
-    # Start to read the log
-    if [[ -n "${line_match:-}" ]]
-    then
-        local templog="$(mktemp)"
-        # Following the starting of the app in its log
-        if [ "$log_path" == "systemd" ] ; then
-            # Read the systemd journal
-            journalctl --unit=$service_name --follow --since=-0 --quiet > "$templog" &
-            # Get the PID of the journalctl command
-            local pid_tail=$!
-        else
-            # Read the specified log file
-            tail -F -n0 "$log_path" > "$templog" 2>&1 &
-            # Get the PID of the tail command
-            local pid_tail=$!
-        fi
-    fi
+	# Compare the available space with the size of the swap.
+	# And set a acceptable size from the request
+	if [ $usable_space -ge $swap_max_size ]
+	then
+		local swap_size=$swap_max_size
+	elif [ $usable_space -ge $(( $swap_max_size / 2 )) ]
+	then
+		local swap_size=$(( $swap_max_size / 2 ))
+	elif [ $usable_space -ge $(( $swap_max_size / 3 )) ]
+	then
+		local swap_size=$(( $swap_max_size / 3 ))
+	elif [ $usable_space -ge $(( $swap_max_size / 4 )) ]
+	then
+		local swap_size=$(( $swap_max_size / 4 ))
+	else
+		echo "Not enough space left for a swap file" >&2
+		local swap_size=0
+	fi
 
-    ynh_print_info --message="${action^} the service $service_name"
-
-    # Use reload-or-restart instead of reload. So it wouldn't fail if the service isn't running.
-    if [ "$action" == "reload" ]; then
-        action="reload-or-restart"
-    fi
-
-    systemctl $action $service_name \
-        || ( journalctl --no-pager --lines=$length -u $service_name >&2 \
-        ; test -e "$log_path" && echo "--" >&2 && tail --lines=$length "$log_path" >&2 \
-        ; false )
-
-    # Start the timeout and try to find line_match
-    if [[ -n "${line_match:-}" ]]
-    then
-        local i=0
-        for i in $(seq 1 $timeout)
-        do
-            # Read the log until the sentence is found, that means the app finished to start. Or run until the timeout
-            if grep --quiet "$line_match" "$templog"
-            then
-                ynh_print_info --message="The service $service_name has correctly started."
-                break
-            fi
-            if [ $i -eq 3 ]; then
-                echo -n "Please wait, the service $service_name is ${action}ing" >&2
-            fi
-            if [ $i -ge 3 ]; then
-                echo -n "." >&2
-            fi
-            sleep 1
-        done
-        if [ $i -ge 3 ]; then
-            echo "" >&2
-        fi
-        if [ $i -eq $timeout ]
-        then
-            ynh_print_warn --message="The service $service_name didn't fully started before the timeout."
-            ynh_print_warn --message="Please find here an extract of the end of the log of the service $service_name:"
-            journalctl --no-pager --lines=$length -u $service_name >&2
-            test -e "$log_path" && echo "--" >&2 && tail --lines=$length "$log_path" >&2
-        fi
-        ynh_clean_check_starting
-    fi
+	# If there's enough space for a swap, and no existing swap here
+	if [ $swap_size -ne 0 ] && [ ! -e /swap_$app ]
+	then
+		# Preallocate space for the swap file
+		fallocate -l ${swap_size}K /swap_$app
+		chmod 0600 /swap_$app
+		# Create the swap
+		mkswap /swap_$app
+		# And activate it
+		swapon /swap_$app
+		# Then add an entry in fstab to load this swap at each boot.
+		echo -e "/swap_$app swap swap defaults 0 0 #Swap added by $app" >> /etc/fstab
+	fi
 }
 
-# Clean temporary process and file used by ynh_check_starting
-# (usually used in ynh_clean_setup scripts)
+ynh_del_swap () {
+	# If there a swap at this place
+	if [ -e /swap_$app ]
+	then
+		# Clean the fstab
+		sed -i "/#Swap added by $app/d" /etc/fstab
+		# Desactive the swap file
+		swapoff /swap_$app
+		# And remove it
+		rm /swap_$app
+	fi
+}
+
+# Check the amount of available RAM
 #
-# usage: ynh_clean_check_starting
-ynh_clean_check_starting () {
-	# Stop the execution of tail.
-	kill -s 15 $pid_tail 2>&1
-	ynh_secure_remove "$templog" 2>&1
+# usage: ynh_check_ram [--required=RAM required in Mb] [--no_swap|--only_swap] [--free_ram]
+# | arg: -r, --required= - Amount of RAM required in Mb. The helper will return 0 is there's enough RAM, or 1 otherwise.
+# If --required isn't set, the helper will print the amount of RAM, in Mb.
+# | arg: -s, --no_swap   - Ignore swap
+# | arg: -o, --only_swap - Ignore real RAM, consider only swap.
+# | arg: -f, --free_ram  - Count only free RAM, not the total amount of RAM available.
+ynh_check_ram () {
+	# Declare an array to define the options of this helper.
+	declare -Ar args_array=( [r]=required= [s]=no_swap [o]=only_swap [f]=free_ram )
+	local required
+	local no_swap
+	local only_swap
+	# Manage arguments with getopts
+	ynh_handle_getopts_args "$@"
+	required=${required:-}
+	no_swap=${no_swap:-0}
+	only_swap=${only_swap:-0}
+
+	local total_ram=$(vmstat --stats --unit M | grep "total memory" | awk '{print $1}')
+	local total_swap=$(vmstat --stats --unit M | grep "total swap" | awk '{print $1}')
+	local total_ram_swap=$(( total_ram + total_swap ))
+
+	local free_ram=$(vmstat --stats --unit M | grep "free memory" | awk '{print $1}')
+	local free_swap=$(vmstat --stats --unit M | grep "free swap" | awk '{print $1}')
+	local free_ram_swap=$(( free_ram + free_swap ))
+
+	# Use the total amount of ram
+	local ram=$total_ram_swap
+	if [ $free_ram -eq 1 ]
+	then
+		# Use the total amount of free ram
+		ram=$free_ram_swap
+		if [ $no_swap -eq 1 ]
+		then
+			# Use only the amount of free ram
+			ram=$free_ram
+		elif [ $only_swap -eq 1 ]
+		then
+			# Use only the amount of free swap
+			ram=$free_swap
+		fi
+	else
+		if [ $no_swap -eq 1 ]
+		then
+			# Use only the amount of free ram
+			ram=$total_ram
+		elif [ $only_swap -eq 1 ]
+		then
+			# Use only the amount of free swap
+			ram=$total_swap
+		fi
+	fi
+
+	if [ -n "$required" ]
+	then
+		# Return 1 if the amount of ram isn't enough.
+		if [ $ram -lt $required ]
+		then
+			return 1
+		else
+			return 0
+		fi
+
+	# If no RAM is required, return the amount of available ram.
+	else
+		echo $ram
+	fi
 }
