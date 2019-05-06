@@ -184,7 +184,7 @@ swap_needed=0
 
 # https://docs.gitlab.com/ee/install/requirements.html#memory
 if [ $total_memory -lt 8192 ]; then
-	# Need a minimum of 8Gbo of memory
+	# Need a minimum of 8Go of memory
 	swap_needed=$((8192 - $total_memory))
 fi
 
