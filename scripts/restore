@@ -71,14 +71,14 @@ total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ee/install/requirements.html#memory
-if [ $total_memory -lt 8000 ]; then
-	# Need a minimum of 8Gb of memory
-	swap_needed=$((8000 - $total_memory))
+if [ $total_memory -lt 8192 ]; then
+	# Need a minimum of 8Gbo of memory
+	swap_needed=$((8192 - $total_memory))
 fi
 
-# Need at least 2Gb of swap
-if [ $(($total_swap + $swap_needed)) -lt 2000 ]; then
-	swap_needed=$((2000 - $total_swap))
+# Need at least 2Go of swap
+if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
+	swap_needed=$((2048 - $total_swap))
 fi
 
 ynh_print_info "Adding $swap_needed to swap..."
