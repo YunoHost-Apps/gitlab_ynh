@@ -36,6 +36,20 @@ bool_to_true_false () {
 # EXPERIMENTAL HELPERS
 #=================================================
 
+# Check if the device of the main mountpoint "/" is an SD card
+#
+# return 1 if it's an SD card, else 0
+_ynh_is_main_device_is_sd_card () {
+	local main_device=$(lsblk --output PKNAME --noheadings $(findmnt / --nofsroot --uniq --output source --noheadings --first-only))
+
+	if echo $main_device | grep --quiet "mmc" && [ $(cat /sys/block/$main_device/queue/rotational) -eq 0 ]
+	then
+		return 1
+	else
+		return 0
+	fi
+}
+
 # Add swap
 #
 # usage: ynh_add_swap --size=SWAP in Mb
@@ -52,6 +66,14 @@ ynh_add_swap () {
 	local free_space=$(df --output=avail / | sed 1d)
 	# Because we don't want to fill the disk with a swap file, divide by 2 the available space.
 	local usable_space=$(( $free_space / 2 ))
+
+ 	SD_CARD_CAN_SWAP=${SD_CARD_CAN_SWAP:-0}
+
+	# Swap on SD card only if it's is specified
+	if [ _ynh_is_main_device_is_sd_card ] && [ "$SD_CARD_CAN_SWAP" == "0" ]
+	then
+		return
+	fi
 
 	# Compare the available space with the size of the swap.
 	# And set a acceptable size from the request
