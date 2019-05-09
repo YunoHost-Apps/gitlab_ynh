@@ -12,7 +12,7 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --time
+ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -30,28 +30,28 @@ config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 
 if yunohost service status "gitlab-runsvdir" >/dev/null 2>&1
 then
-	ynh_script_progression --message="Removing $app service" --time
+	ynh_script_progression --message="Removing $app service" --weight=1
 	yunohost service remove "gitlab-runsvdir"
 fi
 
 #=================================================
 # STOP GITLAB
 #=================================================
-ynh_script_progression --message="Stopping gitlab" --time
+ynh_script_progression --message="Stopping gitlab" --weight=8
 
 gitlab-ctl stop
 
 #=================================================
 # REMOVE GITLAB
 #=================================================
-ynh_script_progression --message="Removing Gitlab" --time
+ynh_script_progression --message="Removing Gitlab" --weight=4
 
 dpkg --remove gitlab-ce
 
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Removing dependencies" --time
+ynh_script_progression --message="Removing dependencies" --weight=3
 
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
@@ -59,7 +59,7 @@ ynh_remove_app_dependencies
 #=================================================
 # REMOVE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Removing app main directory" --time
+ynh_script_progression --message="Removing app main directory" --weight=1
 
 # Remove the app directory securely
 ynh_secure_remove --file="$final_path"
@@ -68,7 +68,7 @@ ynh_secure_remove --file="$config_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing nginx web server configuration" --time
+ynh_script_progression --message="Removing nginx web server configuration" --weight=1
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -79,12 +79,12 @@ ynh_remove_nginx_config
 
 # These ports are no longer open but were in previous versions
 if yunohost firewall list | grep -q "\- $port$"; then
-	ynh_script_progression --message="Closing port $port" --time
+	ynh_script_progression --message="Closing port $port" --weight=1
 	ynh_exec_warn_less yunohost firewall disallow TCP $port
 fi
 
 if yunohost firewall list | grep -q "\- $portUnicorn$"; then
-	ynh_script_progression --message="Closing port $portUnicorn" --time
+	ynh_script_progression --message="Closing port $portUnicorn" --weight=1
 	ynh_exec_warn_less yunohost firewall disallow TCP $portUnicorn
 fi
 
@@ -103,4 +103,4 @@ ynh_secure_remove --file="/var/log/$app"
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Removal of $app completed" --time --last
+ynh_script_progression --message="Removal of $app completed" --last

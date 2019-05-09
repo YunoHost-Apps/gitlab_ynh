@@ -24,7 +24,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --time
+ynh_script_progression --message="Loading installation settings..." --weight=1
 
 # Needed for helper "ynh_add_nginx_config"
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
@@ -54,12 +54,12 @@ fi
 #=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================
-ynh_script_progression --message="Updating nginx web server configuration..." --time
+ynh_script_progression --message="Updating nginx web server configuration..." --weight=1
 
 nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 
 if [ $change_path -eq 1 ]; then
-	ynh_script_progression --message="Changing path..." --time
+	ynh_script_progression --message="Changing path..." --weight=4
 
 	#doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
 
@@ -77,7 +77,7 @@ fi
 
 # Change the domain for nginx
 if [ $change_domain -eq 1 ]; then
-	ynh_script_progression --message="Changing domain..." --time
+	ynh_script_progression --message="Changing domain..." --weight=4
 
 	# Delete file checksum for the old conf file location
 	ynh_delete_file_checksum --file="$nginx_conf_path"
@@ -91,7 +91,7 @@ fi
 #=================================================
 # CONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Configure gitlab..." --time
+ynh_script_progression --message="Configure gitlab..." --weight=28
 
 ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
@@ -127,7 +127,7 @@ fi
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for gitlab..." --time
+ynh_script_progression --message="Waiting for gitlab..." --weight=15
 
 # Action status to just wait the service
 ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
@@ -137,7 +137,7 @@ ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time
+ynh_script_progression --message="Reloading nginx web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -145,4 +145,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Change of URL completed for $app" --time --last
+ynh_script_progression --message="Change of URL completed for $app" --last

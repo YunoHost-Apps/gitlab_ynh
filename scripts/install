@@ -36,7 +36,7 @@ app=$YNH_APP_INSTANCE_NAME
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..." --time
+ynh_script_progression --message="Validating installation parameters..." --weight=1
 
 config_path=/etc/$app
 final_path=/opt/$app
@@ -75,7 +75,7 @@ ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Storing installation settings..." --time
+ynh_script_progression --message="Storing installation settings..." --weight=2
 
 ynh_app_setting_set --app=$app --key=admin --value=$admin
 ynh_app_setting_set --app=$app --key=path_url --value=$path_url
@@ -94,7 +94,7 @@ ynh_app_setting_set --app=$app --key=overwrite_nginx --value="1"
 #=================================================
 # FIND A PORT
 #=================================================
-ynh_script_progression --message="Find internal port..." --time
+ynh_script_progression --message="Find internal port..." --weight=1
 
 # Find free ports
 port=$(ynh_find_port --port=8080)
@@ -108,14 +108,14 @@ ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --time
+ynh_script_progression --message="Installing dependencies..." --weight=5
 
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # PRECONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Preconfigure gitlab..." --time
+ynh_script_progression --message="Preconfigure gitlab..." --weight=1
 
 mkdir -p $config_path
 
@@ -142,7 +142,7 @@ ynh_store_file_checksum --file="$config_path/gitlab.rb"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --time
+ynh_script_progression --message="Setting up source files..." --weight=853
 
 update_src_version() {
 	source ./upgrade.d/upgrade.last.sh
@@ -175,7 +175,7 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..." --time
+ynh_script_progression --message="Configuring nginx web server..." --weight=2
 
 # Create a dedicated nginx config
 ynh_add_nginx_config client_max_body_size
@@ -185,7 +185,7 @@ ynh_add_nginx_config client_max_body_size
 #=================================================
 # ADD USER AND CONFIGURE SIGN IN SYSTEM
 #=================================================
-ynh_script_progression --message="Creating an administrator user..." --time
+ynh_script_progression --message="Creating an administrator user..." --weight=13
 
 mailadmin=$(ynh_user_get_info --username=$admin --key=mail)
 rdmPass=$(ynh_string_random --length=30)
@@ -200,7 +200,7 @@ ApplicationSetting.last.update_attributes(password_authentication_enabled_for_we
 #=================================================
 # RECONFIGURE TO TAKE INTO ACCOUNT CHANGES
 #=================================================
-ynh_script_progression --message="Reconfigure gitlab..." --time
+ynh_script_progression --message="Reconfigure gitlab..." --weight=13
 
 gitlab-ctl reconfigure
 
@@ -215,7 +215,7 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 #=================================================
 # SETUP SSOWAT
 #=================================================
-ynh_script_progression --message="Configuring SSOwat..." --time
+ynh_script_progression --message="Configuring SSOwat..." --weight=1
 
 # Make app public if necessary
 if [ $is_public -eq 1 ]; then
@@ -226,7 +226,7 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time
+ynh_script_progression --message="Reloading nginx web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -234,4 +234,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --time --last
+ynh_script_progression --message="Installation of $app completed" --last

@@ -43,7 +43,7 @@ if [ $use_web_account -eq 0 ]; then
 else
 	web_account="Disable"
 fi
-ynh_script_progression --message=--message="$web_account web user creation..." --time
+ynh_script_progression --message=--message="$web_account web user creation..." --weight=13
 
 echo "ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
@@ -54,4 +54,4 @@ ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info --message="Execution completed"
+ynh_script_progression --message="Execution completed" --last

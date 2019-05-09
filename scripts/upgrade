@@ -142,7 +142,7 @@ fi
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --time
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=10
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
@@ -169,7 +169,7 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_script_progression --message="Installing dependencies..." --time
+ynh_script_progression --message="Installing dependencies..." --weight=5
 
 ynh_install_app_dependencies $pkg_dependencies
 
@@ -177,7 +177,7 @@ ynh_install_app_dependencies $pkg_dependencies
 # PRECONFIGURE GITLAB
 #=================================================
 
-ynh_script_progression --message="Preconfigure gitlab..." --time
+ynh_script_progression --message="Preconfigure gitlab..." --weight=1
 
 ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
@@ -202,7 +202,7 @@ chown admin: "$config_path/gitlab-persistent.rb"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --time
+ynh_script_progression --message="Setting up source files..." --weight=690
 
 update_src_version() {
 	source ./upgrade.d/upgrade.last.sh
@@ -239,7 +239,7 @@ fi
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_script_progression --message="Configuring nginx web server..." --time
+	ynh_script_progression --message="Configuring nginx web server..." --weight=2
 	# Create a dedicated nginx config
 	ynh_add_nginx_config client_max_body_size
 fi
@@ -265,7 +265,7 @@ fi
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for gitlab..." --time
+ynh_script_progression --message="Waiting for gitlab..." --weight=15
 
 # Action status to just wait the service
 ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
@@ -273,7 +273,7 @@ ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --time
+ynh_script_progression --message="Reloading nginx web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -281,4 +281,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --time --last
+ynh_script_progression --message="Upgrade of $app completed"--last
