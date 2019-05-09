@@ -34,6 +34,12 @@ client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_si
 overwrite_nginx=$(ynh_app_setting_get --app="$app" --key=overwrite_nginx)
 
 #=================================================
+# CHECK VERSION
+#=================================================
+
+upgrade_type=$(ynh_check_app_version_changed)
+
+#=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 
@@ -202,7 +208,6 @@ chown admin: "$config_path/gitlab-persistent.rb"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=690
 
 update_src_version() {
 	source ./upgrade.d/upgrade.last.sh
@@ -217,19 +222,26 @@ update_src_version() {
 	fi
 }
 
-update_src_version
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	ynh_script_progression --message="Setting up source files..." --weight=690
 
-tempdir="$(mktemp -d)"
+	update_src_version
 
-ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+	tempdir="$(mktemp -d)"
 
-if IS_PACKAGE_CHECK; then
-	if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ; then # This command will fail in lxc env
-		ynh_replace_string --match_string="command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" --replace_string="command \"cat \/etc\/sysctl.conf\"" --target_file="$final_path/embedded/cookbooks/package/resources/sysctl.rb"
-		ynh_exec_warn_less dpkg --configure gitlab-ce
+	ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+
+	if IS_PACKAGE_CHECK; then
+		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ; then # This command will fail in lxc env
+			ynh_replace_string --match_string="command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" --replace_string="command \"cat \/etc\/sysctl.conf\"" --target_file="$final_path/embedded/cookbooks/package/resources/sysctl.rb"
+			ynh_exec_warn_less dpkg --configure gitlab-ce
+		fi
+	else
+		ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
 	fi
-else
-	ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
+
+	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
 fi
 
 #=================================================
