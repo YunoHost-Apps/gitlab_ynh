@@ -56,8 +56,9 @@ ynh_add_swap () {
  	SD_CARD_CAN_SWAP=${SD_CARD_CAN_SWAP:-0}
 
 	# Swap on SD card only if it's is specified
-	if ynh_is_main_device_is_sd_card && [ "$SD_CARD_CAN_SWAP" == "0" ]
+	if ynh_is_main_device_a_sd_card && [ "$SD_CARD_CAN_SWAP" == "0" ]
 	then
+		ynh_print_warn --message="The main mountpoint of your system '/' is on an SD card, swap will not be added to prevent some damage of this one, but that can cause troubles for the app $app. If you still want activate the swap, you can relaunch the command preceded by 'SD_CARD_CAN_SWAP=1'"
 		return
 	fi
 
@@ -113,7 +114,7 @@ ynh_del_swap () {
 # [internal]
 #
 # return 0 if it's an SD card, else 1
-ynh_is_main_device_is_sd_card () {
+ynh_is_main_device_a_sd_card () {
 	local main_device=$(lsblk --output PKNAME --noheadings $(findmnt / --nofsroot --uniq --output source --noheadings --first-only))
 
 	if echo $main_device | grep --quiet "mmc" && [ $(tail -n1 /sys/block/$main_device/queue/rotational) == "0" ]
