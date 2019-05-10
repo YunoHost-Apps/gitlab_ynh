@@ -95,7 +95,7 @@ ynh_restore_file --origin_path="$config_path/gitlab-persistent.rb"
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Reinstalling gitlab..." --weight=853
+ynh_script_progression --message="Reinstalling gitlab..." --weight=200
 
 update_src_version() {
 	source ../settings/scripts/upgrade.d/upgrade.last.sh

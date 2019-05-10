@@ -164,7 +164,7 @@ ynh_store_file_checksum --file="$config_path/gitlab.rb"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=853
+ynh_script_progression --message="Setting up source files..." --weight=200
 
 update_src_version() {
 	source ./upgrade.d/upgrade.last.sh

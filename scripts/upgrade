@@ -246,7 +246,7 @@ update_src_version() {
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Setting up source files..." --weight=690
+	ynh_script_progression --message="Setting up source files..." --weight=200
 
 	update_src_version
 
