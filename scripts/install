@@ -131,8 +131,8 @@ if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
 	swap_needed=$((2048 - $total_swap))
 fi
 
-ynh_print_info "Adding $swap_needed to swap..."
-ynh_add_swap $swap_needed
+ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_add_swap --size=$swap_needed
 
 #=================================================
 # PRECONFIGURE GITLAB
