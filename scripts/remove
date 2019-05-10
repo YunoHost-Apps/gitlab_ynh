@@ -99,6 +99,10 @@ ynh_secure_remove "/var/opt/$app"
 # Remove the log files
 ynh_secure_remove "/var/log/$app"
 
+# Remove swap
+
+ynh_del_swap
+
 #=================================================
 # END OF SCRIPT
 #=================================================

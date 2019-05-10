@@ -58,7 +58,7 @@ fi
 unicorn_worker_processes=$(($(nproc) + 1 ))
 
 # If the server has at least 2GB of RAM
-if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then
+if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
 	# Min 3 worker processes
 	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
 else
@@ -113,6 +113,28 @@ ynh_app_setting_set $app sidekiq_port $portSidekiq
 ynh_print_info "Installing dependencies..."
 
 ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+
+total_memory=$(ynh_check_ram)
+total_swap=$(ynh_check_ram --only_swap)
+swap_needed=0
+
+# https://docs.gitlab.com/ee/install/requirements.html#memory
+if [ $total_memory -lt 8192 ]; then
+	# Need a minimum of 8Go of memory
+	swap_needed=$((8192 - $total_memory))
+fi
+
+# Need at least 2Go of swap
+if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
+	swap_needed=$((2048 - $total_swap))
+fi
+
+ynh_print_info "Adding $swap_needed to swap..."
+ynh_add_swap $swap_needed
 
 #=================================================
 # PRECONFIGURE GITLAB
