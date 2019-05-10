@@ -62,6 +62,29 @@ ynh_script_progression --message="Reinstalling dependencies..." --weight=5
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+ynh_print_info "Adding swap..."
+
+total_memory=$(ynh_check_ram)
+total_swap=$(ynh_check_ram --only_swap)
+swap_needed=0
+
+# https://docs.gitlab.com/ee/install/requirements.html#memory
+if [ $total_memory -lt 8192 ]; then
+	# Need a minimum of 8Go of memory
+	swap_needed=$((8192 - $total_memory))
+fi
+
+# Need at least 2Go of swap
+if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
+	swap_needed=$((2048 - $total_swap))
+fi
+
+ynh_print_info "Adding $swap_needed to swap..."
+ynh_add_swap $swap_needed
+
+#=================================================
 # RESTORE CONF FILES
 #=================================================
 ynh_script_progression --message="Restoring configuration files of Gitlab..." --weight=1
