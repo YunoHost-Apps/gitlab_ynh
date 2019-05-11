@@ -7,14 +7,6 @@
 pkg_dependencies="openssh-server"
 
 #=================================================
-# PACKAGE CHECK BYPASSING...
-#=================================================
-
-IS_PACKAGE_CHECK () {
-	return $(env | grep -c container=lxc)
-}
-
-#=================================================
 # BOOLEAN CONVERTER
 #=================================================
 
