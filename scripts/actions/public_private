@@ -26,7 +26,7 @@ app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
 # CHECK IF AN ACTION HAS TO BE DONE
 #=================================================
 
-is_public_old=$(ynh_app_setting_get $app is_public)
+is_public_old=$(ynh_app_setting_get --app=$app --key=is_public)
 
 if [ $is_public -eq $is_public_old ]
 then
@@ -43,27 +43,27 @@ if [ $is_public -eq 0 ]; then
 else
 	public_private="public"
 fi
-ynh_print_info --message="Moving the application to $public_private..."
+ynh_script_progression --message=--message="Moving the application to $public_private..." --weight=1
 
 # Make app public if necessary
 if [ $is_public -eq 0 ]; then
 	ynh_app_setting_delete $app unprotected_uris
 else
 	# unprotected_uris allows SSO credentials to be passed anyway.
-	ynh_app_setting_set $app unprotected_uris "/"
+	ynh_app_setting_set --app=$app --key=unprotected_uris --value="/"
 fi
 
-ynh_print_info --message="Reconfiguring SSOwat..."
+ynh_script_progression --message=--message="Reconfiguring SSOwat..." --weight=1
 # Regen ssowat configuration
 yunohost app ssowatconf
 
 # Update the config of the app
-ynh_app_setting_set $app is_public $is_public
+ynh_app_setting_set --app=$app --key=is_public --value=$is_public
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_print_info --message="Reloading nginx web server..."
+ynh_script_progression --message=--message="Reloading nginx web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -71,4 +71,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info --message="Execution completed"
+ynh_script_progression --message="Execution completed" --last

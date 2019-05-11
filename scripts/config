@@ -26,17 +26,17 @@ app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
 # Otherwise, keep the value from the app config.
 
 # is_public
-old_is_public="$(ynh_app_setting_get $app is_public)"
+old_is_public="$(ynh_app_setting_get --app=$app --key=is_public)"
 old_is_public=$(bool_to_true_false $old_is_public)
 is_public="${YNH_CONFIG_MAIN_IS_PUBLIC_IS_PUBLIC:-$old_is_public}"
 
 # Overwrite nginx configuration
-old_overwrite_nginx="$(ynh_app_setting_get $app overwrite_nginx)"
+old_overwrite_nginx="$(ynh_app_setting_get --app=$app --key=overwrite_nginx)"
 old_overwrite_nginx=$(bool_to_true_false $old_overwrite_nginx)
 overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwrite_nginx}"
 
 # use_web_account
-old_use_web_account="$(ynh_app_setting_get $app use_web_account)"
+old_use_web_account="$(ynh_app_setting_get --app=$app --key=use_web_account)"
 old_use_web_account=$(bool_to_true_false $old_use_web_account)
 use_web_account="${YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT:-$old_use_web_account}"
 
@@ -77,7 +77,7 @@ apply_config() {
 	fi
 
 	# Set overwrite_nginx
-	ynh_app_setting_set $app overwrite_nginx "$overwrite_nginx"
+	ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
 }
 
 #=================================================

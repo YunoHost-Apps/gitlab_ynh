@@ -24,48 +24,48 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info "Loading installation settings..."
+ynh_script_progression --message="Loading installation settings..." --weight=1
 
 app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get $app final_path)
-config_path=$(ynh_app_setting_get $app config_path)
-domain=$(ynh_app_setting_get $app domain)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+config_path=$(ynh_app_setting_get --app=$app --key=config_path)
+domain=$(ynh_app_setting_get --app=$app --key=domain)
 
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Backing up nginx web server configuration..."
+ynh_script_progression --message="Backing up nginx web server configuration..." --weight=1
 
-ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP GITLAB DATABASE
 #=================================================
-ynh_print_info "Backuping of Gitlab..."
+ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 
 # Use gitlab-rake to backup
 gitlab-rake gitlab:backup:create > backup.log
 
-# Searching in backup logs the 
+# Searching in backup logs the name of the backup archive created
 last_backup=$(grep _gitlab_backup.tar backup.log | cut -d' ' -f4)
 mv "/var/opt/$app/backups/$last_backup" "/var/opt/$app/backups/last_gitlab_backup.tar"
 
-ynh_backup "/var/opt/$app/backups/last_gitlab_backup.tar"
+ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 
 #=================================================
 # BACKUP CONF FILES
 #=================================================
-ynh_print_info "Backuping configuration files of Gitlab..."
+ynh_script_progression --message="Backuping configuration files of Gitlab..." --weight=1
 
-ynh_backup "$config_path/gitlab-secrets.json"
-ynh_backup "$config_path/gitlab.rb"
-ynh_backup "$config_path/gitlab-persistent.rb"
+ynh_backup --src_path="$config_path/gitlab-secrets.json"
+ynh_backup --src_path="$config_path/gitlab.rb"
+ynh_backup --src_path="$config_path/gitlab-persistent.rb"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
+ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last

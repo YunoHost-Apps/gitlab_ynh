@@ -19,19 +19,25 @@ source ./_common.sh
 app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
-domain=$(ynh_app_setting_get "$app" domain)
-path_url=$(ynh_app_setting_get "$app" path_url)
-admin=$(ynh_app_setting_get "$app" admin)
-is_public=$(ynh_app_setting_get "$app" is_public)
-final_path=$(ynh_app_setting_get $app final_path)
-config_path=$(ynh_app_setting_get $app config_path)
-port=$(ynh_app_setting_get "$app" web_port)
-portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
-portSidekiq=$(ynh_app_setting_get "$app" sidekiq_port)
-architecture=$(ynh_app_setting_get "$app" architecture)
-unicorn_worker_processes=$(ynh_app_setting_get "$app" unicorn_worker_processes)
-client_max_body_size=$(ynh_app_setting_get "$app" client_max_body_size)
-overwrite_nginx=$(ynh_app_setting_get "$app" overwrite_nginx)
+domain=$(ynh_app_setting_get --app="$app" --key=domain)
+path_url=$(ynh_app_setting_get --app="$app" --key=path_url)
+admin=$(ynh_app_setting_get --app="$app" --key=admin)
+is_public=$(ynh_app_setting_get --app="$app" --key=is_public)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+config_path=$(ynh_app_setting_get --app=$app --key=config_path)
+port=$(ynh_app_setting_get --app="$app" --key=web_port)
+portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
+architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
+unicorn_worker_processes=$(ynh_app_setting_get --app="$app" --key=unicorn_worker_processes)
+client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
+overwrite_nginx=$(ynh_app_setting_get --app="$app" --key=overwrite_nginx)
+
+#=================================================
+# CHECK VERSION
+#=================================================
+
+upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
@@ -39,23 +45,23 @@ overwrite_nginx=$(ynh_app_setting_get "$app" overwrite_nginx)
 
 # Fix is_public as a boolean value
 if [ "$is_public" = "Yes" ]; then
-	ynh_app_setting_set $app is_public 1
+	ynh_app_setting_set --app=$app --key=is_public --value=1
 	is_public=1
 elif [ "$is_public" = "No" ]; then
-	ynh_app_setting_set $app is_public 0
+	ynh_app_setting_set --app=$app --key=is_public --value=0
 	is_public=0
 fi
 
 # If final_path doesn't exist, create it
 if [ -z "$final_path" ]; then
 	final_path=/opt/$app
-	ynh_app_setting_set $app final_path $final_path
+	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 fi
 
 # If config_path doesn't exist, create it
 if [ -z "$config_path" ]; then
 	config_path=/etc/$app
-	ynh_app_setting_set $app config_path $config_path
+	ynh_app_setting_set --app=$app --key=config_path --value=$config_path
 fi
 
 if [ -z "$unicorn_worker_processes" ]; then
@@ -70,13 +76,13 @@ if [ -z "$unicorn_worker_processes" ]; then
 		# 2 worker processes
 		unicorn_worker_processes=2
 	fi
-	ynh_app_setting_set $app unicorn_worker_processes $unicorn_worker_processes
+	ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_worker_processes
 fi
 
 if [ -z "$portSidekiq" ]; then
 	portSidekiq=$(ynh_find_port $(($portUnicorn + 1)))
 	
-	ynh_app_setting_set $app sidekiq_port $portSidekiq
+	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
 fi
 
 # If architecture doesn't exist, create it
@@ -89,10 +95,10 @@ if [ -z "$architecture" ]; then
 	elif [ -n "$(uname -m | grep arm)" ]; then
 		architecture="arm"
 	else
-		ynh_die "Unable to detect your achitecture, please open a bug describing \
+		ynh_die --message="Unable to detect your achitecture, please open a bug describing \
 			your hardware and the result of the command \"uname -m\"." 1
 	fi
-	ynh_app_setting_set $app architecture $architecture
+	ynh_app_setting_set --app=$app --key=architecture --value=$architecture
 fi
 
 # If client_max_body_size doesn't exist, create it
@@ -103,7 +109,7 @@ fi
 # If overwrite_nginx doesn't exist, create it
 if [ -z "$overwrite_nginx" ]; then
 	overwrite_nginx=1
-	ynh_app_setting_set $app overwrite_nginx $overwrite_nginx
+	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
 fi
 
 # If domain doesn't exist, retrieve it
@@ -112,42 +118,42 @@ if [ -z "$domain" ]; then
 	if [ ${domain: -1} == "'" ]; then # if the last char of $domain is ' remove it
 		domain=${domain:0:-1}
 	fi
-	ynh_app_setting_set $app domain $domain
+	ynh_app_setting_set --app=$app --key=domain --value=$domain
 fi
 
 # If path_url doesn't exist, retrieve it
 if [ -z "$path_url" ]; then
 	path_url=$(grep "location" "/etc/nginx/conf.d/${domain}.d/gitlab.conf" | cut -d' ' -f2)
 	path_url=$(ynh_normalize_url_path $path_url)
-	ynh_app_setting_set $app path_url path_url
+	ynh_app_setting_set --app=$app --key=path_url --value=path_url
 fi
 
 # If port doesn't exist, retrieve it
 if [ -z "$port" ]; then
 	port=$(grep -F "nginx['listen_port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
-	ynh_app_setting_set $app web_port $port
+	ynh_app_setting_set --app=$app --key=web_port --value=$port
 fi
 
 # If port doesn't exist, retrieve it
 if [ -z "$portUnicorn" ]; then
 	portUnicorn=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
-	ynh_app_setting_set $app unicorn_port $portUnicorn
+	ynh_app_setting_set --app=$app --key=unicorn_port --value=$portUnicorn
 fi
 
 # if this source file exist, remove it
 if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
-	ynh_secure_remove "/etc/apt/sources.list.d/gitlab-ce.list"
+	ynh_secure_remove --file="/etc/apt/sources.list.d/gitlab-ce.list"
 fi
 
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
-ynh_print_info "Backing up the app before upgrading (may take a while)..."
+ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=10
 
 # Backup the current version of the app
 ynh_backup_before_upgrade
 ynh_clean_setup () {
-	ynh_secure_remove "$tempdir" 2>&1
+	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
 	
 	ynh_clean_check_starting
 
@@ -169,14 +175,13 @@ path_url=$(ynh_normalize_url_path $path_url)
 #=================================================
 # INSTALL DEPENDENCIES
 #=================================================
-ynh_print_info "Installing dependencies..."
+ynh_script_progression --message="Installing dependencies..." --weight=5
 
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
-ynh_print_info "Adding swap..."
 
 total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
@@ -193,31 +198,31 @@ if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
 	swap_needed=$((2048 - $total_swap))
 fi
 
-ynh_print_info "Adding $swap_needed to swap..."
-ynh_add_swap $swap_needed
+ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
+ynh_add_swap --size=$swap_needed
 
 #=================================================
 # PRECONFIGURE GITLAB
 #=================================================
 
-ynh_print_info "Preconfigure gitlab..."
+ynh_script_progression --message="Preconfigure gitlab..." --weight=1
 
-ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
+ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
 mkdir -p $config_path
 
 cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
-ynh_replace_string "__GENERATED_EXTERNAL_URL__" "https://$domain${path_url%/}" "$config_path/gitlab.rb"
-ynh_replace_string "__PORT__" "$port" "$config_path/gitlab.rb"
-ynh_replace_string "__UNICORN_PORT__" "$portUnicorn" "$config_path/gitlab.rb"
-ynh_replace_string "__UNICORN_WORKER_PROCESSES__" "$unicorn_worker_processes" "$config_path/gitlab.rb"
-ynh_replace_string "__CLIENT_MAX_BODY_SIZE__" "$client_max_body_size" "$config_path/gitlab.rb"
-ynh_replace_string "__SSH_PORT__" "$ssh_port" "$config_path/gitlab.rb"
-ynh_replace_string "__SIDEKIQ_PORT__" "$portSidekiq" "$config_path/gitlab.rb"
+ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__UNICORN_PORT__" --replace_string="$portUnicorn" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__UNICORN_WORKER_PROCESSES__" --replace_string="$unicorn_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
 
-ynh_store_file_checksum "$config_path/gitlab.rb"
+ynh_store_file_checksum --file="$config_path/gitlab.rb"
 
 touch "$config_path/gitlab-persistent.rb"
 chown admin: "$config_path/gitlab-persistent.rb"
@@ -225,34 +230,40 @@ chown admin: "$config_path/gitlab-persistent.rb"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_print_info "Setting up source files..."
 
 update_src_version() {
 	source ./upgrade.d/upgrade.last.sh
 	cp ../conf/$architecture.src.default ../conf/$architecture.src
-	ynh_replace_string "__VERSION__" "$gitlab_version" "../conf/$architecture.src"
-	ynh_replace_string "__SOURCE_FILENAME__" "$gitlab_filename" "../conf/$architecture.src"
+	ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
+	ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
 
 	if [ $architecture = "x86-64" ]; then
-		ynh_replace_string "__SHA256_SUM__" "$gitlab_x86_64_source_sha256" "../conf/$architecture.src"
+		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_x86_64_source_sha256" --target_file="../conf/$architecture.src"
 	elif [ $architecture = "arm" ]; then
-		ynh_replace_string "__SHA256_SUM__" "$gitlab_arm_source_sha256" "../conf/$architecture.src"
+		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_arm_source_sha256" --target_file="../conf/$architecture.src"
 	fi
 }
 
-update_src_version
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	ynh_script_progression --message="Setting up source files..." --weight=200
 
-tempdir="$(mktemp -d)"
+	update_src_version
 
-ynh_setup_source $tempdir $architecture
+	tempdir="$(mktemp -d)"
 
-if IS_PACKAGE_CHECK; then
-	if ! dpkg -i $tempdir/$gitlab_filename ; then # This command will fail in lxc env
-		ynh_replace_string "command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" "command \"cat \/etc\/sysctl.conf\"" "$final_path/embedded/cookbooks/package/resources/sysctl.rb"
-		dpkg --configure gitlab-ce
+	ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+
+	if IS_PACKAGE_CHECK; then
+		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ; then # This command will fail in lxc env
+			ynh_replace_string --match_string="command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" --replace_string="command \"cat \/etc\/sysctl.conf\"" --target_file="$final_path/embedded/cookbooks/package/resources/sysctl.rb"
+			ynh_exec_warn_less dpkg --configure gitlab-ce
+		fi
+	else
+		ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
 	fi
-else
-	dpkg -i $tempdir/$gitlab_filename
+
+	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
 fi
 
 #=================================================
@@ -262,7 +273,7 @@ fi
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_print_info "Configuring nginx web server..."
+	ynh_script_progression --message="Configuring nginx web server..." --weight=2
 	# Create a dedicated nginx config
 	ynh_add_nginx_config client_max_body_size
 fi
@@ -282,13 +293,13 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 # If app is public, add url to SSOWat conf as skipped_uris
 if [ $is_public -eq 1 ]; then
 	# See install script
-	ynh_app_setting_set "$app" unprotected_uris "/"
+	ynh_app_setting_set --app="$app" --key=unprotected_uris --value="/"
 fi
 
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_print_info "Waiting for gitlab..."
+ynh_script_progression --message="Waiting for gitlab..." --weight=15
 
 # Action status to just wait the service
 ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
@@ -296,7 +307,7 @@ ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_print_info "Reloading nginx web server..."
+ynh_script_progression --message="Reloading nginx web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -304,5 +315,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Upgrade of $app completed"
-
+ynh_script_progression --message="Upgrade of $app completed"--last

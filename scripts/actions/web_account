@@ -26,7 +26,7 @@ app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
 # CHECK IF AN ACTION HAS TO BE DONE
 #=================================================
 
-use_web_account_old=$(ynh_app_setting_get $app use_web_account)
+use_web_account_old=$(ynh_app_setting_get --app=$app --key=use_web_account)
 
 if [ $use_web_account -eq $use_web_account_old ]
 then
@@ -43,15 +43,15 @@ if [ $use_web_account -eq 0 ]; then
 else
 	web_account="Disable"
 fi
-ynh_print_info --message="$web_account web user creation..."
+ynh_script_progression --message=--message="$web_account web user creation..." --weight=13
 
 echo "ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
 # Update the config of the app
-ynh_app_setting_set $app use_web_account $use_web_account
+ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info --message="Execution completed"
+ynh_script_progression --message="Execution completed" --last
