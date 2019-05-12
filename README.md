@@ -46,6 +46,7 @@ Yes with LDAP support.
 
  * Report a bug: https://github.com/YunoHost-Apps/gitlab_ynh/issues
  * App website: https://gitlab.com
+ * Upstream app repository: https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab-ce
  * YunoHost website: https://yunohost.org/
 
 ---

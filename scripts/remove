@@ -12,15 +12,15 @@ source /usr/share/yunohost/helpers
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_print_info "Loading installation settings..."
+ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get "$app" domain)
-port=$(ynh_app_setting_get "$app" web_port)
-portUnicorn=$(ynh_app_setting_get "$app" unicorn_port)
-final_path=$(ynh_app_setting_get $app final_path)
-config_path=$(ynh_app_setting_get $app config_path)
+domain=$(ynh_app_setting_get --app="$app" --key=domain)
+port=$(ynh_app_setting_get --app="$app" --key=web_port)
+portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 
 #=================================================
 # STANDARD REMOVE
@@ -30,28 +30,28 @@ config_path=$(ynh_app_setting_get $app config_path)
 
 if yunohost service status "gitlab-runsvdir" >/dev/null 2>&1
 then
-	ynh_print_info "Removing $app service"
+	ynh_script_progression --message="Removing $app service" --weight=1
 	yunohost service remove "gitlab-runsvdir"
 fi
 
 #=================================================
 # STOP GITLAB
 #=================================================
-ynh_print_info "Stopping gitlab"
+ynh_script_progression --message="Stopping gitlab" --weight=8
 
 gitlab-ctl stop
 
 #=================================================
 # REMOVE GITLAB
 #=================================================
-ynh_print_info "Removing Gitlab"
+ynh_script_progression --message="Removing Gitlab" --weight=4
 
 dpkg --remove gitlab-ce
 
 #=================================================
 # REMOVE DEPENDENCIES
 #=================================================
-ynh_print_info "Removing dependencies"
+ynh_script_progression --message="Removing dependencies" --weight=3
 
 # Remove metapackage and its dependencies
 ynh_remove_app_dependencies
@@ -59,16 +59,16 @@ ynh_remove_app_dependencies
 #=================================================
 # REMOVE APP MAIN DIR
 #=================================================
-ynh_print_info "Removing app main directory"
+ynh_script_progression --message="Removing app main directory" --weight=1
 
 # Remove the app directory securely
-ynh_secure_remove "$final_path"
-ynh_secure_remove "$config_path"
+ynh_secure_remove --file="$final_path"
+ynh_secure_remove --file="$config_path"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_print_info "Removing nginx web server configuration"
+ynh_script_progression --message="Removing nginx web server configuration" --weight=1
 
 # Remove the dedicated nginx config
 ynh_remove_nginx_config
@@ -79,12 +79,12 @@ ynh_remove_nginx_config
 
 # These ports are no longer open but were in previous versions
 if yunohost firewall list | grep -q "\- $port$"; then
-	ynh_print_info "Closing port $port"
+	ynh_script_progression --message="Closing port $port" --weight=1
 	ynh_exec_warn_less yunohost firewall disallow TCP $port
 fi
 
 if yunohost firewall list | grep -q "\- $portUnicorn$"; then
-	ynh_print_info "Closing port $portUnicorn"
+	ynh_script_progression --message="Closing port $portUnicorn" --weight=1
 	ynh_exec_warn_less yunohost firewall disallow TCP $portUnicorn
 fi
 
@@ -94,13 +94,17 @@ fi
 # REMOVE GITLAB FILES
 #=================================================
 
-ynh_secure_remove "/var/opt/$app"
+ynh_secure_remove --file="/var/opt/$app"
 
 # Remove the log files
-ynh_secure_remove "/var/log/$app"
+ynh_secure_remove --file="/var/log/$app"
+
+# Remove swap
+
+ynh_del_swap
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info "Removal of $app completed"
+ynh_script_progression --message="Removal of $app completed" --last
