@@ -76,8 +76,11 @@ ynh_add_swap () {
 	# If there's enough space for a swap, and no existing swap here
 	if [ $swap_size -ne 0 ] && [ ! -e /swap_$app ]
 	then
-		# Preallocate space for the swap file
-		fallocate -l ${swap_size}K /swap_$app
+		# Preallocate space for the swap file, fallocate may sometime not be used, use dd instead in this case
+		if ! fallocate -l ${swap_size}K /swap_$app
+		then
+			dd if=/dev/zero of=/swap_$app bs=1024 count=${swap_size}
+		fi
 		chmod 0600 /swap_$app
 		# Create the swap
 		mkswap /swap_$app
