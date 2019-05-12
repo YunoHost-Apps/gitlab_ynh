@@ -39,7 +39,7 @@ fi
 #=================================================
 ynh_script_progression --message="Stopping gitlab" --weight=8
 
-gitlab-ctl stop
+ynh_systemd_action --action=stop --service_name="gitlab-runsvdir"
 
 #=================================================
 # REMOVE GITLAB

@@ -120,7 +120,7 @@ ynh_store_file_checksum --file="$config_path/gitlab.rb"
 gitlab-ctl reconfigure
 
 if [ $change_path -eq 1 ]; then
-	gitlab-ctl restart
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir"
 	gitlab-ctl restart unicorn
 fi
 
