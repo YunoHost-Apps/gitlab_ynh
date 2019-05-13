@@ -104,6 +104,7 @@ fi
 # If client_max_body_size doesn't exist, create it
 if [ -z "$client_max_body_size" ]; then
 	client_max_body_size="250m"
+	ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
 fi
 
 # If overwrite_nginx doesn't exist, create it
