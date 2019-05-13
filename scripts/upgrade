@@ -126,7 +126,7 @@ fi
 if [ -z "$path_url" ]; then
 	path_url=$(grep "location" "/etc/nginx/conf.d/${domain}.d/gitlab.conf" | cut -d' ' -f2)
 	path_url=$(ynh_normalize_url_path $path_url)
-	ynh_app_setting_set --app=$app --key=path_url --value=path_url
+	ynh_app_setting_set --app=$app --key=path --value=path_url
 fi
 
 # If port doesn't exist, retrieve it
