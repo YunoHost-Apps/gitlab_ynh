@@ -20,7 +20,7 @@ app=$YNH_APP_INSTANCE_NAME
 
 # Retrieve app settings
 domain=$(ynh_app_setting_get --app="$app" --key=domain)
-path_url=$(ynh_app_setting_get --app="$app" --key=path_url)
+path_url=$(ynh_app_setting_get --app="$app" --key=path)
 admin=$(ynh_app_setting_get --app="$app" --key=admin)
 is_public=$(ynh_app_setting_get --app="$app" --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
@@ -104,6 +104,7 @@ fi
 # If client_max_body_size doesn't exist, create it
 if [ -z "$client_max_body_size" ]; then
 	client_max_body_size="250m"
+	ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
 fi
 
 # If overwrite_nginx doesn't exist, create it
@@ -125,7 +126,7 @@ fi
 if [ -z "$path_url" ]; then
 	path_url=$(grep "location" "/etc/nginx/conf.d/${domain}.d/gitlab.conf" | cut -d' ' -f2)
 	path_url=$(ynh_normalize_url_path $path_url)
-	ynh_app_setting_set --app=$app --key=path_url --value=path_url
+	ynh_app_setting_set --app=$app --key=path --value=path_url
 fi
 
 # If port doesn't exist, retrieve it
@@ -296,10 +297,14 @@ fi
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for gitlab..." --weight=15
 
-# Action status to just wait the service
-ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+if [ "$upgrade_type" == "UPGRADE_APP" ]
+then
+	ynh_script_progression --message="Waiting for gitlab..." --weight=15
+
+	# Action status to just wait the service
+	ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+fi
 
 #=================================================
 # RELOAD NGINX
