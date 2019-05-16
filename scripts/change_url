@@ -119,18 +119,12 @@ ynh_store_file_checksum --file="$config_path/gitlab.rb"
 
 gitlab-ctl reconfigure
 
-if [ $change_path -eq 1 ]; then
-	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir"
-	gitlab-ctl restart unicorn
-fi
-
 #=================================================
 # WAITING GITLAB
 #=================================================
 ynh_script_progression --message="Waiting for gitlab..." --weight=15
 
-# Action status to just wait the service
-ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
 
 #=================================================
 # GENERIC FINALISATION
