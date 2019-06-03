@@ -140,6 +140,7 @@ gitlab-ctl stop unicorn
 gitlab-ctl stop sidekiq
 
 # Use gitlab-rake to backup
+# Doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
 ynh_exec_warn_less gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
 
 gitlab-rake gitlab:check SANITIZE=true
