@@ -47,11 +47,9 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 
 # Use gitlab-rake to backup
-gitlab-rake gitlab:backup:create > backup.log
-
-# Searching in backup logs the name of the backup archive created
-last_backup=$(grep _gitlab_backup.tar backup.log | cut -d' ' -f4)
-mv "/var/opt/$app/backups/$last_backup" "/var/opt/$app/backups/last_gitlab_backup.tar"
+# For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
+# For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
+gitlab-rake gitlab:backup:create BACKUP=last
 
 ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 

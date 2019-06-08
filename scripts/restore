@@ -140,9 +140,8 @@ gitlab-ctl stop unicorn
 gitlab-ctl stop sidekiq
 
 # Use gitlab-rake to backup
+# Doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
 ynh_exec_warn_less gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
-
-gitlab-rake gitlab:check SANITIZE=true
 
 #=================================================
 # GENERIC FINALIZATION
@@ -158,6 +157,12 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 ynh_script_progression --message="Waiting for gitlab..." --weight=14
 
 ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+
+#=================================================
+# CHECK THE RESTORED DATA
+#=================================================
+
+gitlab-rake gitlab:check SANITIZE=true
 
 #=================================================
 # RELOAD NGINX
