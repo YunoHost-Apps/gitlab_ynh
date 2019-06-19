@@ -124,7 +124,7 @@ gitlab-ctl reconfigure
 #=================================================
 ynh_script_progression --message="Waiting for gitlab..." --weight=15
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
 
 #=================================================
 # GENERIC FINALISATION
