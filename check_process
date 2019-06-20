@@ -6,7 +6,7 @@
 		path="/gitlab"	(PATH)
 		admin="john"	(USER)
 		is_public=1	(PUBLIC|public=1|private=0)
-		use_web_account=0 (WEB_ACCOUNT)
+		use_web_account=0
 	; Checks
 		pkg_linter=1
 		setup_sub_dir=1
@@ -28,4 +28,4 @@ Notification=none
 ;;; Upgrade options
 	; commit=2cc84310aeff7055342b445c1aee01d4183d5ae2
 		name=MAJ 11.6.3
-		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&use_web_account=WEB_ACCOUNT&is_public=1&
+		manifest_arg=domain=DOMAIN&path=PATH&admin=USER&use_web_account=0&is_public=1&
