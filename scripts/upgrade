@@ -249,6 +249,11 @@ then
 
 		current_major_version=${current_version%%.*}
 
+		# If the current version is equal to the last minor version of upgrade.$current_major_version.sh, increment the major version
+		if [ "$gitlab_version" = "$current_version" ]; then
+			current_major_version=$(($current_major_version + 1))
+		fi
+
 		# If the current version has the same major version than the next one,
 		# then it's the last upgrade to do
 		if [ "$last_major_version" -eq "$current_major_version" ]; then
