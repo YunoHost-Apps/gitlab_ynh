@@ -322,10 +322,9 @@ fi
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Waiting for gitlab..." --weight=15
+	ynh_script_progression --message="Restarting gitlab..." --weight=15
 
-	# Action status to just wait the service
-	ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
 fi
 
 #=================================================
