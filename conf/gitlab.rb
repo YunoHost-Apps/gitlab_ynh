@@ -115,6 +115,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['admin_email_worker_cron'] = "0 0 * * 0"
 # gitlab_rails['repository_archive_cache_worker_cron'] = "0 * * * *"
 # gitlab_rails['pages_domain_verification_cron_worker'] = "*/15 * * * *"
+# gitlab_rails['pages_domain_removal_cron_worker'] = "47 0 * * *"
 # gitlab_rails['schedule_migrate_external_diffs_worker_cron'] = "15 * * * *"
 
 ### Webhook Settings
@@ -432,6 +433,11 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['initial_root_password'] = "password"
 # gitlab_rails['initial_shared_runners_registration_token'] = "token"
 
+#### Set path to an initial license to be used while bootstrapping GitLab.
+####! **Only applicable on initial setup, future license updations need to be done via UI.
+####! Updating the file specified in this path won't yield any change after the first reconfigure run.
+# gitlab_rails['iniitial_license_file'] = '/etc/gitlab/company.gitlab-license'
+
 #### Enable or disable automatic database migrations
 # gitlab_rails['auto_migrate'] = true
 
@@ -585,7 +591,13 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['default_notifications_backoff'] = "1s"
 # registry['default_notifications_headers'] = {}
 
-
+################################################################################
+## Error Reporting and Logging with Sentry
+################################################################################
+# gitlab_rails['sentry_enabled'] = false
+# gitlab_rails['sentry_dsn'] = 'https://<key>@sentry.io/<project>'
+# gitlab_rails['sentry_clientside_dsn'] = 'https://<key>@sentry.io/<project>'
+# gitlab_rails['sentry_environment'] = 'production'
 
 ################################################################################
 ## GitLab Workhorse
@@ -717,7 +729,7 @@ unicorn['port'] = __UNICORN_PORT__
 ################################################################################
 
 # sidekiq['log_directory'] = "/var/log/gitlab/sidekiq"
-# sidekiq['log_format'] = "default"
+# sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
 sidekiq['concurrency'] = 5
 # sidekiq['metrics_enabled'] = true
@@ -994,7 +1006,7 @@ nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 
 ##! **Recommended by: https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
 ##!                   https://cipherli.st/**
-# nginx['ssl_protocols'] = "TLSv1.1 TLSv1.2"
+# nginx['ssl_protocols'] = "TLSv1.2"
 
 ##! **Recommended in: https://nginx.org/en/docs/http/ngx_http_ssl_module.html**
 # nginx['ssl_session_cache'] = "builtin:1000  shared:SSL:10m"
@@ -1184,6 +1196,9 @@ nginx['listen_https'] = false
 ##! Configure to expose GitLab Pages on external IP address, serving the HTTPS
 # gitlab_pages['external_https'] = []
 
+##! Configure to use the default list of cipher suites
+# gitlab_pages['insecure_ciphers'] = false
+
 ##! Configure to enable health check endpoint on GitLab Pages
 # gitlab_pages['status_uri'] = "/@status"
 
@@ -1199,6 +1214,9 @@ nginx['listen_https'] = false
 
 ##! Listen for requests forwarded by reverse proxy
 # gitlab_pages['listen_proxy'] = "localhost:8090"
+
+##! Configure GitLab Pages to use an HTTP Proxy
+# gitlab_pages['http_proxy'] = "http://example:8080"
 
 # gitlab_pages['redirect_http'] = true
 # gitlab_pages['use_http2'] = true
@@ -1216,6 +1234,12 @@ nginx['listen_https'] = false
 ##! Prometheus metrics for Pages docs: https://gitlab.com/gitlab-org/gitlab-pages/#enable-prometheus-metrics
 # gitlab_pages['metrics_address'] = ":9235"
 
+##! Specifies the minimum SSL/TLS version ("ssl3", "tls1.0", "tls1.1" or "tls1.2")
+# gitlab_pages['tls_min_version'] = "ssl3"
+
+##! Specifies the maximum SSL/TLS version ("ssl3", "tls1.0", "tls1.1" or "tls1.2")
+# gitlab_pages['tls_max_version'] = "tls1.2"
+
 ##! Configure the pages admin API
 # gitlab_pages['admin_secret_token'] = 'custom secret'
 # gitlab_pages['admin_https_listener'] = '0.0.0.0:5678'
@@ -1231,7 +1255,7 @@ nginx['listen_https'] = false
 # gitlab_pages['gitlab_id'] = nil # Automatically generated if not present
 # gitlab_pages['gitlab_secret'] = nil # Generated if not present
 # gitlab_pages['auth_redirect_uri'] = nil # Defaults to projects subdomain of pages_external_url and + '/auth'
-# gitlab_pages['auth_server'] = nil # Defaults to external_url
+# gitlab_pages['gitlab_server'] = nil # Defaults to external_url
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 
 ################################################################################
@@ -1359,7 +1383,6 @@ nginx['listen_https'] = false
 # prometheus['rules_files'] = ['/var/opt/gitlab/prometheus/rules/*.rules']
 # prometheus['scrape_interval'] = 15
 # prometheus['scrape_timeout'] = 15
-# prometheus['chunk_encoding_version'] = 2
 # prometheus['env_directory'] = '/opt/gitlab/etc/prometheus/env'
 # prometheus['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
@@ -1401,23 +1424,10 @@ nginx['listen_https'] = false
 #   }
 # ]
 #
-### Prometheus Memory Management
-#
-# Prometheus needs to be configured for how much memory is used.
-# * This sets the target heap size.
-# * This value accounts for approximately 2/3 of the memory used by the server.
-# * The recommended memory is 4kb per unique metrics time-series.
-# See: https://prometheus.io/docs/operating/storage/#memory-usage
-#
-# prometheus['target_heap_size'] = (
-#   # Use 25mb + 2% of total memory for Prometheus memory.
-#   26_214_400 + (node['memory']['total'].to_i * 1024 * 0.02 )
-# ).to_i
+### Custom Prometheus flags
 #
 # prometheus['flags'] = {
 #   'storage.local.path' => "#{node['gitlab']['prometheus']['home']}/data",
-#   'storage.local.chunk-encoding-version' => user_config['chunk-encoding-version'],
-#   'storage.local.target-heap-size' => node['gitlab']['prometheus']['target-heap-size'],
 #   'config.file' => "#{node['gitlab']['prometheus']['home']}/prometheus.yml"
 # }
 
@@ -1426,7 +1436,6 @@ nginx['listen_https'] = false
 
 ################################################################################
 ## Prometheus Alertmanager
-##! Docs: https://docs.gitlab.com/ce/administration/monitoring/prometheus/alertmanager.html
 ################################################################################
 
 # alertmanager['enable'] = true
@@ -1537,7 +1546,7 @@ nginx['listen_https'] = false
 ##! Docs: https://docs.gitlab.com/ce/administration/monitoring/prometheus/#prometheus-as-a-grafana-data-source
 ################################################################################
 
-# grafana['enable'] = false
+# grafana['enable'] = true
 # grafana['log_directory'] = '/var/log/gitlab/grafana'
 # grafana['home'] = '/var/opt/gitlab/grafana'
 # grafana['admin_password'] = 'admin'
@@ -1616,10 +1625,12 @@ nginx['listen_https'] = false
 # gitaly['logging_format'] = "json"
 # gitaly['logging_sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
 # gitaly['logging_ruby_sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
+# gitaly['logging_sentry_environment'] = "production"
 # gitaly['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
 # gitaly['auth_token'] = '<secret>'
 # gitaly['auth_transitioning'] = false # When true, auth is logged to Prometheus but NOT enforced
 # gitaly['graceful_restart_timeout'] = '1m' # Grace time for a gitaly process to finish ongoing requests
+# gitaly['git_catfile_cache_size'] = 100 # Number of 'git cat-file' processes kept around for re-use
 # gitaly['ruby_max_rss'] = 300000000 # RSS threshold in bytes for triggering a gitaly-ruby restart
 # gitaly['ruby_graceful_restart_timeout'] = '10m' # Grace time for a gitaly-ruby process to finish ongoing requests
 # gitaly['ruby_restart_delay'] = '5m' # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
@@ -1717,6 +1728,30 @@ nginx['listen_https'] = false
 # gitlab_rails['packages_object_store_proxy_download'] = false
 # gitlab_rails['packages_object_store_remote_directory'] = "packages"
 # gitlab_rails['packages_object_store_connection'] = {
+#   'provider' => 'AWS',
+#   'region' => 'eu-west-1',
+#   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
+#   'aws_secret_access_key' => 'AWS_SECRET_ACCESS_KEY',
+#   # # The below options configure an S3 compatible host instead of AWS
+#   # 'host' => 's3.amazonaws.com',
+#   # 'aws_signature_version' => 4, # For creation of signed URLs. Set to 2 if provider does not support v4.
+#   # 'endpoint' => 'https://s3.amazonaws.com', # default: nil - Useful for S3 compliant services such as DigitalOcean Spaces
+#   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
+# }
+
+################################################################################
+## Dependency proxy (EE Only)
+##! Docs: https://docs.gitlab.com/ee/administration/dependency_proxy.md
+################################################################################
+
+# gitlab_rails['dependency_proxy_enabled'] = true
+# gitlab_rails['dependency_proxy_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/dependency_proxy"
+# gitlab_rails['dependency_proxy_object_store_enabled'] = false
+# gitlab_rails['dependency_proxy_object_store_direct_upload'] = false
+# gitlab_rails['dependency_proxy_object_store_background_upload'] = true
+# gitlab_rails['dependency_proxy_object_store_proxy_download'] = false
+# gitlab_rails['dependency_proxy_object_store_remote_directory'] = "dependency_proxy"
+# gitlab_rails['dependency_proxy_object_store_connection'] = {
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
 #   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
@@ -1837,6 +1872,13 @@ nginx['listen_https'] = false
 ################################################################################
 # geo_primary_role['enable'] = false
 # geo_secondary_role['enable'] = false
+
+# This is an optional identifier which Geo nodes can use to identify themselves.
+# For example, if external_url is the same for two secondaries, you must specify
+# a unique Geo node name for those secondaries.
+#
+# If it is blank, it defaults to external_url.
+# gitlab_rails['geo_node_name'] = nil
 
 ################################################################################
 ## GitLab Geo Secondary (EE only)

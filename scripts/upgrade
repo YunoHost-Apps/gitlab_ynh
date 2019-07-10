@@ -236,32 +236,59 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Setting up source files..." --weight=200
 
+	current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
+
+	# Load the last available version
 	source ./upgrade.d/upgrade.last.sh
-	cp ../conf/$architecture.src.default ../conf/$architecture.src
-	ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
-	ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
+	last_version=$gitlab_version
+	last_major_version=${gitlab_version%%.*}
 
-	if [ $architecture = "x86-64" ]; then
-		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_x86_64_source_sha256" --target_file="../conf/$architecture.src"
-	elif [ $architecture = "arm" ]; then
-		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_arm_source_sha256" --target_file="../conf/$architecture.src"
-	fi
+	# While the current version is not the last version, do an upgrade
+	while [ "$last_version" != "$current_version" ]
+	do
 
-	tempdir="$(mktemp -d)"
+		current_major_version=${current_version%%.*}
 
-	ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
-
-	if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
-		then # This command will fail in lxc env
-			ynh_replace_string --match_string="command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" --replace_string="command \"cat \/etc\/sysctl.conf\"" --target_file="$final_path/embedded/cookbooks/package/resources/sysctl.rb"
-			ynh_exec_warn_less dpkg --configure gitlab-ce
+		# If the current version is equal to the last minor version of upgrade.$current_major_version.sh, increment the major version
+		if [ "$gitlab_version" = "$current_version" ]; then
+			current_major_version=$(($current_major_version + 1))
 		fi
-	else
-		ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
-	fi
 
-	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
+		# If the current version has the same major version than the next one,
+		# then it's the last upgrade to do
+		if [ "$last_major_version" -eq "$current_major_version" ]; then
+			current_major_version=last
+		fi
+
+		source ./upgrade.d/upgrade.$current_major_version.sh
+		cp ../conf/$architecture.src.default ../conf/$architecture.src
+		ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
+		ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
+
+		if [ $architecture = "x86-64" ]; then
+			ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_x86_64_source_sha256" --target_file="../conf/$architecture.src"
+		elif [ $architecture = "arm" ]; then
+			ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_arm_source_sha256" --target_file="../conf/$architecture.src"
+		fi
+
+		tempdir="$(mktemp -d)"
+
+		ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+
+		if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
+			if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
+			then # This command will fail in lxc env
+				package_check_action # defined in upgrade.d/upgrade.X.sh
+				ynh_exec_warn_less dpkg --configure gitlab-ce
+			fi
+		else
+			ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
+		fi
+
+		ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
+
+		current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
+	done
 fi
 
 #=================================================
@@ -300,10 +327,9 @@ fi
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Waiting for gitlab..." --weight=15
+	ynh_script_progression --message="Restarting gitlab..." --weight=15
 
-	# Action status to just wait the service
-	ynh_systemd_action --action=status --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
 fi
 
 #=================================================
@@ -317,4 +343,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed"--last
+ynh_script_progression --message="Upgrade of $app completed" --last
