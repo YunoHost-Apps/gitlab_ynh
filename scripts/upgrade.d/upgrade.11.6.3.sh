@@ -1,5 +1,0 @@
-gitlab_version="11.6.3"
-
-gitlab_x86_64_source_sha256="5a990a76c1656ddd42673562d8bd1be106a835331a2ce976d405c536a5567485"
-
-gitlab_arm_source_sha256="3b1d1c650df8722d0b63b5db3e6c2440ea70224deeca0621a9c5226a06079d2e"

@@ -118,7 +118,7 @@ ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
 	if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
 	then # This command will fail in lxc env
-		ynh_replace_string --match_string="command \"cat \/etc\/sysctl.conf \/etc\/sysctl.d\/\*.conf  | sysctl -e -p -\"" --replace_string="command \"cat \/etc\/sysctl.conf\"" --target_file="$final_path/embedded/cookbooks/package/resources/sysctl.rb"
+		package_check_action # defined in upgrade.d/upgrade.last.sh
 		ynh_exec_warn_less dpkg --configure gitlab-ce
 	fi
 else
@@ -156,7 +156,7 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 #=================================================
 ynh_script_progression --message="Waiting for gitlab..." --weight=14
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=3600
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
 
 #=================================================
 # CHECK THE RESTORED DATA
