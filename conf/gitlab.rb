@@ -115,6 +115,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['admin_email_worker_cron'] = "0 0 * * 0"
 # gitlab_rails['repository_archive_cache_worker_cron'] = "0 * * * *"
 # gitlab_rails['pages_domain_verification_cron_worker'] = "*/15 * * * *"
+# gitlab_rails['pages_domain_ssl_renewal_cron_worker'] = "*/10 * * * *"
 # gitlab_rails['pages_domain_removal_cron_worker'] = "47 0 * * *"
 # gitlab_rails['schedule_migrate_external_diffs_worker_cron'] = "15 * * * *"
 
@@ -235,7 +236,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 
 ### GitLab uploads
 ###! Docs: https://docs.gitlab.com/ee/administration/uploads.html
-# gitlab_rails['uploads_storage_path'] = "/var/opt/gitlab/gitlab-rails"
+# gitlab_rails['uploads_storage_path'] = "/opt/gitlab/embedded/service/gitlab-rails/public"
 # gitlab_rails['uploads_base_dir'] = "uploads/-/system"
 # gitlab_rails['uploads_object_store_enabled'] = false
 # gitlab_rails['uploads_object_store_direct_upload'] = false
@@ -294,6 +295,7 @@ EOS
 # gitlab_rails['smartcard_enabled'] = false
 # gitlab_rails['smartcard_ca_file'] = "/etc/gitlab/ssl/CA.pem"
 # gitlab_rails['smartcard_client_certificate_required_port'] = 3444
+# gitlab_rails['smartcard_required_for_git_access'] = false
 
 ### OmniAuth Settings
 ###! Docs: https://docs.gitlab.com/ce/integration/omniauth.html
@@ -731,7 +733,7 @@ unicorn['port'] = __UNICORN_PORT__
 # sidekiq['log_directory'] = "/var/log/gitlab/sidekiq"
 # sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
-sidekiq['concurrency'] = 5
+# sidekiq['concurrency'] = 25
 # sidekiq['metrics_enabled'] = true
 # sidekiq['listen_address'] = "localhost"
 sidekiq['listen_port'] = __SIDEKIQ_PORT__
@@ -1111,6 +1113,7 @@ nginx['listen_https'] = false
 # logging['svlogd_udp'] = nil # transmit log messages via UDP
 # logging['svlogd_prefix'] = nil # custom prefix for log messages
 # logging['logrotate_frequency'] = "daily" # rotate logs daily
+# logging['logrotate_maxsize'] = nil # rotate logs when they grow bigger than size bytes even before the specified time interval (daily, weekly, monthly, or yearly)
 # logging['logrotate_size'] = nil # do not rotate by size by default
 # logging['logrotate_rotate'] = 30 # keep 30 rotated logs
 # logging['logrotate_compress'] = "compress" # see 'man logrotate'
@@ -1211,6 +1214,11 @@ nginx['listen_https'] = false
 
 ##! Configure verbose logging for GitLab Pages
 # gitlab_pages['log_verbose'] = false
+
+##! Error Reporting and Logging with Sentry
+# gitlab_pages['sentry_enabled'] = false
+# gitlab_pages['sentry_dsn'] = 'https://<key>@sentry.io/<project>'
+# gitlab_pages['sentry_environment'] = 'production'
 
 ##! Listen for requests forwarded by reverse proxy
 # gitlab_pages['listen_proxy'] = "localhost:8090"
@@ -1371,6 +1379,11 @@ nginx['listen_https'] = false
 ##! Docs: https://docs.gitlab.com/ce/administration/monitoring/prometheus/
 ################################################################################
 
+###! **To enable only Monitoring service in this machine, uncomment
+###!   the line below.**
+###! Docs: https://docs.gitlab.com/ce/administration/high_availability
+# monitoring_role['enable'] = true
+
 # prometheus['enable'] = true
 # prometheus['monitor_kubernetes'] = true
 # prometheus['username'] = 'gitlab-prometheus'
@@ -1427,7 +1440,8 @@ nginx['listen_https'] = false
 ### Custom Prometheus flags
 #
 # prometheus['flags'] = {
-#   'storage.local.path' => "#{node['gitlab']['prometheus']['home']}/data",
+#   'storage.tsdb.path' => "#{node['gitlab']['prometheus']['home']}/data",
+#   'storage.tsdb.retention.time' => "15d",
 #   'config.file' => "#{node['gitlab']['prometheus']['home']}/prometheus.yml"
 # }
 
@@ -2085,6 +2099,7 @@ grafana['enable'] = false
 # consul['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
 # }
+# consul['monitoring_service_discovery'] = false
 # consul['node_name'] = nil
 # consul['script_directory'] = '/var/opt/gitlab/consul/scripts'
 # consul['configuration'] = {
