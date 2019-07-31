@@ -181,14 +181,10 @@ tempdir="$(mktemp -d)"
 
 ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
-if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-	if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ; 
-	then # This command will fail in lxc env
-		package_check_action # defined in upgrade.d/upgrade.last.sh
-		ynh_exec_warn_less dpkg --configure gitlab-ce
-	fi
-else
-	ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
+if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ; 
+then # This command will fail in lxc env
+	package_check_action # defined in upgrade.d/upgrade.last.sh
+	ynh_exec_warn_less dpkg --configure gitlab-ce
 fi
 
 #=================================================
