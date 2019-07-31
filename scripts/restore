@@ -71,15 +71,23 @@ total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
+total_memory_needed=8192
+minimum_swap_needed=2048
+
+if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then # Do not use as much space in the IC
+	total_memory_needed=2048
+	minimum_swap_needed=1024
+fi
+
 # https://docs.gitlab.com/ee/install/requirements.html#memory
-if [ $total_memory -lt 8192 ]; then
+if [ $total_memory -lt $total_memory_needed ]; then
 	# Need a minimum of 8Go of memory
-	swap_needed=$((8192 - $total_memory))
+	swap_needed=$(($total_memory_needed - $total_memory))
 fi
 
 # Need at least 2Go of swap
-if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
-	swap_needed=$((2048 - $total_swap))
+if [ $(($total_swap + $swap_needed)) -lt $minimum_swap_needed ]; then
+	swap_needed=$(($minimum_swap_needed - $total_swap))
 fi
 
 ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
