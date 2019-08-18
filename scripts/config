@@ -81,27 +81,27 @@ show_config() {
 	# here you are supposed to read some config file/database/other then print the values
 	# echo "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
 
-	echo "YNH_CONFIG_MAIN_IS_PUBLIC_IS_PUBLIC=$is_public"
+	ynh_return "YNH_CONFIG_MAIN_IS_PUBLIC_IS_PUBLIC=$is_public"
 
-	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
+	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
 
-	echo "YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT=$use_web_account"
+	ynh_return "YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT=$use_web_account"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_DB=$backup_db"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_DB=$backup_db"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_UPLOADS=$backup_uploads"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_UPLOADS=$backup_uploads"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REPOSITORIES=$backup_repositories"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REPOSITORIES=$backup_repositories"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_BUILDS=$backup_builds"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_BUILDS=$backup_builds"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_ARTIFACTS=$backup_artifacts"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_ARTIFACTS=$backup_artifacts"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_LFS=$backup_lfs"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_LFS=$backup_lfs"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REGISTRY=$backup_registry"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REGISTRY=$backup_registry"
 
-	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_PAGES=$backup_pages"
+	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_PAGES=$backup_pages"
 }
 
 #=================================================
