@@ -57,35 +57,35 @@ ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 
 to_skip=""
 
-if [ $backup_db -eq 1 ]; then
+if [ $backup_db -eq 0 ]; then
 	to_skip="db,"$to_skip
 fi
 
-if [ $backup_uploads -eq 1 ]; then
+if [ $backup_uploads -eq 0 ]; then
 	to_skip="uploads,"$to_skip
 fi
 
-if [ $backup_repositories -eq 1 ]; then
+if [ $backup_repositories -eq 0 ]; then
 	to_skip="repositories,"$to_skip
 fi
 
-if [ $backup_builds -eq 1 ]; then
+if [ $backup_builds -eq 0 ]; then
 	to_skip="builds,"$to_skip
 fi
 
-if [ $backup_artifacts -eq 1 ]; then
+if [ $backup_artifacts -eq 0 ]; then
 	to_skip="artifacts,"$to_skip
 fi
 
-if [ $backup_lfs -eq 1 ]; then
+if [ $backup_lfs -eq 0 ]; then
 	to_skip="lfs,"$to_skip
 fi
 
-if [ $backup_registry -eq 1 ]; then
+if [ $backup_registry -eq 0 ]; then
 	to_skip="registry,"$to_skip
 fi
 
-if [ $backup_pages -eq 1 ]; then
+if [ $backup_pages -eq 0 ]; then
 	to_skip="pages,"$to_skip
 fi
 
