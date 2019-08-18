@@ -11,7 +11,10 @@
                     "id": "is_public",
                     "options": [
                         {
-                            "name": "Is it a public app ?",
+                            "name": "Public app",
+                            "ask": {
+                                "en": "Is it a public app ?"
+                            },
                             "id": "is_public",
                             "type": "bool",
                             "default": true
@@ -23,7 +26,10 @@
                     "id": "overwrite_files",
                     "options": [
                         {
-                            "name": "Overwrite the nginx config file ?",
+                            "name": "Overwrite the nginx config file",
+                            "ask": {
+                                "en": "Overwrite the nginx config file ?"
+                            },
                             "help": "If the file is overwritten, a backup will be created.",
                             "id": "overwrite_nginx",
                             "type": "bool",
@@ -36,9 +42,98 @@
                     "id": "users",
                     "options": [
                         {
-                            "name": "Authorized external user creation ?",
+                            "name": "Authorized external user creation",
+                            "ask": {
+                                "en": "Authorized external user creation ?"
+                            },
                             "help": "Allow user to be created without yunohost account.",
                             "id": "use_web_account",
+                            "type": "bool",
+                            "default": true
+                        }
+                    ]
+                },
+                {
+                    "name": "Backup strategy",
+                    "id": "backup_strategy",
+                    "options": [
+                        {
+                            "name": "Backup db",
+                            "ask": {
+                                "en": "Should gitlab backup the database ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_db",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup uploads",
+                            "ask": {
+                                "en": "Should gitlab backup attachments ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_uploads",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup repositories",
+                            "ask": {
+                                "en": "Should gitlab backup git repositories data ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_repositories",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup builds",
+                            "ask": {
+                                "en": "Should gitlab backup CI job output logs ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_builds",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup artifacts",
+                            "ask": {
+                                "en": "Should gitlab backup CI job artifacts ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_artifacts",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup lfs",
+                            "ask": {
+                                "en": "Should gitlab backup LFS objects ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_lfs",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup registry",
+                            "ask": {
+                                "en": "Should gitlab backup container registry images ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_registry",
+                            "type": "bool",
+                            "default": true
+                        },
+                        {
+                            "name": "Backup pages",
+                            "ask": {
+                                "en": "Should gitlab backup pages content ?"
+                            },
+                            "help": "https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup",
+                            "id": "backup_pages",
                             "type": "bool",
                             "default": true
                         }

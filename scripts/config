@@ -40,6 +40,39 @@ old_use_web_account="$(ynh_app_setting_get --app=$app --key=use_web_account)"
 old_use_web_account=$(bool_to_true_false $old_use_web_account)
 use_web_account="${YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT:-$old_use_web_account}"
 
+# backup_strategy
+old_backup_db="$(ynh_app_setting_get --app=$app --key=backup_db)"
+old_backup_db=$(bool_to_true_false $old_backup_db)
+backup_db="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_DB:-$old_backup_db}"
+
+old_backup_uploads="$(ynh_app_setting_get --app=$app --key=backup_uploads)"
+old_backup_uploads=$(bool_to_true_false $old_backup_uploads)
+backup_uploads="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_UPLOADS:-$old_backup_uploads}"
+
+old_backup_repositories="$(ynh_app_setting_get --app=$app --key=backup_repositories)"
+old_backup_repositories=$(bool_to_true_false $old_backup_repositories)
+backup_repositories="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REPOSITORIES:-$old_backup_repositories}"
+
+old_backup_builds="$(ynh_app_setting_get --app=$app --key=backup_builds)"
+old_backup_builds=$(bool_to_true_false $old_backup_builds)
+backup_builds="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_BUILDS:-$old_backup_builds}"
+
+old_backup_artifacts="$(ynh_app_setting_get --app=$app --key=backup_artifacts)"
+old_backup_artifacts=$(bool_to_true_false $old_backup_artifacts)
+backup_artifacts="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_ARTIFACTS:-$old_backup_artifacts}"
+
+old_backup_lfs="$(ynh_app_setting_get --app=$app --key=backup_lfs)"
+old_backup_lfs=$(bool_to_true_false $old_backup_lfs)
+backup_lfs="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_LFS:-$old_backup_lfs}"
+
+old_backup_registry="$(ynh_app_setting_get --app=$app --key=backup_registry)"
+old_backup_registry=$(bool_to_true_false $old_backup_registry)
+backup_registry="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REGISTRY:-$old_backup_registry}"
+
+old_backup_pages="$(ynh_app_setting_get --app=$app --key=backup_pages)"
+old_backup_pages=$(bool_to_true_false $old_backup_pages)
+backup_pages="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_PAGES:-$old_backup_pages}"
+
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
 #=================================================
@@ -53,6 +86,22 @@ show_config() {
 	echo "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
 
 	echo "YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT=$use_web_account"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_DB=$backup_db"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_UPLOADS=$backup_uploads"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REPOSITORIES=$backup_repositories"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_BUILDS=$backup_builds"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_ARTIFACTS=$backup_artifacts"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_LFS=$backup_lfs"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REGISTRY=$backup_registry"
+
+	echo "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_PAGES=$backup_pages"
 }
 
 #=================================================
@@ -78,6 +127,23 @@ apply_config() {
 
 	# Set overwrite_nginx
 	ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
+
+	# Set backup_db
+	ynh_app_setting_set --app=$app --key=backup_db --value="$(bool_to_01 $backup_db)"
+	# Set backup_uploads
+	ynh_app_setting_set --app=$app --key=backup_uploads --value="$(bool_to_01 $backup_uploads)"
+	# Set backup_repositories
+	ynh_app_setting_set --app=$app --key=backup_repositories --value="$(bool_to_01 $backup_repositories)"
+	# Set backup_builds
+	ynh_app_setting_set --app=$app --key=backup_builds --value="$(bool_to_01 $backup_builds)"
+	# Set backup_artifacts
+	ynh_app_setting_set --app=$app --key=backup_artifacts --value="$(bool_to_01 $backup_artifacts)"
+	# Set backup_lfs
+	ynh_app_setting_set --app=$app --key=backup_lfs --value="$(bool_to_01 $backup_lfs)"
+	# Set backup_registry
+	ynh_app_setting_set --app=$app --key=backup_registry --value="$(bool_to_01 $backup_registry)"
+	# Set backup_pages
+	ynh_app_setting_set --app=$app --key=backup_pages --value="$(bool_to_01 $backup_pages)"
 }
 
 #=================================================
