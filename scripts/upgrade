@@ -65,7 +65,7 @@ if [ -z "$config_path" ]; then
 fi
 
 if [ -z "$unicorn_worker_processes" ]; then
-	# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
+	# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
 	unicorn_worker_processes=$(($(nproc) + 1 ))
 
 	# If the server has at least 2GB of RAM
@@ -188,7 +188,7 @@ total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
-# https://docs.gitlab.com/ee/install/requirements.html#memory
+# https://docs.gitlab.com/ce/install/requirements.html#memory
 if [ $total_memory -lt 8192 ]; then
 	# Need a minimum of 8Go of memory
 	swap_needed=$((8192 - $total_memory))

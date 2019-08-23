@@ -54,8 +54,8 @@ else
         your hardware and the result of the command \"uname -m\"." 1
 fi
 
-# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
-unicorn_worker_processes=$(($(nproc) + 1 ))
+# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
+unicorn_worker_processes=$(python -c "print(int($(nproc) * 1.5 + 1))")
 
 # If the server has at least 2GB of RAM
 if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
@@ -120,7 +120,7 @@ total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
-# https://docs.gitlab.com/ee/install/requirements.html#memory
+# https://docs.gitlab.com/ce/install/requirements.html#memory
 if [ $total_memory -lt 8192 ]; then
 	# Need a minimum of 8Go of memory
 	swap_needed=$((8192 - $total_memory))
