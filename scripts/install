@@ -55,7 +55,7 @@ else
 fi
 
 # https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
-unicorn_worker_processes=$(python -c "print(int($(nproc) * 1.5 + 1))")
+unicorn_worker_processes=$(bc <<< "($(nproc) * 1.5 + 1) / 1")
 
 # If the server has at least 2GB of RAM
 if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
