@@ -71,9 +71,6 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['gitlab_email_display_name'] = 'Example'
 # gitlab_rails['gitlab_email_reply_to'] = 'noreply@example.com'
 # gitlab_rails['gitlab_email_subject_suffix'] = ''
-# gitlab_rails['gitlab_email_smime_enabled'] = false
-# gitlab_rails['gitlab_email_smime_key_file'] = '/etc/gitlab/ssl/gitlab_smime.key'
-# gitlab_rails['gitlab_email_smime_cert_file'] = '/etc/gitlab/ssl/gitlab_smime.crt'
 
 ### GitLab user privileges
 # gitlab_rails['gitlab_default_can_create_group'] = true
@@ -494,8 +491,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_sslmode'] = nil
 # gitlab_rails['db_sslcompression'] = 0
 # gitlab_rails['db_sslrootcert'] = nil
-# gitlab_rails['db_sslcert'] = nil
-# gitlab_rails['db_sslkey'] = nil
 # gitlab_rails['db_prepared_statements'] = false
 # gitlab_rails['db_statements_limit'] = 1000
 
