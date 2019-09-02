@@ -53,6 +53,7 @@
                 {
                     "name": "Backup strategy",
                     "id": "backup_strategy",
+                    "help": "WARNING: If you disable one of these backup, it will not be restored in case of error, use this feature at your own risk",
                     "options": [
                         {
                             "name": "backup_db",
