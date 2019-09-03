@@ -109,7 +109,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###!       https://docs.gitlab.com/ce/ci/yaml/README.html#artifacts:expire_in
 # gitlab_rails['stuck_ci_jobs_worker_cron'] = "0 0 * * *"
 # gitlab_rails['expire_build_artifacts_worker_cron'] = "50 * * * *"
-# gitlab_rails['pipeline_schedule_worker_cron'] = "41 * * * *"
+# gitlab_rails['pipeline_schedule_worker_cron'] = "19 * * * *"
 # gitlab_rails['ci_archive_traces_cron_worker_cron'] = "17 * * * *"
 # gitlab_rails['repository_check_worker_cron'] = "20 * * * *"
 # gitlab_rails['admin_email_worker_cron'] = "0 0 * * 0"
@@ -130,6 +130,34 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! **Add the IP address for your reverse proxy to the list, otherwise users
 ###!   will appear signed in from that address.**
 # gitlab_rails['trusted_proxies'] = []
+
+### Content Security Policy
+####! Customize if you want to enable the Content-Security-Policy header, which
+####! can help thwart JavaScript cross-site scripting (XSS) attacks.
+####! See: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+# gitlab_rails['content_security_policy'] = {
+#  'enabled' => false,
+#  'report_only' => false,
+#  # Each directive is a String (e.g. "'self'").
+#  'directives' => {
+#    'base_uri' => nil,
+#    'child_src' => nil,
+#    'connect_src' => nil,
+#    'default_src' => nil,
+#    'font_src' => nil,
+#    'form_action' => nil,
+#    'frame_ancestors' => nil,
+#    'frame_src' => nil,
+#    'img_src' => nil,
+#    'manifest_src' => nil,
+#    'media_src' => nil,
+#    'object_src' => nil,
+#    'script_src' => nil,
+#    'style_src' => nil,
+#    'worker_src' => nil,
+#    'report_uri' => nil,
+#  }
+# }
 
 ### Monitoring settings
 ###! IP whitelist controlling access to monitoring endpoints
@@ -438,7 +466,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #### Set path to an initial license to be used while bootstrapping GitLab.
 ####! **Only applicable on initial setup, future license updations need to be done via UI.
 ####! Updating the file specified in this path won't yield any change after the first reconfigure run.
-# gitlab_rails['iniitial_license_file'] = '/etc/gitlab/company.gitlab-license'
+# gitlab_rails['initial_license_file'] = '/etc/gitlab/company.gitlab-license'
 
 #### Enable or disable automatic database migrations
 # gitlab_rails['auto_migrate'] = true
@@ -527,7 +555,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Docs: https://docs.gitlab.com/ce/administration/container_registry.html
 ################################################################################
 
-# registry_external_url 'https://registry.gitlab.example.com'
+# registry_external_url 'https://registry.example.com'
 
 ### Settings used by GitLab application
 # gitlab_rails['registry_enabled'] = true
@@ -570,6 +598,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   's3' => {
 #     'accesskey' => 'AKIAKIAKI',
 #     'secretkey' => 'secret123',
+#     'region' => 'us-east-1',
 #     'bucket' => 'gitlab-registry-bucket-AKIAKIAKI'
 #   }
 # }
@@ -894,6 +923,9 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # See https://www.postgresql.org/docs/9.6/static/auth-pg-hba-conf.html for an explanation
 # of the values
 
+### Version settings
+# Set this if you have disabled the bundled PostgreSQL but still want to use the backup rake tasks
+# postgresql['version'] = 10
 
 ################################################################################
 ## GitLab Redis
@@ -917,6 +949,16 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['tcp_keepalive'] = "300"
 # redis['uid'] = nil
 # redis['gid'] = nil
+
+### Disable or obfuscate unnecessary redis command names
+### Uncomment and edit this block to add or remove entries.
+### See https://docs.gitlab.com/omnibus/settings/redis.html#renamed-commands
+### for detailed usage
+###
+# redis['rename_commands'] = {
+#   'KEYS': ''
+#}
+#
 
 ###! **To enable only Redis service in this machine, uncomment
 ###!   one of the lines below (choose master or slave instance types).**
@@ -1003,12 +1045,12 @@ nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 
 # nginx['ssl_certificate'] = "/etc/gitlab/ssl/#{node['fqdn']}.crt"
 # nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/#{node['fqdn']}.key"
-# nginx['ssl_ciphers'] = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256"
+# nginx['ssl_ciphers'] = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256"
 # nginx['ssl_prefer_server_ciphers'] = "on"
 
 ##! **Recommended by: https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
 ##!                   https://cipherli.st/**
-# nginx['ssl_protocols'] = "TLSv1.2"
+# nginx['ssl_protocols'] = "TLSv1.2 TLSv1.3"
 
 ##! **Recommended in: https://nginx.org/en/docs/http/ngx_http_ssl_module.html**
 # nginx['ssl_session_cache'] = "builtin:1000  shared:SSL:10m"
@@ -1266,6 +1308,9 @@ nginx['listen_https'] = false
 # gitlab_pages['gitlab_server'] = nil # Defaults to external_url
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 
+##! Define custom gitlab-pages HTTP headers for the whole instance
+# gitlab_pages['headers'] = []
+
 ################################################################################
 ## GitLab Pages NGINX
 ################################################################################
@@ -1440,9 +1485,9 @@ nginx['listen_https'] = false
 ### Custom Prometheus flags
 #
 # prometheus['flags'] = {
-#   'storage.tsdb.path' => "#{node['gitlab']['prometheus']['home']}/data",
+#   'storage.tsdb.path' => "/var/opt/gitlab/prometheus/data",
 #   'storage.tsdb.retention.time' => "15d",
-#   'config.file' => "#{node['gitlab']['prometheus']['home']}/prometheus.yml"
+#   'config.file' => "/var/opt/gitlab/prometheus/prometheus.yml"
 # }
 
 ##! Advanced settings. Should be changed only if absolutely needed.
@@ -1457,9 +1502,9 @@ nginx['listen_https'] = false
 # alertmanager['log_directory'] = '/var/log/gitlab/alertmanager'
 # alertmanager['admin_email'] = 'admin@example.com'
 # alertmanager['flags'] = {
-#   'web.listen-address' => "#{node['gitlab']['alertmanager']['listen_address']}"
-#   'storage.path' => "#{node['gitlab']['alertmanager']['home']}/data"
-#   'config.file' => "#{node['gitlab']['alertmanager']['home']}/alertmanager.yml"
+#   'web.listen-address' => "localhost:9093"
+#   'storage.path' => "/var/opt/gitlab/alertmanager/data"
+#   'config.file' => "/var/opt/gitlab/alertmanager/alertmanager.yml"
 # }
 # alertmanager['env_directory'] = '/opt/gitlab/etc/alertmanager/env'
 # alertmanager['env'] = {
@@ -1478,7 +1523,7 @@ nginx['listen_https'] = false
 # node_exporter['home'] = '/var/opt/gitlab/node-exporter'
 # node_exporter['log_directory'] = '/var/log/gitlab/node-exporter'
 # node_exporter['flags'] = {
-#   'collector.textfile.directory' => "#{node['gitlab']['node-exporter']['home']}/textfile_collector"
+#   'collector.textfile.directory' => "/var/opt/gitlab/node-exporter/textfile_collector"
 # }
 # node_exporter['env_directory'] = '/opt/gitlab/etc/node-exporter/env'
 # node_exporter['env'] = {
@@ -1496,7 +1541,7 @@ nginx['listen_https'] = false
 # redis_exporter['enable'] = true
 # redis_exporter['log_directory'] = '/var/log/gitlab/redis-exporter'
 # redis_exporter['flags'] = {
-#   'redis.addr' => "unix://#{node['gitlab']['gitlab-rails']['redis_socket']}",
+#   'redis.addr' => "unix:///var/opt/gitlab/redis/redis.socket",
 # }
 # redis_exporter['env_directory'] = '/opt/gitlab/etc/redis-exporter/env'
 # redis_exporter['env'] = {
@@ -1565,6 +1610,8 @@ grafana['enable'] = false
 # grafana['home'] = '/var/opt/gitlab/grafana'
 # grafana['admin_password'] = 'admin'
 # grafana['allow_user_sign_up'] = false
+# grafana['basic_auth_enabled'] = false
+# grafana['disable_login_form'] = true
 # grafana['gitlab_application_id'] = 'GITLAB_APPLICATION_ID'
 # grafana['gitlab_secret'] = 'GITLAB_SECRET'
 # grafana['env_directory'] = '/opt/gitlab/etc/grafana/env'

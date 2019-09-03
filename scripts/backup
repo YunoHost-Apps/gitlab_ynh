@@ -93,7 +93,7 @@ fi
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
 # For the backup strategy: https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
-gitlab-rake gitlab:backup:create BACKUP=last SKIP=$to_skip
+gitlab-backup create BACKUP=last SKIP=$to_skip
 
 ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 
