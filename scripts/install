@@ -54,18 +54,6 @@ else
         your hardware and the result of the command \"uname -m\"." 1
 fi
 
-# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
-unicorn_worker_processes=$(bc <<< "($(nproc) * 1.5 + 1) / 1")
-
-# If the server has at least 2GB of RAM
-if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
-	# Min 3 worker processes
-	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
-else
-	# 2 worker processes
-	unicorn_worker_processes=2
-fi
-
 # Could be an option?
 client_max_body_size="250m"
 
@@ -84,7 +72,6 @@ ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
 ynh_app_setting_set --app=$app --key=final_path --value=$final_path
 ynh_app_setting_set --app=$app --key=config_path --value=$config_path
 ynh_app_setting_set --app=$app --key=architecture --value=$architecture
-ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_worker_processes
 ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
 
 ynh_app_setting_set --app=$app --key=overwrite_nginx --value="1"
@@ -111,6 +98,24 @@ ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
 ynh_script_progression --message="Installing dependencies..." --weight=5
 
 ynh_install_app_dependencies $pkg_dependencies
+
+#=================================================
+# DEFINE THE NUMBER OF WORKERS USED
+#=================================================
+
+# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
+unicorn_worker_processes=$(bc <<< "($(nproc) * 1.5 + 1) / 1")
+
+# If the server has at least 2GB of RAM
+if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
+	# Min 3 worker processes
+	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+else
+	# 2 worker processes
+	unicorn_worker_processes=2
+fi
+
+ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_worker_processes
 
 #=================================================
 # ADD SWAP IF NEEDED

@@ -75,7 +75,7 @@ fi
 
 if [ -z "$unicorn_worker_processes" ]; then
 	# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
-	unicorn_worker_processes=$(bc <<< "($(nproc) * 1.5 + 1) / 1")
+	unicorn_worker_processes=$(($(nproc) + 1 ))
 
 	# If the server has at least 2GB of RAM
 	if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then

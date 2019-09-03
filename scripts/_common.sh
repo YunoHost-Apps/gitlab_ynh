@@ -4,7 +4,7 @@
 # SET ALL CONSTANTS
 #=================================================
 
-pkg_dependencies="openssh-server"
+pkg_dependencies="openssh-server bc"
 
 #=================================================
 # EXPERIMENTAL HELPERS
