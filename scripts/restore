@@ -71,7 +71,7 @@ total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
-# https://docs.gitlab.com/ee/install/requirements.html#memory
+# https://docs.gitlab.com/ce/install/requirements.html#memory
 if [ $total_memory -lt 8192 ]; then
 	# Need a minimum of 8Go of memory
 	swap_needed=$((8192 - $total_memory))
@@ -141,7 +141,12 @@ gitlab-ctl stop sidekiq
 
 # Use gitlab-rake to backup
 # Doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
-ynh_exec_warn_less gitlab-rake gitlab:backup:restore force=yes BACKUP=$last_backup
+ynh_exec_warn_less gitlab-backup restore force=yes BACKUP=$last_backup
+
+# https://docs.gitlab.com/ce/raketasks/backup_restore.html#container-registry-push-failures-after-restoring-from-a-backup
+if ynh_user_exists --username="registry" && [ -d "/var/opt/gitlab/gitlab-rails/shared/registry/docker" ]; then
+	chown -R registry:registry /var/opt/gitlab/gitlab-rails/shared/registry/docker
+fi
 
 #=================================================
 # GENERIC FINALIZATION

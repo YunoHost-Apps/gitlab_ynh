@@ -32,6 +32,15 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 
+backup_db=$(ynh_app_setting_get --app="$app" --key=backup_db)
+backup_uploads=$(ynh_app_setting_get --app="$app" --key=backup_uploads)
+backup_repositories=$(ynh_app_setting_get --app="$app" --key=backup_repositories)
+backup_builds=$(ynh_app_setting_get --app="$app" --key=backup_builds)
+backup_artifacts=$(ynh_app_setting_get --app="$app" --key=backup_artifacts)
+backup_lfs=$(ynh_app_setting_get --app="$app" --key=backup_lfs)
+backup_registry=$(ynh_app_setting_get --app="$app" --key=backup_registry)
+backup_pages=$(ynh_app_setting_get --app="$app" --key=backup_pages)
+
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================
@@ -46,10 +55,45 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 
+to_skip=""
+
+if [ $backup_db -eq 0 ]; then
+	to_skip="db,"$to_skip
+fi
+
+if [ $backup_uploads -eq 0 ]; then
+	to_skip="uploads,"$to_skip
+fi
+
+if [ $backup_repositories -eq 0 ]; then
+	to_skip="repositories,"$to_skip
+fi
+
+if [ $backup_builds -eq 0 ]; then
+	to_skip="builds,"$to_skip
+fi
+
+if [ $backup_artifacts -eq 0 ]; then
+	to_skip="artifacts,"$to_skip
+fi
+
+if [ $backup_lfs -eq 0 ]; then
+	to_skip="lfs,"$to_skip
+fi
+
+if [ $backup_registry -eq 0 ]; then
+	to_skip="registry,"$to_skip
+fi
+
+if [ $backup_pages -eq 0 ]; then
+	to_skip="pages,"$to_skip
+fi
+
 # Use gitlab-rake to backup
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
-gitlab-rake gitlab:backup:create BACKUP=last
+# For the backup strategy: https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
+gitlab-backup create BACKUP=last SKIP=$to_skip
 
 ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 

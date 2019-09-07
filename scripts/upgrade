@@ -33,6 +33,15 @@ unicorn_worker_processes=$(ynh_app_setting_get --app="$app" --key=unicorn_worker
 client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
 overwrite_nginx=$(ynh_app_setting_get --app="$app" --key=overwrite_nginx)
 
+backup_db=$(ynh_app_setting_get --app="$app" --key=backup_db)
+backup_uploads=$(ynh_app_setting_get --app="$app" --key=backup_uploads)
+backup_repositories=$(ynh_app_setting_get --app="$app" --key=backup_repositories)
+backup_builds=$(ynh_app_setting_get --app="$app" --key=backup_builds)
+backup_artifacts=$(ynh_app_setting_get --app="$app" --key=backup_artifacts)
+backup_lfs=$(ynh_app_setting_get --app="$app" --key=backup_lfs)
+backup_registry=$(ynh_app_setting_get --app="$app" --key=backup_registry)
+backup_pages=$(ynh_app_setting_get --app="$app" --key=backup_pages)
+
 #=================================================
 # CHECK VERSION
 #=================================================
@@ -65,7 +74,7 @@ if [ -z "$config_path" ]; then
 fi
 
 if [ -z "$unicorn_worker_processes" ]; then
-	# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
+	# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
 	unicorn_worker_processes=$(($(nproc) + 1 ))
 
 	# If the server has at least 2GB of RAM
@@ -146,6 +155,39 @@ if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
 	ynh_secure_remove --file="/etc/apt/sources.list.d/gitlab-ce.list"
 fi
 
+# Define the backup strategy: https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
+if [ -z "$backup_db" ]; then
+	ynh_app_setting_set --app=$app --key=backup_db --value=1
+fi
+
+if [ -z "$backup_uploads" ]; then
+	ynh_app_setting_set --app=$app --key=backup_uploads --value=1
+fi
+
+if [ -z "$backup_repositories" ]; then
+	ynh_app_setting_set --app=$app --key=backup_repositories --value=1
+fi
+
+if [ -z "$backup_builds" ]; then
+	ynh_app_setting_set --app=$app --key=backup_builds --value=1
+fi
+
+if [ -z "$backup_artifacts" ]; then
+	ynh_app_setting_set --app=$app --key=backup_artifacts --value=1
+fi
+
+if [ -z "$backup_lfs" ]; then
+	ynh_app_setting_set --app=$app --key=backup_lfs --value=1
+fi
+
+if [ -z "$backup_registry" ]; then
+	ynh_app_setting_set --app=$app --key=backup_registry --value=1
+fi
+
+if [ -z "$backup_pages" ]; then
+	ynh_app_setting_set --app=$app --key=backup_pages --value=1
+fi
+
 #=================================================
 # BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
 #=================================================
@@ -188,7 +230,7 @@ total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
-# https://docs.gitlab.com/ee/install/requirements.html#memory
+# https://docs.gitlab.com/ce/install/requirements.html#memory
 if [ $total_memory -lt 8192 ]; then
 	# Need a minimum of 8Go of memory
 	swap_needed=$((8192 - $total_memory))
