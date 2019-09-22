@@ -324,6 +324,7 @@ EOS
 # gitlab_rails['smartcard_ca_file'] = "/etc/gitlab/ssl/CA.pem"
 # gitlab_rails['smartcard_client_certificate_required_port'] = 3444
 # gitlab_rails['smartcard_required_for_git_access'] = false
+# gitlab_rails['smartcard_san_extensions'] = false
 
 ### OmniAuth Settings
 ###! Docs: https://docs.gitlab.com/ce/integration/omniauth.html
@@ -337,6 +338,7 @@ EOS
 # gitlab_rails['omniauth_auto_link_ldap_user'] = false
 # gitlab_rails['omniauth_auto_link_saml_user'] = false
 # gitlab_rails['omniauth_external_providers'] = ['twitter', 'google_oauth2']
+# gitlab_rails['omniauth_allow_bypass_two_factor'] = ['google_oauth2']
 # gitlab_rails['omniauth_providers'] = [
 #   {
 #     "name" => "google_oauth2",
@@ -381,6 +383,11 @@ EOS
 ###!   include 'STANDARD', 'STANDARD_IA', and 'REDUCED_REDUNDANCY'**
 # gitlab_rails['backup_storage_class'] = 'STANDARD'
 
+###! Skip parts of the backup. Comma separated.
+###! Docs: https://docs.gitlab.com/ee/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
+#gitlab_rails['env'] = {
+#    "SKIP" => "db,uploads,repositories,builds,artifacts,lfs,registry,pages"
+#}
 
 ### Pseudonymizer Settings
 # gitlab_rails['pseudonymizer_manifest'] = 'config/pseudonymizer.yml'
@@ -563,6 +570,11 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['registry_port'] = "5005"
 # gitlab_rails['registry_path'] = "/var/opt/gitlab/gitlab-rails/shared/registry"
 
+# Notification secret, it's used to authenticate notification requests to GitLab application
+# You only need to change this when you use external Registry service, otherwise
+# it will be taken directly from notification settings of your Registry
+# gitlab_rails['registry_notification_secret'] = nil
+
 ###! **Do not change the following 3 settings unless you know what you are
 ###!   doing**
 # gitlab_rails['registry_api_url'] = "http://localhost:5000"
@@ -705,7 +717,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # unicorn['enable'] = true
 # unicorn['worker_timeout'] = 60
 ###! Minimum worker_processes is 2 at this moment
-###! See https://gitlab.com/gitlab-org/gitlab-ce/issues/18771
+###! See https://gitlab.com/gitlab-org/gitlab-foss/issues/18771
 unicorn['worker_processes'] = __UNICORN_WORKER_PROCESSES__
 
 ### Advanced settings
@@ -1580,22 +1592,22 @@ nginx['listen_https'] = false
 # }
 
 ################################################################################
-## Prometheus Gitlab monitor
-##! Docs: https://docs.gitlab.com/ce/administration/monitoring/prometheus/gitlab_monitor_exporter.html
+## Prometheus Gitlab exporter
+##! Docs: https://docs.gitlab.com/ce/administration/monitoring/prometheus/gitlab_exporter.html
 ################################################################################
 
 
-# gitlab_monitor['enable'] = true
-# gitlab_monitor['log_directory'] = "/var/log/gitlab/gitlab-monitor"
-# gitlab_monitor['home'] = "/var/opt/gitlab/gitlab-monitor"
+# gitlab_exporter['enable'] = true
+# gitlab_exporter['log_directory'] = "/var/log/gitlab/gitlab-exporter"
+# gitlab_exporter['home'] = "/var/opt/gitlab/gitlab-exporter"
 
 ##! Advanced settings. Should be changed only if absolutely needed.
-# gitlab_monitor['listen_address'] = 'localhost'
-# gitlab_monitor['listen_port'] = '9168'
+# gitlab_exporter['listen_address'] = 'localhost'
+# gitlab_exporter['listen_port'] = '9168'
 
-##! Manage gitlab-monitor sidekiq probes. false by default when Sentinels are
+##! Manage gitlab-exporter sidekiq probes. false by default when Sentinels are
 ##! found.
-# gitlab_monitor['probe_sidekiq'] = true
+# gitlab_exporter['probe_sidekiq'] = true
 
 # To completely disable prometheus, and all of it's exporters, set to false
 # prometheus_monitoring['enable'] = true
@@ -1692,6 +1704,7 @@ grafana['enable'] = false
 # gitaly['auth_transitioning'] = false # When true, auth is logged to Prometheus but NOT enforced
 # gitaly['graceful_restart_timeout'] = '1m' # Grace time for a gitaly process to finish ongoing requests
 # gitaly['git_catfile_cache_size'] = 100 # Number of 'git cat-file' processes kept around for re-use
+# gitaly['open_files_ulimit'] = 15000 # Maximum number of open files allowed for the gitaly process
 # gitaly['ruby_max_rss'] = 300000000 # RSS threshold in bytes for triggering a gitaly-ruby restart
 # gitaly['ruby_graceful_restart_timeout'] = '10m' # Grace time for a gitaly-ruby process to finish ongoing requests
 # gitaly['ruby_restart_delay'] = '5m' # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
@@ -1940,6 +1953,10 @@ grafana['enable'] = false
 #
 # If it is blank, it defaults to external_url.
 # gitlab_rails['geo_node_name'] = nil
+
+# gitlab_rails['geo_registry_replication_enabled'] = true
+# gitlab_rails['geo_registry_replication_primary_api_url'] = 'https://example.com:5000'
+
 
 ################################################################################
 ## GitLab Geo Secondary (EE only)
