@@ -32,15 +32,6 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 
-backup_db=$(ynh_app_setting_get --app="$app" --key=backup_db)
-backup_uploads=$(ynh_app_setting_get --app="$app" --key=backup_uploads)
-backup_repositories=$(ynh_app_setting_get --app="$app" --key=backup_repositories)
-backup_builds=$(ynh_app_setting_get --app="$app" --key=backup_builds)
-backup_artifacts=$(ynh_app_setting_get --app="$app" --key=backup_artifacts)
-backup_lfs=$(ynh_app_setting_get --app="$app" --key=backup_lfs)
-backup_registry=$(ynh_app_setting_get --app="$app" --key=backup_registry)
-backup_pages=$(ynh_app_setting_get --app="$app" --key=backup_pages)
-
 #=================================================
 # STANDARD BACKUP STEPS
 #=================================================

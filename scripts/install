@@ -221,20 +221,6 @@ newuser.confirmation_token = nil
 newuser.save
 ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
-
-#=================================================
-# DEFINE THE BACKUP STRATEGY: https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
-#=================================================
-
-ynh_app_setting_set --app=$app --key=backup_db --value=1
-ynh_app_setting_set --app=$app --key=backup_uploads --value=1
-ynh_app_setting_set --app=$app --key=backup_repositories --value=1
-ynh_app_setting_set --app=$app --key=backup_builds --value=1
-ynh_app_setting_set --app=$app --key=backup_artifacts --value=1
-ynh_app_setting_set --app=$app --key=backup_lfs --value=1
-ynh_app_setting_set --app=$app --key=backup_registry --value=1
-ynh_app_setting_set --app=$app --key=backup_pages --value=1
-
 #=================================================
 # RECONFIGURE TO TAKE INTO ACCOUNT CHANGES
 #=================================================
