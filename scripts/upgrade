@@ -356,10 +356,9 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 # SETUP SSOWAT
 #=================================================
 
-# If app is public, add url to SSOWat conf as skipped_uris
+# Make app public if necessary
 if [ $is_public -eq 1 ]; then
-	# See install script
-	ynh_app_setting_set --app="$app" --key=unprotected_uris --value="/"
+	ynh_permission_update --permission "main" --remove "all_users" --add "visitors"
 fi
 
 #=================================================
