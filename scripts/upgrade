@@ -52,7 +52,7 @@ upgrade_type=$(ynh_check_app_version_changed)
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 
-# Fix is_public as a boolean value
+# Delete is_public if it exists
 if [ ! -z $is_public ]; then
 	ynh_app_setting_delete --app=$app --key=is_public
 fi
