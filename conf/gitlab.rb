@@ -370,7 +370,7 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block
     allow_username_or_email_login: false
     block_auto_created_users: false
     base: 'dc=yunohost,dc=org'
-    user_filter: '(&(objectClass=posixAccount))' # group_base is only available in GitLab Enterprise Edition, so I can't add (permission=cn=gitlab.main,ou=permission,dc=yunohost,dc=org)
+    user_filter: '(&(objectClass=posixAccount)(permission=cn=gitlab.main,ou=permission,dc=yunohost,dc=org))'
 EOS
 
 ### Smartcard authentication settings
