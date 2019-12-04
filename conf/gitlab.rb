@@ -1691,6 +1691,9 @@ grafana['enable'] = false
 # grafana['env'] = {
 #   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
 # }
+# grafana['metrics_enabled'] = false
+# grafana['metrics_basic_auth_username'] = 'grafana_metrics' # default: nil
+# grafana['metrics_basic_auth_password'] = 'please_set_a_unique_password' # default: nil
 
 ### Dashboards
 #
