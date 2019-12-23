@@ -1,8 +1,8 @@
-gitlab_version="12.5.4"
+gitlab_version="12.6.0"
 
-gitlab_x86_64_source_sha256="f4322459222f65558d345ff048028e91fb21b40fd318eb702737103aa2b09c18"
+gitlab_x86_64_source_sha256="bedb43836d6f901ae72afec8aa0e94ac4ea99a70f9e652002eaf2f6289682dd3"
 
-gitlab_arm_source_sha256="382890913a38f942f060c604248b3337e6c1da7ee59fb32737617963fb8ce5d4"
+gitlab_arm_source_sha256="2a2f4725a6231f416d7a804897ee96ecdcbce621e51e6092e8d95afcf58958b1"
 
 gitlab_filename="gitlab-ce-${gitlab_version}.deb"
 

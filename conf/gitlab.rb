@@ -124,6 +124,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['ci_archive_traces_cron_worker_cron'] = "17 * * * *"
 # gitlab_rails['repository_check_worker_cron'] = "20 * * * *"
 # gitlab_rails['admin_email_worker_cron'] = "0 0 * * 0"
+# gitlab_rails['personal_access_tokens_expiring_worker_cron'] = "0 1 * * *"
 # gitlab_rails['repository_archive_cache_worker_cron'] = "0 * * * *"
 # gitlab_rails['pages_domain_verification_cron_worker'] = "*/15 * * * *"
 # gitlab_rails['pages_domain_ssl_renewal_cron_worker'] = "*/10 * * * *"
@@ -209,11 +210,13 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['incoming_email_ssl'] = true
 # gitlab_rails['incoming_email_start_tls'] = false
 
-#### Incoming Mailbox Settings
+#### Incoming Mailbox Settings (via `mail_room`)
 ####! The mailbox where incoming mail will end up. Usually "inbox".
 # gitlab_rails['incoming_email_mailbox_name'] = "inbox"
 ####! The IDLE command timeout.
 # gitlab_rails['incoming_email_idle_timeout'] = 60
+####! The file name for internal `mail_room`JSON logfile
+# gitlab_rails['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
 
 ### Job Artifacts
 # gitlab_rails['artifacts_enabled'] = true
@@ -504,6 +507,13 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   'findtime' => 60,
 #   'bantime' => 3600
 # }
+
+# Prioritize the Admin Area protected paths throttle settings over the
+# deprecated Omnibus-managed protected paths throttle. This allows you to keep
+# gitlab_rails['rack_attack_git_basic_auth'] enabled to run the Git and
+# container registry failed authentication ban.
+# See https://gitlab.com/gitlab-org/gitlab/issues/37093
+# gitlab_rails['rack_attack_admin_area_protected_paths_enabled'] = true
 
 ###! **We do not recommend changing these directories.**
 # gitlab_rails['dir'] = "/var/opt/gitlab/gitlab-rails"
@@ -1636,6 +1646,7 @@ nginx['listen_https'] = false
 # postgres_exporter['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
 # }
+# postgres_exporter['sslmode'] = nil
 
 ################################################################################
 ## Prometheus PgBouncer exporter (EE only)
@@ -1810,16 +1821,39 @@ grafana['enable'] = false
 # praefect['prometheus_listen_addr'] = "localhost:9652"
 # praefect['logging_level'] = "warn"
 # praefect['logging_format'] = "json"
-# praefect['storage_nodes'] = {
-#   'praefect' => {
-#     'address' => 'tcp://12:23:56:78',
-#     'token' => 'abc123'
+# praefect['virtual_storages'] = {
+#   'default' => {
+#     'praefect-internal-0' => {
+#       'address' => 'tcp://10.23.56.78:8075',
+#       'token' => 'abc123'
+#     },
+#     'praefect-internal-1' => {
+#       'address' => 'tcp://10.76.23.31:8075',
+#       'token' => 'xyz456'
+#     }
 #   },
-#   'praefect-2' => {
-#     'address' => 'tcp://praefect2.internal',
-#     'token' => 'xyz456'
+#   'alternative' => {
+#     'praefect-internal-2' => {
+#       'address' => 'tcp://10.34.1.16:8075',
+#       'token' => 'abc321'
+#     },
+#     'praefect-internal-3' => {
+#       'address' => 'tcp://10.23.18.6:8075',
+#       'token' => 'xyz890'
+#     }
 #   }
 # }
+# praefect['sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
+# praefect['sentry_environment'] = "production"
+# praefect['database_host'] = 'postgres.internal'
+# praefect['database_port'] = 5432
+# praefect['database_user'] = 'praefect'
+# praefect['database_password'] = 'secret'
+# praefect['database_dbname'] = 'praefect_production'
+# praefect['database_sslmode'] = 'disable'
+# praefect['database_sslcert'] = '/path/to/client-cert'
+# praefect['database_sslkey'] = '/path/to/client-key'
+# praefect['database_sslrootcert'] = '/path/to/rootcert'
 
 ################################################################################
 # Storage check
