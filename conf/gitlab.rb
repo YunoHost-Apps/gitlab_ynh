@@ -37,6 +37,12 @@
 ##! URL on which GitLab will be reachable.
 ##! For more details on configuring external_url see:
 ##! https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
+##!
+##! Note: During installation/upgrades, the value of the environment variable
+##! EXTERNAL_URL will be used to populate/replace this value.
+##! On AWS EC2 instances, we also attempt to fetch the public hostname/IP
+##! address from AWS. For more details, see:
+##! https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
 external_url '__GENERATED_EXTERNAL_URL__'
 
 ## Roles for multi-instance GitLab
@@ -72,6 +78,12 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ################################################################################
 # gitlab_rails['gitlab_ssh_host'] = 'ssh.host_example.com'
 # gitlab_rails['time_zone'] = 'UTC'
+
+### Request duration
+###! Tells the rails application how long it has to complete a request
+###! This value needs to be lower than the worker timeout set in unicorn/puma.
+###! By default, we'll allow 95% of the the worker timeout
+# gitlab_rails['max_request_duration_seconds'] = 57
 
 ### Email Settings
 # gitlab_rails['gitlab_email_enabled'] = true
@@ -215,7 +227,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['incoming_email_mailbox_name'] = "inbox"
 ####! The IDLE command timeout.
 # gitlab_rails['incoming_email_idle_timeout'] = 60
-####! The file name for internal `mail_room`JSON logfile
+####! The file name for internal `mail_room` JSON logfile
 # gitlab_rails['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
 
 ### Job Artifacts
@@ -797,10 +809,10 @@ unicorn['port'] = __UNICORN_PORT__
 # unicorn['log_directory'] = "/var/log/gitlab/unicorn"
 
 ### **Only change these settings if you understand well what they mean**
-###! Docs: https://about.gitlab.com/2015/06/05/how-gitlab-uses-unicorn-and-unicorn-worker-killer/
+###! Docs: https://docs.gitlab.com/ee/administration/operations/unicorn.html#unicorn-worker-killer
 ###!       https://github.com/kzk/unicorn-worker-killer
-# unicorn['worker_memory_limit_min'] = "400 * 1 << 20"
-# unicorn['worker_memory_limit_max'] = "650 * 1 << 20"
+# unicorn['worker_memory_limit_min'] = "1024 * 1 << 20"
+# unicorn['worker_memory_limit_max'] = "1280 * 1 << 20"
 
 # unicorn['exporter_enabled'] = false
 # unicorn['exporter_address'] = "127.0.0.1"
@@ -1788,16 +1800,6 @@ grafana['enable'] = false
 # gitaly['ruby_restart_delay'] = '5m' # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
 # gitaly['ruby_rugged_git_config_search_path'] = "/opt/gitlab/embedded/etc" # Location of system-wide gitconfig file
 # gitaly['ruby_num_workers'] = 3 # Number of gitaly-ruby worker processes. Minimum 2, default 2.
-# gitaly['storage'] = [
-#   {
-#     'name' => 'default',
-#     'path' => '/mnt/nfs-01/git-data/repositories'
-#   },
-#   {
-#     'name' => 'secondary',
-#     'path' => '/mnt/nfs-02/git-data/repositories'
-#   }
-# ]
 # gitaly['concurrency'] = [
 #   {
 #     'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
@@ -1819,6 +1821,7 @@ grafana['enable'] = false
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
 # praefect['prometheus_listen_addr'] = "localhost:9652"
+# praefect['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
 # praefect['logging_level'] = "warn"
 # praefect['logging_format'] = "json"
 # praefect['virtual_storages'] = {
