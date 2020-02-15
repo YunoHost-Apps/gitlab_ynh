@@ -148,6 +148,12 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! request (default: 10)
 # gitlab_rails['webhook_timeout'] = 10
 
+### GraphQL Settings
+###! Tells the rails application how long it has to complete a GraphQL request.
+###! We suggest this value to be higher than the database timeout value
+###! and lower than the worker timeout set in unicorn/puma. (default: 30)
+# gitlab_rails['graphql_timeout'] = 30
+
 ### Trusted proxies
 ###! Customize if you have GitLab behind a reverse proxy which is running on a
 ###! different machine.
@@ -1393,6 +1399,12 @@ nginx['listen_https'] = false
 # gitlab_pages['gitlab_server'] = nil # Defaults to external_url
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 
+##! GitLab API HTTP client connection timeout
+# gitlab_pages['gitlab_client_http_timeout'] = "10s"
+
+##! GitLab API JWT Token expiry time"
+# gitlab_pages['gitlab_client_jwt_expiry'] = "30s"
+
 ##! Define custom gitlab-pages HTTP headers for the whole instance
 # gitlab_pages['headers'] = []
 
@@ -1780,8 +1792,8 @@ grafana['enable'] = false
 # gitaly['internal_socket_dir'] = "/var/opt/gitlab/gitaly"
 # gitaly['socket_path'] = "/var/opt/gitlab/gitaly/gitaly.socket"
 # gitaly['listen_addr'] = "localhost:8075"
-# gitaly['tls_listen_addr] = "localhost:9075"
-# gitaly['certificate_path'] = "/var/opt/gitlab/gitaly/certificate.pem'
+# gitaly['tls_listen_addr'] = "localhost:9075"
+# gitaly['certificate_path'] = "/var/opt/gitlab/gitaly/certificate.pem"
 # gitaly['key_path'] = "/var/opt/gitlab/gitaly/key.pem"
 # gitaly['prometheus_listen_addr'] = "localhost:9236"
 # gitaly['logging_level'] = "warn"
@@ -1906,6 +1918,7 @@ grafana['enable'] = false
 #
 # gitlab_rails['geo_file_download_dispatch_worker_cron'] = "*/10 * * * *"
 # gitlab_rails['geo_repository_sync_worker_cron'] = "*/5 * * * *"
+# gitlab_rails['geo_secondary_registry_consistency_worker'] = "* * * * *"
 # gitlab_rails['geo_prune_event_log_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_repository_verification_primary_batch_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_repository_verification_secondary_scheduler_worker_cron'] = "*/5 * * * *"
@@ -2056,6 +2069,7 @@ grafana['enable'] = false
 # sidekiq_cluster['log_directory'] = "/var/log/gitlab/sidekiq-cluster"
 # sidekiq_cluster['interval'] = 5 # The number of seconds to wait between worker checks
 # sidekiq_cluster['max_concurrency'] = 50 # The maximum number of threads each Sidekiq process should run
+# sidekiq_cluster['min_concurrency'] = 0 # The minimum number of threads each Sidekiq process should run
 
 ##! Each entry in the queue_groups array denotes a group of queues that have to be processed by a
 ##! Sidekiq process. Multiple queues can be processed by the same process by
