@@ -916,6 +916,11 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['ha'] = false
 # postgresql['dir'] = "/var/opt/gitlab/postgresql"
 # postgresql['log_directory'] = "/var/log/gitlab/postgresql"
+# postgresql['log_destination'] = nil
+# postgresql['logging_collector'] = nil
+# postgresql['log_truncate_on_rotation'] = nil
+# postgresql['log_rotation_age'] = nil
+# postgresql['log_rotation_size'] = nil
 # postgresql['username'] = "gitlab-psql"
 # postgresql['group'] = "gitlab-psql"
 ##! `SQL_USER_PASSWORD_HASH` can be generated using the command `gitlab-ctl pg-password-md5 gitlab`
@@ -1928,6 +1933,7 @@ grafana['enable'] = false
 # gitlab_rails['ldap_group_sync_worker_cron'] = "0 * * * *"
 # gitlab_rails['historical_data_worker_cron'] = "0 12 * * *"
 # gitlab_rails['pseudonymizer_worker_cron'] = "0 23 * * *"
+# gitlab_rails['elastic_index_bulk_cron'] = "*/1 * * * *"
 
 ################################################################################
 ## Kerberos (EE Only)
