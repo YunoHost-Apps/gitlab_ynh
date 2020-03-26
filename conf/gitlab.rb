@@ -77,6 +77,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ##! Docs: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md
 ################################################################################
 # gitlab_rails['gitlab_ssh_host'] = 'ssh.host_example.com'
+# gitlab_rails['gitlab_ssh_user'] = ''
 # gitlab_rails['time_zone'] = 'UTC'
 
 ### Request duration
@@ -129,7 +130,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! Periodically executed jobs, to self-heal Gitlab, do external
 ###! synchronizations, etc.
 ###! Docs: https://github.com/ondrejbartas/sidekiq-cron#adding-cron-job
-###!       https://docs.gitlab.com/ee/ci/yaml/README.html#artifacts:expire_in
+###!       https://docs.gitlab.com/ee/ci/yaml/README.html#artifactsexpire_in
 # gitlab_rails['stuck_ci_jobs_worker_cron'] = "0 0 * * *"
 # gitlab_rails['expire_build_artifacts_worker_cron'] = "50 * * * *"
 # gitlab_rails['environments_auto_stop_cron_worker_cron'] = "24 * * * *"
@@ -236,6 +237,9 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['incoming_email_idle_timeout'] = 60
 ####! The file name for internal `mail_room` JSON logfile
 # gitlab_rails['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
+
+####! The format of mail_room crash logs
+# mailroom['exit_log_format'] = "plain"
 
 ### Job Artifacts
 # gitlab_rails['artifacts_enabled'] = true
@@ -405,6 +409,7 @@ EOS
 ###! Docs: https://docs.gitlab.com/ee/administration/auth/smartcard.html
 # gitlab_rails['smartcard_enabled'] = false
 # gitlab_rails['smartcard_ca_file'] = "/etc/gitlab/ssl/CA.pem"
+# gitlab_rails['smartcard_client_certificate_required_host'] = 'smartcard.gitlab.example.com'
 # gitlab_rails['smartcard_client_certificate_required_port'] = 3444
 # gitlab_rails['smartcard_required_for_git_access'] = false
 # gitlab_rails['smartcard_san_extensions'] = false
@@ -1835,6 +1840,7 @@ grafana['enable'] = false
 
 # praefect['enable'] = false
 # praefect['virtual_storage_name'] = "praefect"
+# praefect['failover_enabled'] = false
 # praefect['auth_token'] = ""
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
