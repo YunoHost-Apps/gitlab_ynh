@@ -331,6 +331,10 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Usage Statistics
 # gitlab_rails['usage_ping_enabled'] = true
 
+### Seat Link setting
+###! Docs: https://docs.gitlab.com/ee/subscriptions/index.html#seat-link
+# gitlab_rails['seat_link_enabled'] = true
+
 ### GitLab Mattermost
 ###! These settings are void if Mattermost is installed on the same omnibus
 ###! install
