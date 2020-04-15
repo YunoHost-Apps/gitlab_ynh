@@ -11,9 +11,11 @@
                     "id": "is_public",
                     "options": [
                         {
-                            "name": "Is it a public app ?",
-                            "id": "is_public",
-                            "type": "bool",
+                            "name": "is_public",
+                            "ask": {
+                                "en": "Is it a public app ?"
+                            },
+                            "type": "boolean",
                             "default": true
                         }
                     ]
@@ -23,10 +25,12 @@
                     "id": "overwrite_files",
                     "options": [
                         {
-                            "name": "Overwrite the nginx config file ?",
+                            "name": "overwrite_nginx",
+                            "ask": {
+                                "en": "Overwrite the nginx config file ?"
+                            },
                             "help": "If the file is overwritten, a backup will be created.",
-                            "id": "overwrite_nginx",
-                            "type": "bool",
+                            "type": "boolean",
                             "default": true
                         }
                     ]
@@ -36,10 +40,12 @@
                     "id": "users",
                     "options": [
                         {
-                            "name": "Authorized external user creation ?",
+                            "name": "use_web_account",
+                            "ask": {
+                                "en": "Authorized external user creation ?"
+                            },
                             "help": "Allow user to be created without yunohost account.",
-                            "id": "use_web_account",
-                            "type": "bool",
+                            "type": "boolean",
                             "default": true
                         }
                     ]

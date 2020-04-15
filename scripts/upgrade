@@ -65,7 +65,7 @@ if [ -z "$config_path" ]; then
 fi
 
 if [ -z "$unicorn_worker_processes" ]; then
-	# https://docs.gitlab.com/ee/install/requirements.html#unicorn-workers
+	# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
 	unicorn_worker_processes=$(($(nproc) + 1 ))
 
 	# If the server has at least 2GB of RAM
@@ -188,9 +188,6 @@ total_memory=$(ynh_check_ram)
 total_swap=$(ynh_check_ram --only_swap)
 swap_needed=0
 
-total_memory_needed=8192
-minimum_swap_needed=2048
-
 if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then # Do not use as much space in the IC
 	total_memory_needed=2048
 	minimum_swap_needed=1024
@@ -244,6 +241,9 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Setting up source files..." --weight=200
 
+	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
+	touch $config_path/skip-auto-backup
+
 	current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
 
 	# Load the last available version
@@ -283,14 +283,10 @@ then
 
 		ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
-		if [ ${PACKAGE_CHECK_EXEC:-0} -eq 1 ]; then
-			if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
-			then # This command will fail in lxc env
-				package_check_action # defined in upgrade.d/upgrade.X.sh
-				ynh_exec_warn_less dpkg --configure gitlab-ce
-			fi
-		else
-			ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
+		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
+		then # This command will fail in lxc env
+			package_check_action # defined in upgrade.d/upgrade.X.sh
+			ynh_exec_warn_less dpkg --configure gitlab-ce
 		fi
 
 		ynh_exec_warn_less ynh_secure_remove --file="$tempdir"

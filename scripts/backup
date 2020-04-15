@@ -49,7 +49,7 @@ ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 # Use gitlab-rake to backup
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
-gitlab-rake gitlab:backup:create BACKUP=last
+gitlab-backup create BACKUP=last
 
 ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 
