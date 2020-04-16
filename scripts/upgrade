@@ -6,11 +6,8 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# IMPORT GENERIC HELPERS
+source _common.sh
 source /usr/share/yunohost/helpers
-
-# Load common variables and helpers
-source ./_common.sh
 
 #=================================================
 # LOAD SETTINGS
