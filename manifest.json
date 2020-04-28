@@ -2,7 +2,7 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
-    "version": "12.10.0~ynh1",
+    "version": "12.10.1~ynh1",
     "description": {
         "en": "Git-repository manager.",
         "fr": "Gestionnaire de dépôts Git."
