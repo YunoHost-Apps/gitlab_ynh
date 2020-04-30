@@ -9,7 +9,7 @@ else
 	gitlab_x86_64_source_sha256="114e616b8fad94efcd7bcecd7b69d49c42384d6599ff49809c1951e3007afc9c"
 fi
 
-gitlab_x86_64_debian_verion="$(lsb_release -sc)"
+gitlab_x86_64_debian_version="$(lsb_release -sc)"
 
 gitlab_arm_source_sha256="cc52de7777e0a970be20bc3386144a2d2bb0e9aaaa8906e567a4ab0cd638288e"
 

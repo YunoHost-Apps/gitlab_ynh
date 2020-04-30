@@ -1,7 +1,7 @@
 gitlab_version="11.11.5"
 
 # There is no buster version for gitlab 11.X
-gitlab_x86_64_debian_verion="stretch"
+gitlab_x86_64_debian_version="stretch"
 
 gitlab_x86_64_source_sha256="1ee3d6e8d2cc198f5466de0884c03f6016299db24859126af9a191501dbdef10"
 
