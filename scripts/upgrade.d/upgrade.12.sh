@@ -1,11 +1,12 @@
-gitlab_version="11.11.5"
+# It's required to upgrade to the latest 12.0.x version before to another 12.X verion.
+gitlab_version="12.0.12"
 
-# There is no buster version for gitlab 11.X
+# There is no buster version for gitlab 12.0.X
 gitlab_x86_64_debian_version="stretch"
 
-gitlab_x86_64_source_sha256="1ee3d6e8d2cc198f5466de0884c03f6016299db24859126af9a191501dbdef10"
+gitlab_x86_64_source_sha256="e80cda4c328c2627278a3d74dbdd53420e1fec9ecbeaeb5d4dcb4773726e5904"
 
-gitlab_arm_source_sha256="366e12b1f3d3b1694fcb6f13da9de908360ba93f75768d97e8d01e61e8652705"
+gitlab_arm_source_sha256="a0862e3c31b61d9274a55b7307d15daa5258473ccb97b8ae0d807f7474c971df"
 
 gitlab_filename="gitlab-ce-${gitlab_version}.deb"
 

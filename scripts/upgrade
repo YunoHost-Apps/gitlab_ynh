@@ -254,9 +254,8 @@ then
 			current_major_version=$(($current_major_version + 1))
 		fi
 
-		# If the current version has the same major version than the next one,
-		# then it's the last upgrade to do
-		if [ "$last_major_version" -eq "$current_major_version" ]; then
+		# Finish with the last migration if the file doesn't exist
+		if [ ! -e "./upgrade.d/upgrade.$current_major_version.sh" ]; then
 			current_major_version=last
 		fi
 
