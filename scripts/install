@@ -107,7 +107,7 @@ ynh_install_app_dependencies $pkg_dependencies
 unicorn_worker_processes=$(bc <<< "($(nproc) * 1.5 + 1) / 1")
 
 # If the server has at least 2GB of RAM
-if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
+if [ $(ynh_get_ram --total --ignore_swap) -ge 2000 ]; then
 	# Min 3 worker processes
 	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
 else
@@ -121,8 +121,8 @@ ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_w
 # ADD SWAP IF NEEDED
 #=================================================
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
+total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
