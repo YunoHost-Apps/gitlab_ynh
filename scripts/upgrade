@@ -6,11 +6,8 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# IMPORT GENERIC HELPERS
+source _common.sh
 source /usr/share/yunohost/helpers
-
-# Load common variables and helpers
-source ./_common.sh
 
 #=================================================
 # LOAD SETTINGS
@@ -257,9 +254,8 @@ then
 			current_major_version=$(($current_major_version + 1))
 		fi
 
-		# If the current version has the same major version than the next one,
-		# then it's the last upgrade to do
-		if [ "$last_major_version" -eq "$current_major_version" ]; then
+		# Finish with the last migration if the file doesn't exist
+		if [ ! -e "./upgrade.d/upgrade.$current_major_version.sh" ]; then
 			current_major_version=last
 		fi
 
@@ -270,6 +266,7 @@ then
 
 		if [ $architecture = "x86-64" ]; then
 			ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_x86_64_source_sha256" --target_file="../conf/$architecture.src"
+			ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_x86_64_debian_version" --target_file="../conf/$architecture.src"
 		elif [ $architecture = "arm" ]; then
 			ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_arm_source_sha256" --target_file="../conf/$architecture.src"
 		fi

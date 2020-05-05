@@ -325,6 +325,24 @@ external_url '__GENERATED_EXTERNAL_URL__'
 #   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
 # }
 
+### Terraform state
+###! Docs: https://docs.gitlab.com/ee/administration/terraform_state
+# gitlab_rails['terraform_state_enabled'] = true
+# gitlab_rails['terraform_state_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/terraform_state"
+# gitlab_rails['terraform_state_object_store_enabled'] = false
+# gitlab_rails['terraform_state_object_store_remote_directory'] = "terraform_state"
+# gitlab_rails['terraform_state_object_store_connection'] = {
+#   'provider' => 'AWS',
+#   'region' => 'eu-west-1',
+#   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
+#   'aws_secret_access_key' => 'AWS_SECRET_ACCESS_KEY',
+#   # # The below options configure an S3 compatible host instead of AWS
+#   # 'host' => 's3.amazonaws.com',
+#   # 'aws_signature_version' => 4, # For creation of signed URLs. Set to 2 if provider does not support v4.
+#   # 'endpoint' => 'https://s3.amazonaws.com', # default: nil - Useful for S3 compliant services such as DigitalOcean Spaces
+#   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
+# }
+
 ### Impersonation settings
 # gitlab_rails['impersonation_enabled'] = true
 
@@ -625,6 +643,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_queues_sentinels'] = nil
 # gitlab_rails['redis_shared_state_instance'] = nil
 # gitlab_rails['redis_shared_sentinels'] = nil
+# gitlab_rails['redis_actioncable_instance'] = nil
+# gitlab_rails['redis_actioncable_sentinels'] = nil
 
 ### GitLab email server settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/smtp.html
@@ -844,8 +864,8 @@ unicorn['port'] = __UNICORN_PORT__
 # puma['ha'] = false
 # puma['worker_timeout'] = 60
 # puma['worker_processes'] = 2
-# puma['min_threads'] = 1
-# puma['max_threads'] = 16
+# puma['min_threads'] = 4
+# puma['max_threads'] = 4
 
 ### Advanced settings
 # puma['listen'] = '127.0.0.1'
@@ -876,6 +896,17 @@ unicorn['port'] = __UNICORN_PORT__
 # sidekiq['metrics_enabled'] = true
 # sidekiq['listen_address'] = "localhost"
 sidekiq['listen_port'] = __SIDEKIQ_PORT__
+
+### Experimental Sidekiq Cluster settings
+###! These settings allow starting `sidekiq-cluster` instead of sidekiq.
+###! Docs: https://docs.gitlab.com/ee/administration/operations/extra_sidekiq_processes.html#using-sidekiq-cluster-by-default-experimental
+# sidekiq['cluster'] = false
+# sidekiq['experimental_queue_selector'] = false
+# sidekiq['interval'] = nil
+# sidekiq['max_concurrency'] = nil
+# sidekiq['min_concurrency'] = nil
+# sidekiq['negate'] = false
+# sidekiq['queue_groups'] = ['*']
 
 ################################################################################
 ## gitlab-shell
@@ -1124,6 +1155,13 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 #####! Set to [''] to clear previously set values
 # redis['save'] = [ '900 1', '300 10', '60 10000' ]
 
+#####! Redis lazy freeing
+#####! Defaults to false
+# redis['lazyfree_lazy_eviction'] = true
+# redis['lazyfree_lazy_expire'] = true
+# redis['lazyfree_lazy_server_del'] = true
+# redis['replica_lazy_flush'] = true
+
 ################################################################################
 ## GitLab Web server
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#using-a-non-bundled-web-server
@@ -1336,10 +1374,15 @@ nginx['listen_https'] = false
 ##! { "receive" => ["fsckObjects = true"], "alias" => ["st = status", "co = checkout"] }
 
 # omnibus_gitconfig['system'] = {
-#  "pack" => ["threads = 1"],
+#  "pack" => ["threads = 1", "useSparse = true"],
 #  "receive" => ["fsckObjects = true", "advertisePushOptions = true"],
 #  "repack" => ["writeBitmaps = true"],
 #  "transfer" => ["hideRefs=^refs/tmp/", "hideRefs=^refs/keep-around/", "hideRefs=^refs/remotes/"],
+#  "core" => [
+#    'alternateRefsCommand="exit 0 #"',
+#    "fsyncObjectFiles = true"
+#  ],
+#  "fetch" => ["writeCommitGraph = true"]
 # }
 
 ################################################################################
@@ -1726,7 +1769,7 @@ nginx['listen_https'] = false
 ##! Docs: https://docs.gitlab.com/ee/administration/monitoring/prometheus/#prometheus-as-a-grafana-data-source
 ################################################################################
 
-grafana['enable'] = false
+# grafana['enable'] = true
 # grafana['log_directory'] = '/var/log/gitlab/grafana'
 # grafana['home'] = '/var/opt/gitlab/grafana'
 # grafana['admin_password'] = 'admin'
@@ -1845,9 +1888,11 @@ grafana['enable'] = false
 # praefect['enable'] = false
 # praefect['virtual_storage_name'] = "praefect"
 # praefect['failover_enabled'] = false
+# praefect['failover_election_strategy'] = 'local'
 # praefect['auth_token'] = ""
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
+# praefect['postgres_queue_enabled'] = false
 # praefect['prometheus_listen_addr'] = "localhost:9652"
 # praefect['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
 # praefect['logging_level'] = "warn"
@@ -2286,7 +2331,7 @@ grafana['enable'] = false
 # repmgr['node_number'] = nil
 # repmgr['port'] = 5432
 # repmgr['trust_auth_cidr_addresses'] = []
-# repmgr['user'] = 'gitlab_repmgr'
+# repmgr['username'] = 'gitlab_repmgr'
 # repmgr['sslmode'] = 'prefer'
 # repmgr['sslcompression'] = 0
 # repmgr['failover'] = 'automatic'
@@ -2331,7 +2376,7 @@ grafana['enable'] = false
 ################################################################################
 # consul['enable'] = false
 # consul['dir'] = '/var/opt/gitlab/consul'
-# consul['user'] = 'gitlab-consul'
+# consul['username'] = 'gitlab-consul'
 # consul['group'] = 'gitlab-consul'
 # consul['config_file'] = '/var/opt/gitlab/consul/config.json'
 # consul['config_dir'] = '/var/opt/gitlab/consul/config.d'
