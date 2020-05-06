@@ -95,6 +95,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['gitlab_email_smime_enabled'] = false
 # gitlab_rails['gitlab_email_smime_key_file'] = '/etc/gitlab/ssl/gitlab_smime.key'
 # gitlab_rails['gitlab_email_smime_cert_file'] = '/etc/gitlab/ssl/gitlab_smime.crt'
+# gitlab_rails['gitlab_email_smime_ca_certs_file'] = '/etc/gitlab/ssl/gitlab_smime_cas.crt'
 
 ### GitLab user privileges
 # gitlab_rails['gitlab_default_can_create_group'] = true
@@ -476,7 +477,9 @@ EOS
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
 #   'aws_access_key_id' => 'AKIAKIAKI',
-#   'aws_secret_access_key' => 'secret123'
+#   'aws_secret_access_key' => 'secret123',
+#   # # If IAM profile use is enabled, remove aws_access_key_id and aws_secret_access_key
+#   'use_iam_profile' => false
 # }
 # gitlab_rails['backup_upload_remote_directory'] = 'my.s3.bucket'
 # gitlab_rails['backup_multipart_chunk_size'] = 104857600
@@ -567,8 +570,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### GitLab application settings
 # gitlab_rails['uploads_directory'] = "/var/opt/gitlab/gitlab-rails/uploads"
-# gitlab_rails['rate_limit_requests_per_period'] = 10
-# gitlab_rails['rate_limit_period'] = 60
 
 #### Change the initial default admin password and shared runner registration tokens.
 ####! **Only applicable on initial setup, changing these settings after database
@@ -1921,6 +1922,7 @@ nginx['listen_https'] = false
 # }
 # praefect['sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
 # praefect['sentry_environment'] = "production"
+# praefect['auto_migrate'] = true
 # praefect['database_host'] = 'postgres.internal'
 # praefect['database_port'] = 5432
 # praefect['database_user'] = 'praefect'
@@ -2158,8 +2160,8 @@ nginx['listen_https'] = false
 ## GitLab Geo
 ##! Docs: https://docs.gitlab.com/ee/gitlab-geo
 ################################################################################
-# geo_primary_role['enable'] = false
-# geo_secondary_role['enable'] = false
+##! Geo roles 'geo_primary_role' and 'geo_secondary_role' are set above with
+##! other roles. For more information, see: https://docs.gitlab.com/omnibus/roles/README.html#roles. 
 
 # This is an optional identifier which Geo nodes can use to identify themselves.
 # For example, if external_url is the same for two secondaries, you must specify
@@ -2417,5 +2419,43 @@ nginx['listen_https'] = false
 #     handler: 'failover_pgbouncer'
 #   }
 # }
+################################################################################
+# Service desk email settings (EEP only)
+################################################################################
+### Service desk email
+###! Allow users to create new service desk issues by sending an email to
+###! service desk address.
+###! Docs: https://docs.gitlab.com/ee/administration/reply_by_email.html
+# gitlab_rails['service_desk_email_enabled'] = false
+
+#### Service Desk Mailbox Settings (via `mail_room`)
+#### Service Desk Email Address
+####! The email address including the `%{key}` placeholder that will be replaced
+####! to reference the item being replied to.
+####! **The placeholder can be omitted but if present, it must appear in the
+####!   "user" part of the address (before the `@`).**
+# gitlab_rails['service_desk_email_address'] = "contact_project+%{key}@gmail.com"
+
+#### Service Desk Email account username
+####! **With third party providers, this is usually the full email address.**
+####! **With self-hosted email servers, this is usually the user part of the
+####!   email address.**
+# gitlab_rails['service_desk_email_email'] = "contact_project@gmail.com"
+
+#### Service Desk Email account password
+# gitlab_rails['service_desk_email_password'] = "[REDACTED]"
+
+####! The mailbox where service desk mail will end up. Usually "inbox".
+# gitlab_rails['service_desk_email_mailbox_name'] = "inbox"
+####! The IDLE command timeout.
+# gitlab_rails['service_desk_email_idle_timeout'] = 60
+####! The file name for internal `mail_room` JSON logfile
+# gitlab_rails['service_desk_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
+
+#### Service Desk IMAP Settings
+# gitlab_rails['service_desk_email_host'] = "imap.gmail.com"
+# gitlab_rails['service_desk_email_port'] = 993
+# gitlab_rails['service_desk_email_ssl'] = true
+# gitlab_rails['service_desk_email_start_tls'] = false
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
