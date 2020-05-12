@@ -241,7 +241,6 @@ then
 	# Load the last available version
 	source ./upgrade.d/upgrade.last.sh
 	last_version=$gitlab_version
-	last_major_version=${gitlab_version%%.*}
 
 	# While the current version is not the last version, do an upgrade
 	while [ "$last_version" != "$current_version" ]
@@ -249,8 +248,10 @@ then
 
 		current_major_version=${current_version%%.*}
 
-		# If the current version is equal to the last minor version of upgrade.$current_major_version.sh, increment the major version
-		if [ "$gitlab_version" = "$current_version" ]; then
+		source ./upgrade.d/upgrade.$current_major_version.sh
+
+		# f the current version is higher than the version stored in upgrade.$current_major_version.sh, increment the major version
+		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
 			current_major_version=$(($current_major_version + 1))
 		fi
 
