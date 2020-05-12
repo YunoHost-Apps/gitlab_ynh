@@ -28,6 +28,6 @@ Email=
 Notification=none
 ;;; Upgrade options
 	; commit=2cc84310aeff7055342b445c1aee01d4183d5ae2
-		name=Upgrade 11.6.3
+		name=11.6.3
 	; commit=7c352aff3fb13fc425d76716477c28db5d54ac99
-		name=Upgrade 12.9.2
+		name=12.9.2
