@@ -250,7 +250,8 @@ then
 
 		source ./upgrade.d/upgrade.$current_major_version.sh
 
-		# f the current version is higher than the version stored in upgrade.$current_major_version.sh, increment the major version
+		# if the version stored in the upgrade.$current_major_version.sh file is less than or equal
+		# to the current version, increment the major version to upgrade to the next version
 		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
 			current_major_version=$(($current_major_version + 1))
 		fi
