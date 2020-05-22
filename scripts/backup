@@ -28,7 +28,6 @@ ynh_script_progression --message="Loading installation settings..." --weight=1
 
 app=$YNH_APP_INSTANCE_NAME
 
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 
@@ -46,7 +45,7 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 #=================================================
 ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 
-# Use gitlab-rake to backup
+# Use gitlab-backup to backup
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
 gitlab-backup create BACKUP=last

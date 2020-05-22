@@ -85,11 +85,11 @@ ynh_script_progression --message="Find internal port..." --weight=1
 
 # Find free ports
 port=$(ynh_find_port --port=8080)
-portUnicorn=$(ynh_find_port --port=$(($port + 1)))
-portSidekiq=$(ynh_find_port --port=$(($portUnicorn + 1)))
+portPuma=$(ynh_find_port --port=$(($port + 1)))
+portSidekiq=$(ynh_find_port --port=$(($portPuma + 1)))
 
 ynh_app_setting_set --app=$app --key=web_port --value=$port
-ynh_app_setting_set --app=$app --key=unicorn_port --value=$portUnicorn
+ynh_app_setting_set --app=$app --key=puma_port --value=$portPuma
 ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
 
 #=================================================
@@ -103,19 +103,21 @@ ynh_install_app_dependencies $pkg_dependencies
 # DEFINE THE NUMBER OF WORKERS USED
 #=================================================
 
-# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
-unicorn_worker_processes=$(bc <<< "($(nproc) * 1.5 + 1) / 1")
+#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
+puma_worker_processes=$(( $(nproc) > 2 ? $(nproc) : 2 ))
 
-# If the server has at least 2GB of RAM
-if [ $(ynh_check_ram --no_swap) -ge 2000 ]; then
-	# Min 3 worker processes
-	unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+# If the server has less than 2GB of RAM
+if [ $(ynh_check_ram --no_swap) -lt 2000 ]; then
+	puma_min_threads=1
+	puma_max_threads=1
 else
-	# 2 worker processes
-	unicorn_worker_processes=2
+	puma_min_threads=2
+	puma_max_threads=4
 fi
 
-ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_worker_processes
+ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
+ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
+ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -136,8 +138,10 @@ if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
 	swap_needed=$((2048 - $total_swap))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
-ynh_add_swap --size=$swap_needed
+if [ $swap_needed -gt 0 ]; then
+	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+	ynh_add_swap --size=$swap_needed
+fi
 
 #=================================================
 # PRECONFIGURE GITLAB
@@ -154,8 +158,10 @@ ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_PORT__" --replace_string="$portUnicorn" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_WORKER_PROCESSES__" --replace_string="$unicorn_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
@@ -231,7 +237,7 @@ gitlab-ctl reconfigure
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/unicorn/unicorn_stderr.log" "/var/log/$app/unicorn/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/puma/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
 
 #=================================================
 # SETUP SSOWAT
@@ -256,7 +262,7 @@ ynh_systemd_action --action=reload --service_name=nginx
 #=================================================
 ynh_script_progression --message="Restarting gitlab..." --weight=15
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 
 #=================================================
 # END OF SCRIPT
