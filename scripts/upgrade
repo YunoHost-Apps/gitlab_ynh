@@ -252,6 +252,14 @@ then
 	source ./upgrade.d/upgrade.last.sh
 	last_version=$gitlab_version
 
+	source_current_major_version () {
+		if [ -e "./upgrade.d/upgrade.$current_major_version.first.sh" ]; then
+			source ./upgrade.d/upgrade.$current_major_version.first.sh
+		elif [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+			source ./upgrade.d/upgrade.$current_major_version.last.sh
+		fi
+	}
+	
 	# To update gitlab from major version A to B, we have to go to the last minor version
 	# of the major version A and then go to the first minor version of the major version B
 	# to finally go to the current minor version of the major version B
@@ -263,11 +271,7 @@ then
 
 		current_major_version=${current_version%%.*}
 
-		if [ -e "./upgrade.d/upgrade.$current_major_version.first.sh" ]; then
-			source ./upgrade.d/upgrade.$current_major_version.first.sh
-		elif [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
-			source ./upgrade.d/upgrade.$current_major_version.last.sh
-		fi
+		source_current_major_version
 
 		# if the version stored in the upgrade.$current_major_version.first.sh file is less than or equal
 		# to the current version, and if the version stored in the upgrade.$current_major_version.last.sh file
@@ -280,6 +284,7 @@ then
 			fi
 			if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
 				current_major_version=$(($current_major_version + 1))
+				source_current_major_version
 			fi
 		fi
 
