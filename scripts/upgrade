@@ -136,6 +136,8 @@ fi
 if [ -z "$portPuma" ]; then
 	if [ -z "$(ynh_app_setting_get --app="$app" --key=unicorn_port)" ]; then
 		portPuma=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
+	else
+		portPuma=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
 	fi
 	ynh_app_setting_set --app=$app --key=puma_port --value=$portPuma
 	ynh_app_setting_delete --app=$app --key=unicorn_port
@@ -259,7 +261,7 @@ then
 			source ./upgrade.d/upgrade.$current_major_version.last.sh
 		fi
 	}
-	
+
 	# To update gitlab from major version A to B, we have to go to the last minor version
 	# of the major version A and then go to the first minor version of the major version B
 	# to finally go to the current minor version of the major version B
