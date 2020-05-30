@@ -259,6 +259,9 @@ then
 			source ./upgrade.d/upgrade.$current_major_version.first.sh
 		elif [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
 			source ./upgrade.d/upgrade.$current_major_version.last.sh
+		# Finish with the last migration if the file doesn't exist
+		else
+			source ./upgrade.d/upgrade.last.sh
 		fi
 	}
 
@@ -288,11 +291,6 @@ then
 				current_major_version=$(($current_major_version + 1))
 				source_current_major_version
 			fi
-		fi
-
-		# Finish with the last migration if the file doesn't exist
-		if [ ! -e "./upgrade.d/upgrade.$current_major_version.first.sh" ] && [ ! -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
-			source ./upgrade.d/upgrade.last.sh
 		fi
 
 		cp ../conf/$architecture.src.default ../conf/$architecture.src
