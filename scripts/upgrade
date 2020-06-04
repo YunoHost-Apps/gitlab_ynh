@@ -18,15 +18,16 @@ app=$YNH_APP_INSTANCE_NAME
 # Retrieve app settings
 domain=$(ynh_app_setting_get --app="$app" --key=domain)
 path_url=$(ynh_app_setting_get --app="$app" --key=path)
-admin=$(ynh_app_setting_get --app="$app" --key=admin)
 is_public=$(ynh_app_setting_get --app="$app" --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
-unicorn_worker_processes=$(ynh_app_setting_get --app="$app" --key=unicorn_worker_processes)
+puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_worker_processes)
+puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
+puma_max_threads=$(ynh_app_setting_get --app="$app" --key=puma_max_threads)
 client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
 overwrite_nginx=$(ynh_app_setting_get --app="$app" --key=overwrite_nginx)
 
@@ -61,25 +62,24 @@ if [ -z "$config_path" ]; then
 	ynh_app_setting_set --app=$app --key=config_path --value=$config_path
 fi
 
-if [ -z "$unicorn_worker_processes" ]; then
-	# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
-	unicorn_worker_processes=$(($(nproc) + 1 ))
+if [ -z "$puma_worker_processes" ]; then
+	#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
+	puma_worker_processes=$(( $(nproc) > 2 ? $(nproc) : 2 ))
 
-	# If the server has at least 2GB of RAM
-	if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then
-		# Min 3 worker processes
-		unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+	# If the server has less than 2GB of RAM
+	if [ $(ynh_check_ram --no_swap) -lt 2000 ]; then
+		puma_min_threads=1
+		puma_max_threads=1
 	else
-		# 2 worker processes
-		unicorn_worker_processes=2
+		puma_min_threads=2
+		puma_max_threads=4
 	fi
-	ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_worker_processes
-fi
 
-if [ -z "$portSidekiq" ]; then
-	portSidekiq=$(ynh_find_port $(($portUnicorn + 1)))
-	
-	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
+	ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
+	ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
+	ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
+
+	ynh_app_setting_delete --app=$app --key=unicorn_worker_processes
 fi
 
 # If architecture doesn't exist, create it
@@ -133,9 +133,19 @@ if [ -z "$port" ]; then
 fi
 
 # If port doesn't exist, retrieve it
-if [ -z "$portUnicorn" ]; then
-	portUnicorn=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
-	ynh_app_setting_set --app=$app --key=unicorn_port --value=$portUnicorn
+if [ -z "$portPuma" ]; then
+	if [ -z "$(ynh_app_setting_get --app="$app" --key=unicorn_port)" ]; then
+		portPuma=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
+	else
+		portPuma=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+	fi
+	ynh_app_setting_set --app=$app --key=puma_port --value=$portPuma
+	ynh_app_setting_delete --app=$app --key=unicorn_port
+fi
+
+if [ -z "$portSidekiq" ]; then
+	portSidekiq=$(ynh_find_port $(($portPuma + 1)))
+	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
 fi
 
 # if this source file exist, remove it
@@ -214,8 +224,10 @@ ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_PORT__" --replace_string="$portUnicorn" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_WORKER_PROCESSES__" --replace_string="$unicorn_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
@@ -242,26 +254,45 @@ then
 	source ./upgrade.d/upgrade.last.sh
 	last_version=$gitlab_version
 
+	source_current_major_version () {
+		if [ -e "./upgrade.d/upgrade.$current_major_version.first.sh" ]; then
+			source ./upgrade.d/upgrade.$current_major_version.first.sh
+		elif [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+			source ./upgrade.d/upgrade.$current_major_version.last.sh
+		# Finish with the last migration if the file doesn't exist
+		else
+			source ./upgrade.d/upgrade.last.sh
+		fi
+	}
+
+	# To update gitlab from major version A to B, we have to go to the last minor version
+	# of the major version A and then go to the first minor version of the major version B
+	# to finally go to the current minor version of the major version B
+	# A.last -> B.first -> B.last
+
 	# While the current version is not the last version, do an upgrade
 	while [ "$last_version" != "$current_version" ]
 	do
 
 		current_major_version=${current_version%%.*}
 
-		source ./upgrade.d/upgrade.$current_major_version.sh
+		source_current_major_version
 
-		# if the version stored in the upgrade.$current_major_version.sh file is less than or equal
-		# to the current version, increment the major version to upgrade to the next version
+		# if the version stored in the upgrade.$current_major_version.first.sh file is less than or equal
+		# to the current version, and if the version stored in the upgrade.$current_major_version.last.sh file
+		# increment the major version to upgrade to the next version
 		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
-			current_major_version=$(($current_major_version + 1))
+			if [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+				source ./upgrade.d/upgrade.$current_major_version.last.sh
+			else
+				source ./upgrade.d/upgrade.last.sh
+			fi
+			if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
+				current_major_version=$(($current_major_version + 1))
+				source_current_major_version
+			fi
 		fi
 
-		# Finish with the last migration if the file doesn't exist
-		if [ ! -e "./upgrade.d/upgrade.$current_major_version.sh" ]; then
-			current_major_version=last
-		fi
-
-		source ./upgrade.d/upgrade.$current_major_version.sh
 		cp ../conf/$architecture.src.default ../conf/$architecture.src
 		ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
 		ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
@@ -307,7 +338,7 @@ fi
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/unicorn/unicorn_stderr.log" "/var/log/$app/unicorn/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/puma/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
 
 #=================================================
 # SETUP SSOWAT
@@ -327,7 +358,7 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Restarting gitlab..." --weight=15
 
-	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 fi
 
 #=================================================
