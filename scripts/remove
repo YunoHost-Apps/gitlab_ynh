@@ -21,6 +21,9 @@ portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 
+# Used by ynh_remove_nginx_config
+domain=$(ynh_app_setting_get --app="$app" --key=domain)
+
 #=================================================
 # STANDARD REMOVE
 #=================================================
