@@ -16,7 +16,7 @@ GitLab is a web-based Git-repository manager providing wiki, issue-tracking and 
 
 ## Screenshots
 
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/GitLab_running_11.0_%282018-07%29.png/300px-GitLab_running_11.0_%282018-07%29.png)
+![](https://upload.wikimedia.org/wikipedia/commons/9/9a/GitLab_running_11.0_%282018-07%29.png)
 
 ## Configuration
 
