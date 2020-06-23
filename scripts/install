@@ -107,7 +107,7 @@ ynh_install_app_dependencies $pkg_dependencies
 puma_worker_processes=$(( $(nproc) > 2 ? $(nproc) : 2 ))
 
 # If the server has less than 2GB of RAM
-if [ $(ynh_check_ram --no_swap) -lt 2000 ]; then
+if [ $(ynh_get_ram --total --ignore_swap) -lt 2000 ]; then
 	puma_min_threads=1
 	puma_max_threads=1
 else
@@ -123,8 +123,8 @@ ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
 # ADD SWAP IF NEEDED
 #=================================================
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
+total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
