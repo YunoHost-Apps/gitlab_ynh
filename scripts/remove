@@ -16,11 +16,13 @@ ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app="$app" --key=domain)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
+
+# Used by ynh_remove_nginx_config
+domain=$(ynh_app_setting_get --app="$app" --key=domain)
 
 #=================================================
 # STANDARD REMOVE
@@ -84,9 +86,9 @@ if yunohost firewall list | grep -q "\- $port$"; then
 	ynh_exec_warn_less yunohost firewall disallow TCP $port
 fi
 
-if yunohost firewall list | grep -q "\- $portUnicorn$"; then
-	ynh_script_progression --message="Closing port $portUnicorn" --weight=1
-	ynh_exec_warn_less yunohost firewall disallow TCP $portUnicorn
+if yunohost firewall list | grep -q "\- $portPuma$"; then
+	ynh_script_progression --message="Closing port $portPuma" --weight=1
+	ynh_exec_warn_less yunohost firewall disallow TCP $portPuma
 fi
 
 #=================================================

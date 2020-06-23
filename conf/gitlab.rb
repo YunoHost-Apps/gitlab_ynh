@@ -48,7 +48,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ## Roles for multi-instance GitLab
 ##! The default is to have no roles enabled, which results in GitLab running as an all-in-one instance.
 ##! Options:
-##!   redis_sentinel_role redis_master_role redis_slave_role geo_primary_role geo_secondary_role
+##!   redis_sentinel_role redis_master_role redis_replica_role geo_primary_role geo_secondary_role
+##!   postgres_role consul_role application_role monitoring_role
 ##! For more details on each role, see:
 ##! https://docs.gitlab.com/omnibus/roles/README.html#roles
 ##!
@@ -95,6 +96,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['gitlab_email_smime_enabled'] = false
 # gitlab_rails['gitlab_email_smime_key_file'] = '/etc/gitlab/ssl/gitlab_smime.key'
 # gitlab_rails['gitlab_email_smime_cert_file'] = '/etc/gitlab/ssl/gitlab_smime.crt'
+# gitlab_rails['gitlab_email_smime_ca_certs_file'] = '/etc/gitlab/ssl/gitlab_smime_cas.crt'
 
 ### GitLab user privileges
 # gitlab_rails['gitlab_default_can_create_group'] = true
@@ -237,6 +239,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['incoming_email_idle_timeout'] = 60
 ####! The file name for internal `mail_room` JSON logfile
 # gitlab_rails['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
+####! Permanently remove messages from the mailbox when they are deleted after delivery
+# gitlab_rails['incoming_email_expunge_deleted'] = false
 
 ####! The format of mail_room crash logs
 # mailroom['exit_log_format'] = "plain"
@@ -476,7 +480,9 @@ EOS
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
 #   'aws_access_key_id' => 'AKIAKIAKI',
-#   'aws_secret_access_key' => 'secret123'
+#   'aws_secret_access_key' => 'secret123',
+#   # # If IAM profile use is enabled, remove aws_access_key_id and aws_secret_access_key
+#   'use_iam_profile' => false
 # }
 # gitlab_rails['backup_upload_remote_directory'] = 'my.s3.bucket'
 # gitlab_rails['backup_multipart_chunk_size'] = 104857600
@@ -554,21 +560,12 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   'bantime' => 3600
 # }
 
-# Prioritize the Admin Area protected paths throttle settings over the
-# deprecated Omnibus-managed protected paths throttle. This allows you to keep
-# gitlab_rails['rack_attack_git_basic_auth'] enabled to run the Git and
-# container registry failed authentication ban.
-# See https://gitlab.com/gitlab-org/gitlab/issues/37093
-# gitlab_rails['rack_attack_admin_area_protected_paths_enabled'] = true
-
 ###! **We do not recommend changing these directories.**
 # gitlab_rails['dir'] = "/var/opt/gitlab/gitlab-rails"
 # gitlab_rails['log_directory'] = "/var/log/gitlab/gitlab-rails"
 
 ### GitLab application settings
 # gitlab_rails['uploads_directory'] = "/var/opt/gitlab/gitlab-rails/uploads"
-# gitlab_rails['rate_limit_requests_per_period'] = 10
-# gitlab_rails['rate_limit_period'] = 60
 
 #### Change the initial default admin password and shared runner registration tokens.
 ####! **Only applicable on initial setup, changing these settings after database
@@ -753,6 +750,12 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['sentry_environment'] = 'production'
 
 ################################################################################
+## CI_JOB_JWT
+################################################################################
+##! RSA private key used to sign CI_JOB_JWT
+# gitlab_rails['ci_jwt_signing_key'] = nil # Will be generated if not set.
+
+################################################################################
 ## GitLab Workhorse
 ##! Docs: https://gitlab.com/gitlab-org/gitlab-workhorse/blob/master/README.md
 ################################################################################
@@ -824,15 +827,15 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Docs: https://docs.gitlab.com/omnibus/settings/unicorn.html
 ################################################################################
 
-# unicorn['enable'] = true
+unicorn['enable'] = false
 # unicorn['worker_timeout'] = 60
 ###! Minimum worker_processes is 2 at this moment
 ###! See https://gitlab.com/gitlab-org/gitlab-foss/issues/18771
-unicorn['worker_processes'] = __UNICORN_WORKER_PROCESSES__
+# unicorn['worker_processes'] = 2
 
 ### Advanced settings
 # unicorn['listen'] = 'localhost'
-unicorn['port'] = __UNICORN_PORT__
+# unicorn['port'] = 8080
 # unicorn['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
 # unicorn['pidfile'] = '/opt/gitlab/var/unicorn/unicorn.pid'
 # unicorn['tcp_nopush'] = true
@@ -860,16 +863,16 @@ unicorn['port'] = __UNICORN_PORT__
 ##! Docs: https://docs.gitlab.com/omnibus/settings/puma.html
 ################################################################################
 
-# puma['enable'] = false
+puma['enable'] = true
 # puma['ha'] = false
 # puma['worker_timeout'] = 60
-# puma['worker_processes'] = 2
-# puma['min_threads'] = 4
-# puma['max_threads'] = 4
+puma['worker_processes'] = __PUMA_WORKER_PROCESSES__
+puma['min_threads'] = __PUMA_MIN_THREADS__
+puma['max_threads'] = __PUMA_MAX_THREADS__
 
 ### Advanced settings
 # puma['listen'] = '127.0.0.1'
-# puma['port'] = 8080
+puma['port'] = __PUMA_PORT__
 # puma['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
 # puma['pidfile'] = '/opt/gitlab/var/puma/puma.pid'
 # puma['state_path'] = '/opt/gitlab/var/puma/puma.state'
@@ -889,24 +892,34 @@ unicorn['port'] = __UNICORN_PORT__
 ## GitLab Sidekiq
 ################################################################################
 
+##! GitLab allows one to start multiple sidekiq processes. These
+##! processes can be used to consume a dedicated set of queues. This
+##! can be used to ensure certain queues are able to handle additional workload.
+##! https://docs.gitlab.com/ee/administration/operations/extra_sidekiq_processes.html
+
 # sidekiq['log_directory'] = "/var/log/gitlab/sidekiq"
 # sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
-# sidekiq['concurrency'] = 25
+# sidekiq['cluster'] = true
+# sidekiq['experimental_queue_selector'] = false
+# sidekiq['interval'] = nil
+# sidekiq['max_concurrency'] = 50
+# sidekiq['min_concurrency'] = nil
+
+##! Each entry in the queue_groups array denotes a group of queues that have to be processed by a
+##! Sidekiq process. Multiple queues can be processed by the same process by
+##! separating them with a comma within the group entry, a `*` will process all queues
+
+# sidekiq['queue_groups'] = ['*']
+
+##! If negate is enabled then sidekiq-cluster will process all the queues that
+##! don't match those in queue_groups.
+
+# sidekiq['negate'] = false
+
 # sidekiq['metrics_enabled'] = true
 # sidekiq['listen_address'] = "localhost"
 sidekiq['listen_port'] = __SIDEKIQ_PORT__
-
-### Experimental Sidekiq Cluster settings
-###! These settings allow starting `sidekiq-cluster` instead of sidekiq.
-###! Docs: https://docs.gitlab.com/ee/administration/operations/extra_sidekiq_processes.html#using-sidekiq-cluster-by-default-experimental
-# sidekiq['cluster'] = false
-# sidekiq['experimental_queue_selector'] = false
-# sidekiq['interval'] = nil
-# sidekiq['max_concurrency'] = nil
-# sidekiq['min_concurrency'] = nil
-# sidekiq['negate'] = false
-# sidekiq['queue_groups'] = ['*']
 
 ################################################################################
 ## gitlab-shell
@@ -984,7 +997,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['hot_standby'] = "off"
 
 ### SSL settings
-# See https://www.postgresql.org/docs/9.6/static/runtime-config-connection.html#GUC-SSL-CERT-FILE for more details
+# See https://www.postgresql.org/docs/11/static/runtime-config-connection.html#GUC-SSL-CERT-FILE for more details
 # postgresql['ssl'] = 'on'
 # postgresql['ssl_ciphers'] = 'HIGH:MEDIUM:+3DES:!aNULL:!SSLv3:!TLSv1'
 # postgresql['ssl_cert_file'] = 'server.crt'
@@ -1066,7 +1079,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 #     }
 #   ]
 # }
-# See https://www.postgresql.org/docs/9.6/static/auth-pg-hba-conf.html for an explanation
+# See https://www.postgresql.org/docs/11/static/auth-pg-hba-conf.html for an explanation
 # of the values
 
 ### Version settings
@@ -1107,11 +1120,11 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 #
 
 ###! **To enable only Redis service in this machine, uncomment
-###!   one of the lines below (choose master or slave instance types).**
+###!   one of the lines below (choose master or replica instance types).**
 ###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html
 ###!       https://docs.gitlab.com/ee/administration/high_availability/redis.html
 # redis_master_role['enable'] = true
-# redis_slave_role['enable'] = true
+# redis_replica_role['enable'] = true
 
 ### Redis TCP support (will disable UNIX socket transport)
 # redis['bind'] = '0.0.0.0' # or specify an IP to bind to a single one
@@ -1119,35 +1132,35 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['password'] = 'redis-password-goes-here'
 
 ### Redis Sentinel support
-###! **You need a master slave Redis replication to be able to do failover**
+###! **You need a master replica Redis replication to be able to do failover**
 ###! **Please read the documentation before enabling it to understand the
 ###!   caveats:**
 ###! Docs: https://docs.gitlab.com/ee/administration/high_availability/redis.html
 
 ### Replication support
-#### Slave Redis instance
+#### Replica Redis instance
 # redis['master'] = false # by default this is true
 
-#### Slave and Sentinel shared configuration
+#### Replica and Sentinel shared configuration
 ####! **Both need to point to the master Redis instance to get replication and
 ####!   heartbeat monitoring**
 # redis['master_name'] = 'gitlab-redis'
 # redis['master_ip'] = nil
 # redis['master_port'] = 6379
 
-#### Support to run redis slaves in a Docker or NAT environment
+#### Support to run redis replicas in a Docker or NAT environment
 ####! Docs: https://redis.io/topics/replication#configuring-replication-in-docker-and-nat
 # redis['announce_ip'] = nil
 # redis['announce_port'] = nil
 
 ####! **Master password should have the same value defined in
 ####!   redis['password'] to enable the instance to transition to/from
-####!   master/slave in a failover event.**
+####!   master/replica in a failover event.**
 # redis['master_password'] = 'redis-password-goes-here'
 
-####! Increase these values when your slaves can't catch up with master
+####! Increase these values when your replicas can't catch up with master
 # redis['client_output_buffer_limit_normal'] = '0 0 0'
-# redis['client_output_buffer_limit_slave'] = '256mb 64mb 60'
+# redis['client_output_buffer_limit_replica'] = '256mb 64mb 60'
 # redis['client_output_buffer_limit_pubsub'] = '32mb 8mb 60'
 
 #####! Redis snapshotting frequency
@@ -1265,7 +1278,7 @@ nginx['listen_https'] = false
 # nginx['log_directory'] = "/var/log/gitlab/nginx"
 # nginx['worker_processes'] = 4
 # nginx['worker_connections'] = 10240
-# nginx['log_format'] = '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent"'
+# nginx['log_format'] = '$remote_addr - $remote_user [$time_local] "$request_method $filtered_request_uri $server_protocol" $status $body_bytes_sent "$filtered_http_referer" "$http_user_agent" $gzip_ratio'
 # nginx['sendfile'] = 'on'
 # nginx['tcp_nopush'] = 'on'
 # nginx['tcp_nodelay'] = 'on'
@@ -1273,7 +1286,7 @@ nginx['listen_https'] = false
 # nginx['gzip_http_version'] = "1.0"
 # nginx['gzip_comp_level'] = "2"
 # nginx['gzip_proxied'] = "any"
-# nginx['gzip_types'] = [ "text/plain", "text/css", "application/x-javascript", "text/xml", "application/xml", "application/xml+rss", "text/javascript", "application/json" ]
+# nginx['gzip_types'] = [ "text/html", "text/plain", "text/css", "application/x-javascript", "text/xml", "application/xml", "application/xml+rss", "text/javascript", "application/json" ]
 # nginx['keepalive_timeout'] = 65
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
@@ -1455,6 +1468,7 @@ nginx['listen_https'] = false
 # gitlab_pages['gitlab_secret'] = nil # Generated if not present
 # gitlab_pages['auth_redirect_uri'] = nil # Defaults to projects subdomain of pages_external_url and + '/auth'
 # gitlab_pages['gitlab_server'] = nil # Defaults to external_url
+# gitlab_pages['internal_gitlab_server'] = nil # defaults to gitlab_server, can be changed to internal load balancer
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 
 ##! GitLab API HTTP client connection timeout
@@ -1787,6 +1801,7 @@ nginx['listen_https'] = false
 # grafana['metrics_enabled'] = false
 # grafana['metrics_basic_auth_username'] = 'grafana_metrics' # default: nil
 # grafana['metrics_basic_auth_password'] = 'please_set_a_unique_password' # default: nil
+# grafana['alerting_enabled'] = false
 
 ### Dashboards
 #
@@ -1841,7 +1856,12 @@ nginx['listen_https'] = false
 # gitaly['env_directory'] = "/opt/gitlab/etc/gitaly/env"
 # gitaly['env'] = {
 #  'PATH' => "/opt/gitlab/bin:/opt/gitlab/embedded/bin:/bin:/usr/bin",
-#  'HOME' => '/var/opt/gitlab'
+#  'HOME' => '/var/opt/gitlab',
+#  'TZ' => ':/etc/localtime',
+#  'PYTHONPATH' => "/opt/gitlab/embedded/lib/python3.7/site-packages",
+#  'ICU_DATA' => "/opt/gitlab/embedded/share/icu/current",
+#  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#  'WRAPPER_JSON_LOGGING' => true
 # }
 
 ##! internal_socket_dir is the directory that will contain internal gitaly sockets,
@@ -1886,6 +1906,15 @@ nginx['listen_https'] = false
 ################################################################################
 
 # praefect['enable'] = false
+# praefect['dir'] = "/var/opt/gitlab/praefect"
+# praefect['log_directory'] = "/var/log/gitlab/praefect"
+# praefect['env_directory'] = "/opt/gitlab/etc/praefect/env"
+# praefect['env'] = {
+#  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#  'GITALY_PID_FILE' => "/var/opt/gitlab/praefect/praefect.pid",
+#  'WRAPPER_JSON_LOGGING' => true
+# }
+# praefect['wrapper_path'] = "/opt/gitlab/embedded/bin/gitaly-wrapper"
 # praefect['virtual_storage_name'] = "praefect"
 # praefect['failover_enabled'] = false
 # praefect['failover_election_strategy'] = 'local'
@@ -1921,6 +1950,7 @@ nginx['listen_https'] = false
 # }
 # praefect['sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
 # praefect['sentry_environment'] = "production"
+# praefect['auto_migrate'] = true
 # praefect['database_host'] = 'postgres.internal'
 # praefect['database_port'] = 5432
 # praefect['database_user'] = 'praefect'
@@ -2102,51 +2132,20 @@ nginx['listen_https'] = false
 ##!   already tried against the same master by a given Sentinel, is two
 ##!   times the failover timeout.
 ##!
-##! - The time needed for a slave replicating to a wrong master according
+##! - The time needed for a replica replicating to a wrong master according
 ##!   to a Sentinel current configuration, to be forced to replicate
 ##!   with the right master, is exactly the failover timeout (counting since
 ##!   the moment a Sentinel detected the misconfiguration).
 ##!
 ##! - The time needed to cancel a failover that is already in progress but
-##!   did not produced any configuration change (SLAVEOF NO ONE yet not
-##!   acknowledged by the promoted slave).
+##!   did not produced any configuration change (REPLICAOF NO ONE yet not
+##!   acknowledged by the promoted replica).
 ##!
-##! - The maximum time a failover in progress waits for all the slaves to be
-##!   reconfigured as slaves of the new master. However even after this time
-##!   the slaves will be reconfigured by the Sentinels anyway, but not with
+##! - The maximum time a failover in progress waits for all the replicas to be
+##!   reconfigured as replicas of the new master. However even after this time
+##!   the replicas will be reconfigured by the Sentinels anyway, but not with
 ##!   the exact parallel-syncs progression as specified.
 # sentinel['failover_timeout'] = 60000
-
-################################################################################
-## GitLab Sidekiq Cluster (EE only)
-################################################################################
-
-##! GitLab Enterprise Edition allows one to start an extra set of Sidekiq processes
-##! besides the default one. These processes can be used to consume a dedicated set
-##! of queues. This can be used to ensure certain queues always have dedicated
-##! workers, no matter the amount of jobs that need to be processed.
-
-# sidekiq_cluster['enable'] = false
-# sidekiq_cluster['ha'] = false
-# sidekiq_cluster['log_directory'] = "/var/log/gitlab/sidekiq-cluster"
-# sidekiq_cluster['interval'] = 5 # The number of seconds to wait between worker checks
-# sidekiq_cluster['max_concurrency'] = 50 # The maximum number of threads each Sidekiq process should run
-# sidekiq_cluster['min_concurrency'] = 0 # The minimum number of threads each Sidekiq process should run
-
-##! Each entry in the queue_groups array denotes a group of queues that have to be processed by a
-##! Sidekiq process. Multiple queues can be processed by the same process by
-##! separating them with a comma within the group entry
-
-# sidekiq_cluster['queue_groups'] = [
-#   "process_commit,post_receive",
-#   "gitlab_shell"
-# ]
-#
-
-##! If negate is enabled then sidekiq-cluster will process all the queues that
-##! don't match those in queue_groups.
-
-# sidekiq_cluster['negate'] = false
 
 ################################################################################
 ## Additional Database Settings (EE only)
@@ -2158,8 +2157,8 @@ nginx['listen_https'] = false
 ## GitLab Geo
 ##! Docs: https://docs.gitlab.com/ee/gitlab-geo
 ################################################################################
-# geo_primary_role['enable'] = false
-# geo_secondary_role['enable'] = false
+##! Geo roles 'geo_primary_role' and 'geo_secondary_role' are set above with
+##! other roles. For more information, see: https://docs.gitlab.com/omnibus/roles/README.html#roles.
 
 # This is an optional identifier which Geo nodes can use to identify themselves.
 # For example, if external_url is the same for two secondaries, you must specify
@@ -2207,7 +2206,9 @@ nginx['listen_https'] = false
 
 ################################################################################
 ## Unleash
-##! Docs: https://docs.gitlab.com/ee/user/project/operations/feature_flags.html
+##! These settings are for GitLab internal use.
+##! They are used to control feature flags during GitLab development.
+##! Docs: https://docs.gitlab.com/ee/development/feature_flags
 ################################################################################
 # gitlab_rails['feature_flags_unleash_enabled'] = false
 # gitlab_rails['feature_flags_unleash_url'] = nil
@@ -2417,5 +2418,43 @@ nginx['listen_https'] = false
 #     handler: 'failover_pgbouncer'
 #   }
 # }
+################################################################################
+# Service desk email settings (EEP only)
+################################################################################
+### Service desk email
+###! Allow users to create new service desk issues by sending an email to
+###! service desk address.
+###! Docs: https://docs.gitlab.com/ee/administration/reply_by_email.html
+# gitlab_rails['service_desk_email_enabled'] = false
+
+#### Service Desk Mailbox Settings (via `mail_room`)
+#### Service Desk Email Address
+####! The email address including the `%{key}` placeholder that will be replaced
+####! to reference the item being replied to.
+####! **The placeholder can be omitted but if present, it must appear in the
+####!   "user" part of the address (before the `@`).**
+# gitlab_rails['service_desk_email_address'] = "contact_project+%{key}@gmail.com"
+
+#### Service Desk Email account username
+####! **With third party providers, this is usually the full email address.**
+####! **With self-hosted email servers, this is usually the user part of the
+####!   email address.**
+# gitlab_rails['service_desk_email_email'] = "contact_project@gmail.com"
+
+#### Service Desk Email account password
+# gitlab_rails['service_desk_email_password'] = "[REDACTED]"
+
+####! The mailbox where service desk mail will end up. Usually "inbox".
+# gitlab_rails['service_desk_email_mailbox_name'] = "inbox"
+####! The IDLE command timeout.
+# gitlab_rails['service_desk_email_idle_timeout'] = 60
+####! The file name for internal `mail_room` JSON logfile
+# gitlab_rails['service_desk_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
+
+#### Service Desk IMAP Settings
+# gitlab_rails['service_desk_email_host'] = "imap.gmail.com"
+# gitlab_rails['service_desk_email_port'] = 993
+# gitlab_rails['service_desk_email_ssl'] = true
+# gitlab_rails['service_desk_email_start_tls'] = false
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
