@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gitlab_version="13.1.0"
+gitlab_version="13.0.6"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 
@@ -8,14 +8,12 @@ gitlab_x86_64_debian_version="$(lsb_release -sc)"
 
 if [ "$gitlab_x86_64_debian_version" = "buster" ]
 then
-	gitlab_x86_64_source_sha256="0ea54906b2f29f0bfcc9d4cad99ea399966055b1418633d0f62d46aea020877d"
-
-	gitlab_arm_source_sha256="2f7b2cc169a6de6152abf927214ee47f26634a5fa24ee55535ba7bb5074fd2b5"
+	gitlab_x86_64_source_sha256="91a3486de88d1f0ce108d0f0c9adafc83e24c678e5ce2750ec8d52d75e467c1d"
 else
-	gitlab_x86_64_source_sha256="c16d69de22fa701dbb4755756544c839ae82a519ac3516901f644add89ff1767"
-
-	gitlab_arm_source_sha256="f24b6f085b1b1a426a277085b51f17d6821aaca8ff12dd888b4d294ecb9fef68"
+	gitlab_x86_64_source_sha256="175df478d80d15cbc19b69dee0c312058ba0530bed34f13050a25bb5b280315c"
 fi
+
+gitlab_arm_source_sha256="cfd4f0f72ec2068d1566dd8699adedef210ada30644885e0d74beded3dd1b2b3"
 
 gitlab_filename="gitlab-ce-${gitlab_version}.deb"
 
