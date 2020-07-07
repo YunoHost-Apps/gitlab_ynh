@@ -1,3 +1,5 @@
+#!/bin/bash
+
 gitlab_version="11.11.5"
 
 # There is no buster version for gitlab 11.X

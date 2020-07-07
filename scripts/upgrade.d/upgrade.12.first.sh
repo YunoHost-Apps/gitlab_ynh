@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # It's required to upgrade to the latest 12.0.x version before to another 12.X verion.
 gitlab_version="12.0.12"
 

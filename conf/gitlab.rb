@@ -103,6 +103,17 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['gitlab_username_changing_enabled'] = true
 
 ### Default Theme
+### Available values:
+##! `1`  for Indigo
+##! `2`  for Dark
+##! `3`  for Light
+##! `4`  for Blue
+##! `5`  for Green
+##! `6`  for Light Indigo
+##! `7`  for Light Blue
+##! `8`  for Light Green
+##! `9`  for Red
+##! `10` for Light Red
 # gitlab_rails['gitlab_default_theme'] = 2
 
 ### Default project feature settings
@@ -792,7 +803,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Long polling duration for job requesting for runners
 # gitlab_workhorse['api_ci_long_polling_duration'] = "60s"
 
-##! Log format: default is text, can also be json or none.
+##! Log format: default is json, can also be text or none.
 # gitlab_workhorse['log_format'] = "json"
 
 # gitlab_workhorse['env_directory'] = "/opt/gitlab/etc/gitlab-workhorse/env"
@@ -827,7 +838,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Docs: https://docs.gitlab.com/omnibus/settings/unicorn.html
 ################################################################################
 
-unicorn['enable'] = false
+# unicorn['enable'] = false
 # unicorn['worker_timeout'] = 60
 ###! Minimum worker_processes is 2 at this moment
 ###! See https://gitlab.com/gitlab-org/gitlab-foss/issues/18771
@@ -960,6 +971,12 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['enable'] = true
 # postgresql['listen_address'] = nil
 # postgresql['port'] = 5432
+
+## Only used when Patroni is enabled. This is the port that PostgreSQL responds to other
+## cluster members. This port is used by Patroni to advertize the PostgreSQL connection
+## endpoint to the cluster. By default it is the same as postgresql['port'].
+# postgresql['connect_port'] = 5432
+
 # postgresql['data_dir'] = "/var/opt/gitlab/postgresql/data"
 
 ##! **recommend value is 1/4 of total RAM, up to 14GB.**
@@ -1286,7 +1303,7 @@ nginx['listen_https'] = false
 # nginx['gzip_http_version'] = "1.0"
 # nginx['gzip_comp_level'] = "2"
 # nginx['gzip_proxied'] = "any"
-# nginx['gzip_types'] = [ "text/html", "text/plain", "text/css", "application/x-javascript", "text/xml", "application/xml", "application/xml+rss", "text/javascript", "application/json" ]
+# nginx['gzip_types'] = [ "text/plain", "text/css", "application/x-javascript", "text/xml", "application/xml", "application/xml+rss", "text/javascript", "application/json" ]
 # nginx['keepalive_timeout'] = 65
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
@@ -1436,9 +1453,6 @@ nginx['listen_https'] = false
 
 ##! Listen for requests forwarded by reverse proxy
 # gitlab_pages['listen_proxy'] = "localhost:8090"
-
-##! Configure GitLab Pages to use an HTTP Proxy
-# gitlab_pages['http_proxy'] = "http://example:8080"
 
 # gitlab_pages['redirect_http'] = true
 # gitlab_pages['use_http2'] = true
@@ -1917,11 +1931,11 @@ nginx['listen_https'] = false
 # praefect['wrapper_path'] = "/opt/gitlab/embedded/bin/gitaly-wrapper"
 # praefect['virtual_storage_name'] = "praefect"
 # praefect['failover_enabled'] = false
-# praefect['failover_election_strategy'] = 'local'
+# praefect['failover_election_strategy'] = 'sql'
+# praefect['failover_read_only_after_failover'] = true
 # praefect['auth_token'] = ""
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
-# praefect['postgres_queue_enabled'] = false
 # praefect['prometheus_listen_addr'] = "localhost:9652"
 # praefect['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
 # praefect['logging_level'] = "warn"
@@ -2168,7 +2182,7 @@ nginx['listen_https'] = false
 # gitlab_rails['geo_node_name'] = nil
 
 # gitlab_rails['geo_registry_replication_enabled'] = true
-# gitlab_rails['geo_registry_replication_primary_api_url'] = 'https://example.com:5000'
+# gitlab_rails['geo_registry_replication_primary_api_url'] = 'https://example.com:5050'
 
 
 ################################################################################
@@ -2371,6 +2385,63 @@ nginx['listen_https'] = false
 # repmgr['master_response_timeout'] = 60
 # repmgr['daemon'] = true
 # repmgrd['enable'] = true
+
+################################################################################
+# Patroni (EE only)
+#
+# NOTICE: Patroni is an experimental feature and subject to change.
+#
+################################################################################
+# patroni['enable'] = false
+
+# patroni['dir'] = '/var/opt/gitlab/patroni'
+# patroni['data_dir'] = '/var/opt/gitlab/patroni/data'
+# patroni['ctl_command'] = '/opt/gitlab/embedded/bin/patronictl'
+
+# patroni['scope'] = 'gitlab-postgresql-ha'
+# patroni['name'] = nil
+
+# patroni['log_directory'] = '/var/log/gitlab/patroni'
+# patroni['log_level'] = 'INFO'
+
+# patroni['consul']['url'] = 'http://127.0.0.1:8500'
+# patroni['consul']['service_check_interval'] = '10s'
+# patroni['consul']['register_service'] = false
+# patroni['consul']['checks'] = []
+
+## Bootstrap settings
+# patroni['loop_wait'] = 10
+# patroni['ttl'] = 30
+# patroni['retry_timeout'] = 10
+# patroni['maximum_lag_on_failover'] = 1_048_576
+# patroni['max_timelines_history'] = 0
+# patroni['master_start_timeout'] = 300
+
+## PostgreSQL configuration override
+# patroni['postgresql']['wal_level'] = 'replica'
+# patroni['postgresql']['hot_standby'] = 'on'
+# patroni['postgresql']['wal_keep_segments'] = 8
+# patroni['postgresql']['max_wal_senders'] = 5
+# patroni['postgresql']['max_replication_slots'] = 5
+# patroni['postgresql']['checkpoint_timeout'] = 30
+
+# patroni['use_pg_rewind'] = false
+# patroni['use_slots'] = true
+
+## The address and port that Patroni API binds to and listens on.
+# patroni['listen_address'] = nil
+# patroni['port'] = '8008'
+
+## The address of the Patroni node that is advertized to other cluster
+## members to communicate with its API and PostgreSQL. If it is not specified,
+## it tries to use the first available private IP and falls back to the default
+## network interface.
+# patroni['connect_address'] = nil
+
+## The port that Patroni API responds to other cluster members. This port is
+## advertized and by default is the same as patroni['port'].
+# patroni['connect_port'] = '8008'
+
 
 ################################################################################
 # Consul (EEP only)

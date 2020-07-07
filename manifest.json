@@ -2,7 +2,7 @@
     "name": "Gitlab",
     "id": "gitlab",
     "packaging_format": 1,
-    "version": "13.0.4~ynh1",
+    "version": "13.1.0~ynh1",
     "description": {
         "en": "Git-repository manager.",
         "fr": "Gestionnaire de dépôts Git."
@@ -14,7 +14,7 @@
         "email": "pierre@kayou.io"
     },
     "requirements": {
-        "yunohost": ">= 3.6.0"
+        "yunohost": ">= 3.8.1"
     },
     "multi_instance": false,
     "services": [
