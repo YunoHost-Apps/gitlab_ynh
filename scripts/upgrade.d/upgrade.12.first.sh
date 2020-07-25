@@ -4,11 +4,19 @@
 gitlab_version="12.0.12"
 
 # There is no buster version for gitlab 12.0.X
-gitlab_x86_64_debian_version="stretch"
+gitlab_debian_version="stretch"
 
-gitlab_x86_64_source_sha256="e80cda4c328c2627278a3d74dbdd53420e1fec9ecbeaeb5d4dcb4773726e5904"
+gitlab_x86_64_stretch_source_sha256="e80cda4c328c2627278a3d74dbdd53420e1fec9ecbeaeb5d4dcb4773726e5904"
 
-gitlab_arm_source_sha256="a0862e3c31b61d9274a55b7307d15daa5258473ccb97b8ae0d807f7474c971df"
+gitlab_arm_stretch_source_sha256="a0862e3c31b61d9274a55b7307d15daa5258473ccb97b8ae0d807f7474c971df"
+
+architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
+
+if [ "$architecture" = "x86-64" ]; then
+	gitlab_source_sha256=$gitlab_x86_64_stretch_source_sha256
+elif [ "$architecture" = "arm" ]; then
+	gitlab_source_sha256=$gitlab_arm_stretch_source_sha256
+fi
 
 gitlab_filename="gitlab-ce-${gitlab_version}.deb"
 
