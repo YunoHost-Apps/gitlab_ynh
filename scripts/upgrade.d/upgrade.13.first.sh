@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # It's required to upgrade to the latest 13.0.x version before to another 13.X verion.
-gitlab_version="13.0.10"
+gitlab_version="13.0.12"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 
-gitlab_x86_64_buster_source_sha256="d2b964e313983e03c8920327972ccd500800745b37db95227977765ec1ae7f0d"
+gitlab_x86_64_buster_source_sha256="b568a8f45fdcb0c94e125fcc1e393e3f7364a4ab04d195bcf9b0797e71e0a8dd"
 
-gitlab_x86_64_stretch_source_sha256="1d378f5488aeaafa08ffd05e316e384210ed53e572282d2a7270de6605d45b64"
+gitlab_x86_64_stretch_source_sha256="464b3d5923d945856fc851d0a01fc43fe223003a32a80bf90a84b599009fdce7"
 
-gitlab_arm_stretch_source_sha256="cd5987686dcfa36acfd8ec37c9ac53a27c0f472948c9418745f0760b6e861ce3"
+gitlab_arm_stretch_source_sha256="39d7af79b80da73f26c8d2fa1ff95dfbca1573d36d6ee362e6f8fadceb17325e"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
