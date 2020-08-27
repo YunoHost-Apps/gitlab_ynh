@@ -19,8 +19,11 @@
 ##! This file is generated during initial installation and **is not** modified
 ##! during upgrades.
 ##! Check out the latest version of this file to know about the different
-##! settings that can be configured by this file, which may be found at:
-##! https://gitlab.com/gitlab-org/omnibus-gitlab/raw/master/files/gitlab-config-template/gitlab.rb.template
+##! settings that can be configured, when they were introduced and why:
+##! https://gitlab.com/gitlab-org/omnibus-gitlab/blame/master/files/gitlab-config-template/gitlab.rb.template
+
+##! Locally, the complete template corresponding to the installed version can be found at:
+##! /opt/gitlab/etc/gitlab.rb.template
 
 ##! You can run `gitlab-ctl diff-config` to compare the contents of the current gitlab.rb with
 ##! the gitlab.rb.template from the currently running version.
@@ -152,6 +155,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['repository_check_worker_cron'] = "20 * * * *"
 # gitlab_rails['admin_email_worker_cron'] = "0 0 * * 0"
 # gitlab_rails['personal_access_tokens_expiring_worker_cron'] = "0 1 * * *"
+# gitlab_rails['personal_access_tokens_expired_notification_worker_cron'] = "0 2 * * *"
 # gitlab_rails['repository_archive_cache_worker_cron'] = "0 * * * *"
 # gitlab_rails['pages_domain_verification_cron_worker'] = "*/15 * * * *"
 # gitlab_rails['pages_domain_ssl_renewal_cron_worker'] = "*/10 * * * *"
@@ -271,6 +275,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! Docs: https://docs.gitlab.com/ee/administration/object_storage.html
 gitlab_rails['object_store']['enabled'] = false
 gitlab_rails['object_store']['connection'] = {}
+gitlab_rails['object_store']['storage_options'] = {}
 gitlab_rails['object_store']['proxy_download'] = false
 gitlab_rails['object_store']['objects']['artifacts']['bucket'] = nil
 gitlab_rails['object_store']['objects']['external_diffs']['bucket'] = nil
@@ -369,7 +374,7 @@ gitlab_rails['object_store']['objects']['terraform_state']['bucket'] = nil
 # gitlab_rails['terraform_state_enabled'] = true
 # gitlab_rails['terraform_state_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/terraform_state"
 # gitlab_rails['terraform_state_object_store_enabled'] = false
-# gitlab_rails['terraform_state_object_store_remote_directory'] = "terraform_state"
+# gitlab_rails['terraform_state_object_store_remote_directory'] = "terraform"
 # gitlab_rails['terraform_state_object_store_connection'] = {
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
@@ -627,7 +632,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_encoding'] = "unicode"
 # gitlab_rails['db_collation'] = nil
 # gitlab_rails['db_database'] = "gitlabhq_production"
-# gitlab_rails['db_pool'] = 1
 # gitlab_rails['db_username'] = "gitlab"
 # gitlab_rails['db_password'] = nil
 # gitlab_rails['db_host'] = nil
@@ -747,13 +751,17 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['compatibility_schema1_enabled'] = false
 
 ### Registry backend storage
-###! Docs: https://docs.gitlab.com/ee/administration/container_registry.html#container-registry-storage-driver
+###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-storage-for-the-container-registry
 # registry['storage'] = {
 #   's3' => {
-#     'accesskey' => 'AKIAKIAKI',
-#     'secretkey' => 'secret123',
-#     'region' => 'us-east-1',
-#     'bucket' => 'gitlab-registry-bucket-AKIAKIAKI'
+#     'accesskey' => 's3-access-key',
+#     'secretkey' => 's3-secret-key-for-access-key',
+#     'bucket' => 'your-s3-bucket',
+#     'region' => 'your-s3-region',
+#     'regionendpoint' => 'your-s3-regionendpoint'
+#   },
+#   'redirect' => {
+#     'disable' => false
 #   }
 # }
 
@@ -898,7 +906,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Docs: https://docs.gitlab.com/omnibus/settings/puma.html
 ################################################################################
 
-puma['enable'] = true
+# puma['enable'] = true
 # puma['ha'] = false
 # puma['worker_timeout'] = 60
 puma['worker_processes'] = __PUMA_WORKER_PROCESSES__
@@ -1513,14 +1521,22 @@ nginx['listen_https'] = false
 ##! GitLab API HTTP client connection timeout
 # gitlab_pages['gitlab_client_http_timeout'] = "10s"
 
-##! GitLab API JWT Token expiry time"
+##! GitLab API JWT Token expiry time
 # gitlab_pages['gitlab_client_jwt_expiry'] = "30s"
+
+##! Domain configuration source, defaults to disk if set to nil
+# gitlab_pages['domain_config_source'] = nil
 
 ##! Define custom gitlab-pages HTTP headers for the whole instance
 # gitlab_pages['headers'] = []
 
 ##! Shared secret used for authentication between Pages and GitLab
 # gitlab_pages['api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
+
+# gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
+# gitlab_pages['env'] = {
+#   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
+# }
 
 ################################################################################
 ## GitLab Pages NGINX
@@ -1966,7 +1982,6 @@ nginx['listen_https'] = false
 # praefect['virtual_storage_name'] = "praefect"
 # praefect['failover_enabled'] = false
 # praefect['failover_election_strategy'] = 'sql'
-# praefect['failover_read_only_after_failover'] = true
 # praefect['auth_token'] = ""
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
@@ -2229,7 +2244,6 @@ nginx['listen_https'] = false
 # geo_secondary['db_encoding'] = "unicode"
 # geo_secondary['db_collation'] = nil
 # geo_secondary['db_database'] = "gitlabhq_geo_production"
-# geo_secondary['db_pool'] = 1
 # geo_secondary['db_username'] = "gitlab_geo"
 # geo_secondary['db_password'] = nil
 # geo_secondary['db_host'] = "/var/opt/gitlab/geo-postgresql"
@@ -2239,7 +2253,6 @@ nginx['listen_https'] = false
 # geo_secondary['db_sslcompression'] = 0
 # geo_secondary['db_sslrootcert'] = nil
 # geo_secondary['db_sslca'] = nil
-# geo_secondary['db_fdw'] = true
 
 ################################################################################
 ## GitLab Geo Secondary Tracking Database (EE only)
