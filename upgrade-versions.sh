@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# /!\ This is a quick and dirty bash script, which does not respect the YNH format.
+
+# This script will upgrade sha256sum, manifest, readme and config template
+# /!\ before committing the modifications, check if nothing is broken if files
+# Usage: ./upgrade-versions.sh path_to_upgrade_file version
+# Example: ./upgrade-versions.sh scripts/upgrade.d/upgrade.last.sh 13.3.1
+
 file=$(basename $1)
 version=$2
 current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
