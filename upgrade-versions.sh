@@ -42,7 +42,7 @@ done
 
 if [[ "$(basename $file)" == upgrade.last.sh ]]; then
     # Update manifest
-    sed -i -e "s/\"version\": \"[^0-9.]*[0-9.]*[0-9.]\"/\"version\": \"$version~ynh1\"/" $gitlab_directory/manifest.json
+    sed -i -e "s/\"version\": \"[^0-9.]*[0-9.]*[0-9.]~ynh[0-9.]\"/\"version\": \"$version~ynh1\"/" $gitlab_directory/manifest.json
 
     # Update readme
     sed -i -e "s/\*\*Shipped version:\*\* [^0-9.]*[0-9.]*[0-9.]/**Shipped version:** $version/" $gitlab_directory/README.md

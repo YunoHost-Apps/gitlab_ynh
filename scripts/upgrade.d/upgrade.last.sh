@@ -1,18 +1,18 @@
 #!/bin/bash
 
-gitlab_version="13.3.1"
+gitlab_version="13.3.4"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 
 gitlab_debian_version="$(lsb_release -sc)"
 
-gitlab_x86_64_buster_source_sha256="20e4fcb15ac8fa8d94105230d6c895a4e4407ef11af81d67df08688bf68f9c41"
+gitlab_x86_64_buster_source_sha256="bf0d2924f10765d08724ea78d8f5ceff4dc4d25d14a5f282aa27d62640f21d23"
 
-gitlab_arm_buster_source_sha256="9451b77c17d543b8dc813354e8bbb6e110856978fac9152e72a185308c1e8b9e"
+gitlab_arm_buster_source_sha256="ee9b8ac7816dbedf73e319fea4c14ac1c743f06bad4a2597e5753f81789337d1"
 
-gitlab_x86_64_stretch_source_sha256="41db62c708dd905198a05aeb63041f5103e639266914ecb1bb850bce9bdb12ca"
+gitlab_x86_64_stretch_source_sha256="bc6800fdd5f91cb18c712ea15e93887141b81658566c780231aa63051cc9fcf0"
 
-gitlab_arm_stretch_source_sha256="b7228cffe3124d765a78e06665e4a2f6fdec926fc8b2b67be4605461e96de3d7"
+gitlab_arm_stretch_source_sha256="362ab23dfc97814027c428e23900337223d3ae4c1c9220ad35b7ffd341f666cc"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
