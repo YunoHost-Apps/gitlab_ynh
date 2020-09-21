@@ -43,7 +43,9 @@ final_path=/opt/$app
 test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 # Detect the system architecture
-if [ -n "$(uname -m | grep 64)" ]; then
+if [ -n "$(uname -m | grep aarch64)" ]; then
+	ynh_die "Gitlab is not compatible with arm64 architecture"
+elif [ -n "$(uname -m | grep x86_64)" ]; then
 	architecture="x86-64"
 elif [ -n "$(uname -m | grep 86)" ]; then
 	ynh_die "Gitlab is not compatible with x86 architecture"
