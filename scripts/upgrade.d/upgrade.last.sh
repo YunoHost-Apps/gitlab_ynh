@@ -1,35 +1,19 @@
 #!/bin/bash
 
-gitlab_version="13.3.4"
+gitlab_version="13.4.0"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 
-gitlab_debian_version="$(lsb_release -sc)"
+gitlab_x86_64_buster_source_sha256="029f60fc028033493e2f1027802ad5cd978e09707107f44abe5bd15170bd6a92"
 
-gitlab_x86_64_buster_source_sha256="bf0d2924f10765d08724ea78d8f5ceff4dc4d25d14a5f282aa27d62640f21d23"
-
-gitlab_arm_buster_source_sha256="ee9b8ac7816dbedf73e319fea4c14ac1c743f06bad4a2597e5753f81789337d1"
-
-gitlab_x86_64_stretch_source_sha256="bc6800fdd5f91cb18c712ea15e93887141b81658566c780231aa63051cc9fcf0"
-
-gitlab_arm_stretch_source_sha256="362ab23dfc97814027c428e23900337223d3ae4c1c9220ad35b7ffd341f666cc"
+gitlab_arm_buster_source_sha256="592d8346af106d7c274189872a8ee46c7225c9f6b8a731990715264e9edb776a"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
 if [ "$architecture" = "x86-64" ]; then
-	if [ "$gitlab_debian_version" = "buster" ]
-	then
-		gitlab_source_sha256=$gitlab_x86_64_buster_source_sha256
-	else
-		gitlab_source_sha256=$gitlab_x86_64_stretch_source_sha256
-	fi
+	gitlab_source_sha256=$gitlab_x86_64_buster_source_sha256
 elif [ "$architecture" = "arm" ]; then
-	if [ "$gitlab_debian_version" = "buster" ]
-	then
-		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
-	else
-		gitlab_source_sha256=$gitlab_arm_stretch_source_sha256
-	fi
+	gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 fi
 
 gitlab_filename="gitlab-ce-${gitlab_version}.deb"

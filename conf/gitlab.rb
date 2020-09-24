@@ -161,6 +161,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['pages_domain_ssl_renewal_cron_worker'] = "*/10 * * * *"
 # gitlab_rails['pages_domain_removal_cron_worker'] = "47 0 * * *"
 # gitlab_rails['schedule_migrate_external_diffs_worker_cron'] = "15 * * * *"
+# gitlab_rails['ci_platform_metrics_update_cron_worker'] = '47 9 * * *'
+# gitlab_rails['analytics_instance_statistics_count_job_trigger_worker_cron'] = "50 23 */1 * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -491,6 +493,7 @@ EOS
 # gitlab_rails['omniauth_block_auto_created_users'] = true
 # gitlab_rails['omniauth_auto_link_ldap_user'] = false
 # gitlab_rails['omniauth_auto_link_saml_user'] = false
+# gitlab_rails['omniauth_auto_link_user'] = ['saml']
 # gitlab_rails['omniauth_external_providers'] = ['twitter', 'google_oauth2']
 # gitlab_rails['omniauth_allow_bypass_two_factor'] = ['google_oauth2']
 # gitlab_rails['omniauth_providers'] = [
@@ -644,6 +647,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_sslkey'] = nil
 # gitlab_rails['db_prepared_statements'] = false
 # gitlab_rails['db_statements_limit'] = 1000
+# gitlab_rails['db_connect_timeout'] = nil
 
 
 ### GitLab Redis settings
@@ -961,6 +965,7 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['negate'] = false
 
 # sidekiq['metrics_enabled'] = true
+# sidekiq['exporter_log_enabled'] = false
 # sidekiq['listen_address'] = "localhost"
 sidekiq['listen_port'] = __SIDEKIQ_PORT__
 
@@ -1341,7 +1346,7 @@ nginx['listen_https'] = false
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
 ##! These paths have proxy_request_buffering disabled
-# nginx['request_buffering_off_path_regex'] = "\.git/git-receive-pack$|\.git/info/refs?service=git-receive-pack$|\.git/gitlab-lfs/objects|\.git/info/lfs/objects/batch$"
+# nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
 
 ### Nginx status
 # nginx['status'] = {
@@ -1351,7 +1356,6 @@ nginx['listen_https'] = false
 #  "port" => 9999,
 #  "vts_enable" => true,
 #  "options" => {
-#    "stub_status" => "on", # Turn on stats
 #    "server_tokens" => "off", # Don't show the version of NGINX
 #    "access_log" => "off", # Disable logs for stats
 #    "allow" => "127.0.0.1", # Only allow access from localhost
@@ -1672,6 +1676,7 @@ nginx['listen_https'] = false
 # prometheus['rules_files'] = ['/var/opt/gitlab/prometheus/rules/*.rules']
 # prometheus['scrape_interval'] = 15
 # prometheus['scrape_timeout'] = 15
+# prometheus['external_labels'] = { }
 # prometheus['env_directory'] = '/opt/gitlab/etc/prometheus/env'
 # prometheus['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
@@ -1742,8 +1747,8 @@ nginx['listen_https'] = false
 # alertmanager['log_directory'] = '/var/log/gitlab/alertmanager'
 # alertmanager['admin_email'] = 'admin@example.com'
 # alertmanager['flags'] = {
-#   'web.listen-address' => "localhost:9093"
-#   'storage.path' => "/var/opt/gitlab/alertmanager/data"
+#   'web.listen-address' => "localhost:9093",
+#   'storage.path' => "/var/opt/gitlab/alertmanager/data",
 #   'config.file' => "/var/opt/gitlab/alertmanager/alertmanager.yml"
 # }
 # alertmanager['env_directory'] = '/opt/gitlab/etc/alertmanager/env'
@@ -2026,6 +2031,8 @@ nginx['listen_https'] = false
 # praefect['database_sslcert'] = '/path/to/client-cert'
 # praefect['database_sslkey'] = '/path/to/client-key'
 # praefect['database_sslrootcert'] = '/path/to/rootcert'
+# praefect['reconciliation_scheduling_interval'] = '5m'
+# praefect['reconciliation_histogram_buckets'] = '[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0]'
 
 ################################################################################
 # Storage check
