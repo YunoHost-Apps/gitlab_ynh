@@ -183,7 +183,6 @@ source ./upgrade.d/upgrade.last.sh
 cp ../conf/$architecture.src.default ../conf/$architecture.src
 ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
 ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
-ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="../conf/$architecture.src"
 ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="../conf/$architecture.src"
 
 tempdir="$(mktemp -d)"

@@ -15,30 +15,24 @@ gitlab_directory="$( cd "$( dirname "$current_dir/$1" )/../../" >/dev/null 2>&1 
 sed -i -e "s/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
 
 # x86_64
-for debian_version in "stretch" "buster"
-do
-    url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/$debian_version/gitlab-ce_$version-ce.0_amd64.deb
+url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/buster/gitlab-ce_$version-ce.0_amd64.deb
 
-    new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
 
-    echo url: $url
-    echo sha256: $new_sha256
+echo url: $url
+echo sha256: $new_sha256
 
-    sed -i -e "s/gitlab_x86_64_${debian_version}_source_sha256=\".*\"/gitlab_x86_64_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
-done
+sed -i -e "s/gitlab_x86_64_buster_source_sha256=\".*\"/gitlab_x86_64_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
 
 # arm
-for debian_version in "stretch" "buster"
-do
-    url=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/$debian_version/gitlab-ce_$version-ce.0_armhf.deb
+url=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/buster/gitlab-ce_$version-ce.0_armhf.deb
 
-    new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
 
-    echo url: $url
-    echo sha256: $new_sha256
+echo url: $url
+echo sha256: $new_sha256
 
-    sed -i -e "s/gitlab_arm_${debian_version}_source_sha256=\".*\"/gitlab_arm_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
-done
+sed -i -e "s/gitlab_arm_buster_source_sha256=\".*\"/gitlab_arm_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
 
 if [[ "$(basename $file)" == upgrade.last.sh ]]; then
     # Update manifest
