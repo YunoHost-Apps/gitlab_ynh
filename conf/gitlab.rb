@@ -949,6 +949,8 @@ puma['max_threads'] = __PUMA_MAX_THREADS__
 # puma['listen'] = '127.0.0.1'
 puma['port'] = __PUMA_PORT__
 # puma['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
+# puma['somaxconn'] = 1024
+
 # puma['pidfile'] = '/opt/gitlab/var/puma/puma.pid'
 # puma['state_path'] = '/opt/gitlab/var/puma/puma.state'
 
