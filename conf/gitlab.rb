@@ -104,6 +104,13 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['smtp_enable_starttls_auto'] = true
 # gitlab_rails['smtp_tls'] = false
 
+###! **Can be: 'none', 'peer', 'client_once', 'fail_if_no_peer_cert'**
+###! Docs: http://api.rubyonrails.org/classes/ActionMailer/Base.html
+# gitlab_rails['smtp_openssl_verify_mode'] = 'none'
+
+# gitlab_rails['smtp_ca_path'] = "/etc/ssl/certs"
+# gitlab_rails['smtp_ca_file'] = "/etc/ssl/certs/ca-certificates.crt"
+
 ### Email Settings
 
 # gitlab_rails['gitlab_email_enabled'] = true
@@ -166,7 +173,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! Docs: https://github.com/ondrejbartas/sidekiq-cron#adding-cron-job
 ###!       https://docs.gitlab.com/ee/ci/yaml/README.html#artifactsexpire_in
 # gitlab_rails['stuck_ci_jobs_worker_cron'] = "0 0 * * *"
-# gitlab_rails['expire_build_artifacts_worker_cron'] = "50 * * * *"
+# gitlab_rails['expire_build_artifacts_worker_cron'] = "*/7 * * * *"
 # gitlab_rails['environments_auto_stop_cron_worker_cron'] = "24 * * * *"
 # gitlab_rails['pipeline_schedule_worker_cron'] = "19 * * * *"
 # gitlab_rails['ci_archive_traces_cron_worker_cron'] = "17 * * * *"
@@ -372,6 +379,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 
 ### GitLab uploads
 ###! Docs: https://docs.gitlab.com/ee/administration/uploads.html
+# gitlab_rails['uploads_directory'] = "/var/opt/gitlab/gitlab-rails/uploads"
 # gitlab_rails['uploads_storage_path'] = "/opt/gitlab/embedded/service/gitlab-rails/public"
 # gitlab_rails['uploads_base_dir'] = "uploads/-/system"
 # gitlab_rails['uploads_object_store_enabled'] = false
@@ -628,6 +636,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Extra customization
 # gitlab_rails['extra_google_analytics_id'] = '_your_tracking_id'
+# gitlab_rails['extra_google_tag_manager_id'] = '_your_tracking_id'
 # gitlab_rails['extra_piwik_url'] = '_your_piwik_url'
 # gitlab_rails['extra_piwik_site_id'] = '_your_piwik_site_id'
 
@@ -648,9 +657,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ###! **We do not recommend changing these directories.**
 # gitlab_rails['dir'] = "/var/opt/gitlab/gitlab-rails"
 # gitlab_rails['log_directory'] = "/var/log/gitlab/gitlab-rails"
-
-### GitLab application settings
-# gitlab_rails['uploads_directory'] = "/var/opt/gitlab/gitlab-rails/uploads"
 
 #### Change the initial default admin password and shared runner registration tokens.
 ####! **Only applicable on initial setup, changing these settings after database
@@ -727,13 +733,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_shared_sentinels'] = nil
 # gitlab_rails['redis_actioncable_instance'] = nil
 # gitlab_rails['redis_actioncable_sentinels'] = nil
-
-###! **Can be: 'none', 'peer', 'client_once', 'fail_if_no_peer_cert'**
-###! Docs: http://api.rubyonrails.org/classes/ActionMailer/Base.html
-# gitlab_rails['smtp_openssl_verify_mode'] = 'none'
-
-# gitlab_rails['smtp_ca_path'] = "/etc/ssl/certs"
-# gitlab_rails['smtp_ca_file'] = "/etc/ssl/certs/ca-certificates.crt"
 
 ################################################################################
 ## Container Registry settings
@@ -876,6 +875,16 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
 # }
 
+##! Resource limitations for the dynamic image scaler.
+##! Exceeding these thresholds will cause Workhorse to serve images in their original size.
+##!
+##! Maximum number of scaler processes that are allowed to execute concurrently.
+##! It is recommended for this not to exceed the number of CPUs available.
+# gitlab_workhorse['image_scaler_max_procs'] = 4
+##!
+##! Maximum file size in bytes for an image to be considered eligible for rescaling
+# gitlab_workhorse['image_scaler_max_filesize'] = 250000
+
 ################################################################################
 ## GitLab User Settings
 ##! Modify default git user.
@@ -978,7 +987,7 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
 # sidekiq['cluster'] = true
-# sidekiq['experimental_queue_selector'] = false
+# sidekiq['queue_selector'] = false
 # sidekiq['interval'] = nil
 # sidekiq['max_concurrency'] = 50
 # sidekiq['min_concurrency'] = nil
@@ -1881,6 +1890,7 @@ nginx['listen_https'] = false
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
 # }
 # postgres_exporter['sslmode'] = nil
+# postgres_exporter['per_table_stats'] = false
 
 ################################################################################
 ## Prometheus PgBouncer exporter (EE only)
@@ -2022,6 +2032,7 @@ nginx['listen_https'] = false
 # gitaly['auth_transitioning'] = false # When true, auth is logged to Prometheus but NOT enforced
 # gitaly['graceful_restart_timeout'] = '1m' # Grace time for a gitaly process to finish ongoing requests
 # gitaly['git_catfile_cache_size'] = 100 # Number of 'git cat-file' processes kept around for re-use
+# gitaly['git_bin_path'] = "/opt/gitlab/embedded/bin/git" # A custom path for the 'git' executable
 # gitaly['open_files_ulimit'] = 15000 # Maximum number of open files allowed for the gitaly process
 # gitaly['ruby_max_rss'] = 300000000 # RSS threshold in bytes for triggering a gitaly-ruby restart
 # gitaly['ruby_graceful_restart_timeout'] = '10m' # Grace time for a gitaly-ruby process to finish ongoing requests
@@ -2531,35 +2542,55 @@ nginx['listen_https'] = false
 # patroni['data_dir'] = '/var/opt/gitlab/patroni/data'
 # patroni['ctl_command'] = '/opt/gitlab/embedded/bin/patronictl'
 
-# patroni['scope'] = 'gitlab-postgresql-ha'
-# patroni['name'] = nil
-
-# patroni['log_directory'] = '/var/log/gitlab/patroni'
-# patroni['log_level'] = 'INFO'
-
-# patroni['consul']['url'] = 'http://127.0.0.1:8500'
-# patroni['consul']['service_check_interval'] = '10s'
-# patroni['consul']['register_service'] = false
-# patroni['consul']['checks'] = []
-
-## Bootstrap settings
+## Patroni dynamic configuration settings
 # patroni['loop_wait'] = 10
 # patroni['ttl'] = 30
 # patroni['retry_timeout'] = 10
 # patroni['maximum_lag_on_failover'] = 1_048_576
 # patroni['max_timelines_history'] = 0
 # patroni['master_start_timeout'] = 300
+# patroni['use_pg_rewind'] = false
+# patroni['use_slots'] = true
+# patroni['replication_password'] = nil
+# patroni['replication_slots'] = {}
+
+## Standby cluster replication settings
+# patroni['standby_cluster']['enable'] = false
+# patroni['standby_cluster']['host'] = nil
+# patroni['standby_cluster']['port'] = 5432
+# patroni['standby_cluster']['primary_slot_name'] = nil
+
+## Global/Universal settings
+# patroni['scope'] = 'gitlab-postgresql-ha'
+# patroni['name'] = nil
+
+## Log settings
+# patroni['log_directory'] = '/var/log/gitlab/patroni'
+# patroni['log_level'] = 'INFO'
+
+## Consul specific settings
+# patroni['consul']['url'] = 'http://127.0.0.1:8500'
+# patroni['consul']['service_check_interval'] = '10s'
+# patroni['consul']['register_service'] = true
+# patroni['consul']['checks'] = []
 
 ## PostgreSQL configuration override
-# patroni['postgresql']['wal_level'] = 'replica'
 # patroni['postgresql']['hot_standby'] = 'on'
+
+## The following must hold the same values on all nodes.
+## Leave unassined to use PostgreSQL's default values.
+# patroni['postgresql']['wal_level'] = 'replica'
+# patroni['postgresql']['wal_log_hints'] = 'on'
+# patroni['postgresql']['max_worker_processes'] = 8
+# patroni['postgresql']['max_locks_per_transaction'] = 64
+# patroni['postgresql']['max_connections'] = 200
+# patroni['postgresql']['checkpoint_timeout'] = 30
+
+## The following can hold different values on all nodes.
+## Leave unassined to use PostgreSQL's default values.
 # patroni['postgresql']['wal_keep_segments'] = 8
 # patroni['postgresql']['max_wal_senders'] = 5
 # patroni['postgresql']['max_replication_slots'] = 5
-# patroni['postgresql']['checkpoint_timeout'] = 30
-
-# patroni['use_pg_rewind'] = false
-# patroni['use_slots'] = true
 
 ## Permanent replication slots for Streaming Replication
 # patroni['replication_slots'] = {
