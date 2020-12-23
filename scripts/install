@@ -265,4 +265,4 @@ ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path=
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of $app completed" --last
+ynh_script_progression --message="Installation of GitLab completed" --last
