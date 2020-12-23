@@ -209,7 +209,7 @@ ynh_add_swap --size=$swap_needed
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Setting up source files..." --weight=200
+	ynh_script_progression --message="Setting up source files..." --weight=50
 
 	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
 	touch $config_path/skip-auto-backup

@@ -96,7 +96,7 @@ ynh_restore_file --origin_path="$config_path/gitlab-persistent.rb"
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Reinstalling GitLab..." --weight=200
+ynh_script_progression --message="Reinstalling GitLab..." --weight=50
 
 source ../settings/scripts/upgrade.d/upgrade.last.sh
 mkdir -p ../conf/
@@ -121,7 +121,7 @@ fi
 #=================================================
 # RESTORE GITLAB DATABASE
 #=================================================
-ynh_script_progression --message="Restoring GitLab..." --weight=55
+ynh_script_progression --message="Restoring GitLab..." --weight=35
 
 ynh_restore_file --origin_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 
