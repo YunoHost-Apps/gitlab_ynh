@@ -55,8 +55,7 @@ How to configure GitLab:
 
 ---
 
-Developers info
-----------------
+## Developers info
 
 Please do your pull request to the [testing branch](https://github.com/YunoHost-Apps/gitlab_ynh/tree/testing).
 

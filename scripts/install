@@ -148,7 +148,7 @@ fi
 #=================================================
 # PRECONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Preconfigure gitlab..." --weight=1
+ynh_script_progression --message="Preconfigure GitLab..." --weight=1
 
 mkdir -p $config_path
 
@@ -177,7 +177,7 @@ ynh_store_file_checksum --file="$config_path/gitlab.rb"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=200
+ynh_script_progression --message="Setting up source files..." --weight=50
 
 source ./upgrade.d/upgrade.last.sh
 cp ../conf/$architecture.src.default ../conf/$architecture.src
@@ -199,9 +199,9 @@ fi
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring nginx web server..." --weight=2
+ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 
-# Create a dedicated nginx config
+# Create a dedicated NGINX config
 ynh_add_nginx_config client_max_body_size
 
 #=================================================
@@ -224,7 +224,7 @@ ApplicationSetting.last.update_attributes(password_authentication_enabled_for_we
 #=================================================
 # RECONFIGURE TO TAKE INTO ACCOUNT CHANGES
 #=================================================
-ynh_script_progression --message="Reconfigure gitlab..." --weight=13
+ynh_script_progression --message="Reconfigure GitLab..." --weight=13
 
 gitlab-ctl reconfigure
 
@@ -250,14 +250,14 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
 #=================================================
 # RESTART GITLAB
 #=================================================
-ynh_script_progression --message="Restarting gitlab..." --weight=15
+ynh_script_progression --message="Restarting GitLab..." --weight=15
 
 ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 

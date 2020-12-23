@@ -39,7 +39,7 @@ fi
 #=================================================
 # STOP GITLAB
 #=================================================
-ynh_script_progression --message="Stopping gitlab" --weight=8
+ynh_script_progression --message="Stopping GitLab" --weight=8
 
 # I use gitlab-ctl and not ynh_systemd_action or systemctl to stop the service to avoid this error: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/common_installation_problems/README.md#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run during the reinstall of the app
 gitlab-ctl stop
@@ -47,7 +47,7 @@ gitlab-ctl stop
 #=================================================
 # REMOVE GITLAB
 #=================================================
-ynh_script_progression --message="Removing Gitlab" --weight=4
+ynh_script_progression --message="Removing GitLab" --weight=4
 
 dpkg --remove gitlab-ce
 
@@ -71,9 +71,9 @@ ynh_secure_remove --file="$config_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing nginx web server configuration" --weight=1
+ynh_script_progression --message="Removing NGINX web server configuration" --weight=1
 
-# Remove the dedicated nginx config
+# Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
 #=================================================

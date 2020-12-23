@@ -55,7 +55,7 @@ fi
 #=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================
-ynh_script_progression --message="Updating nginx web server configuration..." --weight=1
+ynh_script_progression --message="Updating NGINX web server configuration..." --weight=1
 
 nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 
@@ -92,7 +92,7 @@ fi
 #=================================================
 # CONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Configure gitlab..." --weight=28
+ynh_script_progression --message="Configure GitLab..." --weight=28
 
 ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
@@ -125,7 +125,7 @@ gitlab-ctl reconfigure
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for gitlab..." --weight=15
+ynh_script_progression --message="Waiting for GitLab..." --weight=15
 
 ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 
@@ -134,7 +134,7 @@ ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path=
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
