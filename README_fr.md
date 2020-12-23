@@ -1,7 +1,7 @@
 # GitLab pour YunoHost
 
 [![Integration level](https://dash.yunohost.org/integration/gitlab.svg)](https://dash.yunohost.org/appci/app/gitlab) ![](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)    
-[![Installer GitLab pour YunoHost](https://install-app.yunohost.org/install-with-yunohost.png)](https://install-app.yunohost.org/?app=gitlab)
+[![Installer GitLab pour YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
 *[Read this readme in english.](./README.md)* 
 
@@ -12,7 +12,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 GitLab est un gestionnaire Web de dépôt Git fournissant des fonctionnalités de wiki, de rapports de bugs et de pipeline CI/CD. GitLab est une application open source développée par GitLab Inc.
 
-**Version incluse :** 13.6.3
+**Version incluse :** 13.7.0
 
 ## Captures d'écran
 
