@@ -555,6 +555,11 @@ EOS
 # gitlab_rails['forti_authenticator_username'] = 'admin'
 # gitlab_rails['forti_authenticator_access_token'] = 's3cr3t'
 
+### FortiToken Cloud authentication settings
+# gitlab_rails['forti_token_cloud_enabled'] = false
+# gitlab_rails['forti_token_cloud_client_id'] = 'forti_token_cloud_client_id'
+# gitlab_rails['forti_token_cloud_client_secret'] = 's3cr3t'
+
 ### Backup Settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/backups.html
 
@@ -637,8 +642,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ### Extra customization
 # gitlab_rails['extra_google_analytics_id'] = '_your_tracking_id'
 # gitlab_rails['extra_google_tag_manager_id'] = '_your_tracking_id'
-# gitlab_rails['extra_piwik_url'] = '_your_piwik_url'
-# gitlab_rails['extra_piwik_site_id'] = '_your_piwik_site_id'
+# gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
+# gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
 
 ##! Docs: https://docs.gitlab.com/omnibus/settings/environment-variables.html
 # gitlab_rails['env'] = {
@@ -696,6 +701,12 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_prepared_statements'] = false
 # gitlab_rails['db_statements_limit'] = 1000
 # gitlab_rails['db_connect_timeout'] = nil
+# gitlab_rails['db_keepalives'] = nil
+# gitlab_rails['db_keepalives_idle'] = nil
+# gitlab_rails['db_keepalives_interval'] = nil
+# gitlab_rails['db_keepalives_count'] = nil
+# gitlab_rails['db_tcp_user_timeout'] = nil
+# gitlab_rails['db_application_name'] = nil
 
 
 ### GitLab Redis settings
@@ -1513,6 +1524,9 @@ nginx['listen_https'] = false
 ##! Configure to expose GitLab Pages on external IP address, serving the HTTPS
 # gitlab_pages['external_https'] = []
 
+##! Configure to expose GitLab Pages on external IP address, serving the HTTPS over PROXYv2
+# gitlab_pages['external_https_proxyv2'] = []
+
 ##! Configure to use the default list of cipher suites
 # gitlab_pages['insecure_ciphers'] = false
 
@@ -1582,6 +1596,19 @@ nginx['listen_https'] = false
 
 ##! Shared secret used for authentication between Pages and GitLab
 # gitlab_pages['api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
+
+##! Advanced settings for serving GitLab Pages from zip archives.
+##! The recommended default values are set inside GitLab Pages.
+##! Should be changed only if absolutely needed.
+
+##! The maximum time an archive will be cached in memory.
+# gitlab_pages['zip_cache_expiration'] = "60s"
+##! Zip archive cache cleaning interval.
+# gitlab_pages['zip_cache_cleanup'] = "30s"
+##! The interval to refresh a cache archive if accessed before expiring.
+# gitlab_pages['zip_cache_refresh'] = "30s"
+##! The maximum amount of time it takes to open a zip archive from the file system or object storage.
+# gitlab_pages['zip_open_timeout'] = "30s"
 
 # gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
 # gitlab_pages['env'] = {
@@ -2053,6 +2080,13 @@ nginx['listen_https'] = false
 # gitaly['daily_maintenance_start_minute'] = 30
 # gitaly['daily_maintenance_duration'] = '30m'
 # gitaly['daily_maintenance_storages'] = ["default"]
+# gitaly['cgroups_count'] = 10
+# gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
+# gitaly['cgroups_hierarchy_root'] = 'gitaly'
+# gitaly['cgroups_memory_enabled'] = true
+# gitaly['cgroups_memory_limit'] = 1048576
+# gitaly['cgroups_cpu_enabled'] = true
+# gitaly['cgroups_cpu_shares'] = 512
 
 ################################################################################
 ## Praefect
@@ -2178,6 +2212,7 @@ nginx['listen_https'] = false
 # gitlab_rails['historical_data_worker_cron'] = "0 12 * * *"
 # gitlab_rails['pseudonymizer_worker_cron'] = "0 23 * * *"
 # gitlab_rails['elastic_index_bulk_cron'] = "*/1 * * * *"
+# gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 0 1 * *"
 
 ################################################################################
 ## Kerberos (EE Only)
@@ -2217,8 +2252,8 @@ nginx['listen_https'] = false
 # }
 
 ################################################################################
-## Dependency proxy (EE Only)
-##! Docs: https://docs.gitlab.com/ee/administration/dependency_proxy.md
+## Dependency proxy
+##! Docs: https://docs.gitlab.com/ee/administration/packages/dependency_proxy.html
 ################################################################################
 
 # gitlab_rails['dependency_proxy_enabled'] = true
@@ -2549,7 +2584,9 @@ nginx['listen_https'] = false
 # patroni['maximum_lag_on_failover'] = 1_048_576
 # patroni['max_timelines_history'] = 0
 # patroni['master_start_timeout'] = 300
-# patroni['use_pg_rewind'] = false
+# patroni['use_pg_rewind'] = true
+# patroni['remove_data_directory_on_rewind_failure'] = false
+# patroni['remove_data_directory_on_diverged_timelines'] = false
 # patroni['use_slots'] = true
 # patroni['replication_password'] = nil
 # patroni['replication_slots'] = {}
