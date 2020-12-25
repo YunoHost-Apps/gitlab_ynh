@@ -173,13 +173,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path $path_url)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # INSTALL DEPENDENCIES
@@ -216,7 +209,7 @@ ynh_add_swap --size=$swap_needed
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Setting up source files..." --weight=200
+	ynh_script_progression --message="Setting up source files..." --weight=50
 
 	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
 	touch $config_path/skip-auto-backup
@@ -238,7 +231,7 @@ then
 		fi
 	}
 
-	# To update gitlab from major version A to B, we have to go to the last minor version
+	# To update GitLab from major version A to B, we have to go to the last minor version
 	# of the major version A and then go to the first minor version of the major version B
 	# to finally go to the current minor version of the major version B
 	# A.last -> B.first -> B.last
@@ -291,7 +284,7 @@ fi
 #=================================================
 # RECONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Reconfigure gitlab..." --weight=13
+ynh_script_progression --message="Reconfigure GitLab..." --weight=13
 
 ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
@@ -324,7 +317,7 @@ gitlab-ctl reconfigure
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_script_progression --message="Configuring nginx web server..." --weight=2
+	ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 	# Create a dedicated nginx config
 	ynh_add_nginx_config client_max_body_size
 fi
@@ -353,7 +346,7 @@ fi
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Restarting gitlab..." --weight=15
+	ynh_script_progression --message="Restarting GitLab..." --weight=15
 
 	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 fi
@@ -361,7 +354,7 @@ fi
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -369,4 +362,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression --message="Upgrade of GitLab completed" --last
