@@ -24,7 +24,7 @@ ynh_abort_if_errors
 #=================================================
 # LOAD SETTINGS
 #=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=1
+ynh_print_info --message="Loading installation settings..."
 
 app=$YNH_APP_INSTANCE_NAME
 
@@ -32,18 +32,19 @@ config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 domain=$(ynh_app_setting_get --app=$app --key=domain)
 
 #=================================================
-# STANDARD BACKUP STEPS
+# DECLARE DATA AND CONF FILES TO BACKUP
+#=================================================
+ynh_print_info --message="Declaring files to be backed up..."
+
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Backing up nginx web server configuration..." --weight=1
 
 ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP GITLAB DATABASE
 #=================================================
-ynh_script_progression --message="Backuping of Gitlab..." --weight=9
 
 # Use gitlab-backup to backup
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
@@ -55,7 +56,6 @@ ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 #=================================================
 # BACKUP CONF FILES
 #=================================================
-ynh_script_progression --message="Backuping configuration files of Gitlab..." --weight=1
 
 ynh_backup --src_path="$config_path/gitlab-secrets.json"
 ynh_backup --src_path="$config_path/gitlab.rb"
@@ -65,4 +65,4 @@ ynh_backup --src_path="$config_path/gitlab-persistent.rb"
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)." --last
+ynh_print_info --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
