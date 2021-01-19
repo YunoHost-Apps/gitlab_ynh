@@ -94,6 +94,13 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block
     block_auto_created_users: false
     base: 'dc=yunohost,dc=org'
     user_filter: '(&(objectClass=posixAccount)(permission=cn=gitlab.main,ou=permission,dc=yunohost,dc=org))'
+    timeout: 10
+    attributes: {
+      username: ['uid', 'sAMAccountName'],
+      name: 'cn',
+      first_name: 'givenName',
+      last_name: 'sn'
+    }
 EOS"
 
     # Add ldap conf
