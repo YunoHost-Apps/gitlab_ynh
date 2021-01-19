@@ -502,18 +502,25 @@ gitlab_rails['ldap_enabled'] = true
 
 gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block with 'EOS' below
   main: # 'main' is the GitLab 'provider ID' of this LDAP server
-    label: 'LDAP'
+    label: 'YunoHost LDAP'
     host: 'localhost'
     port: 389
     uid: 'uid'
-    encryption: 'plain' # "start_tls" or "simple_tls" or "plain"
-    bind_dn: ''
+    encryption: 'plain' # 'start_tls' or 'simple_tls' or 'plain'
+    bind_dn: 'ou=users,dc=yunohost,dc=org'
     password: ''
     active_directory: false
     allow_username_or_email_login: false
     block_auto_created_users: false
-    base: 'ou=users,dc=yunohost,dc=org'
-    user_filter: ''
+    base: 'dc=yunohost,dc=org'
+    user_filter: '(&(objectClass=posixAccount)(permission=cn=gitlab.main,ou=permission,dc=yunohost,dc=org))'
+    timeout: 10
+    attributes: {
+      username: ['uid', 'sAMAccountName'],
+      name: 'cn',
+      first_name: 'givenName',
+      last_name: 'sn'
+    }
 EOS
 
 ### Smartcard authentication settings
