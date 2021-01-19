@@ -6,11 +6,8 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-# IMPORT GENERIC HELPERS
+source _common.sh
 source /usr/share/yunohost/helpers
-
-# Load common variables and helpers
-source ./_common.sh
 
 #=================================================
 # LOAD SETTINGS
@@ -21,26 +18,18 @@ app=$YNH_APP_INSTANCE_NAME
 # Retrieve app settings
 domain=$(ynh_app_setting_get --app="$app" --key=domain)
 path_url=$(ynh_app_setting_get --app="$app" --key=path)
-admin=$(ynh_app_setting_get --app="$app" --key=admin)
 is_public=$(ynh_app_setting_get --app="$app" --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
-unicorn_worker_processes=$(ynh_app_setting_get --app="$app" --key=unicorn_worker_processes)
+puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_worker_processes)
+puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
+puma_max_threads=$(ynh_app_setting_get --app="$app" --key=puma_max_threads)
 client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
 overwrite_nginx=$(ynh_app_setting_get --app="$app" --key=overwrite_nginx)
-
-backup_db=$(ynh_app_setting_get --app="$app" --key=backup_db)
-backup_uploads=$(ynh_app_setting_get --app="$app" --key=backup_uploads)
-backup_repositories=$(ynh_app_setting_get --app="$app" --key=backup_repositories)
-backup_builds=$(ynh_app_setting_get --app="$app" --key=backup_builds)
-backup_artifacts=$(ynh_app_setting_get --app="$app" --key=backup_artifacts)
-backup_lfs=$(ynh_app_setting_get --app="$app" --key=backup_lfs)
-backup_registry=$(ynh_app_setting_get --app="$app" --key=backup_registry)
-backup_pages=$(ynh_app_setting_get --app="$app" --key=backup_pages)
 
 #=================================================
 # CHECK VERSION
@@ -69,31 +58,31 @@ if [ -z "$config_path" ]; then
 	ynh_app_setting_set --app=$app --key=config_path --value=$config_path
 fi
 
-if [ -z "$unicorn_worker_processes" ]; then
-	# https://docs.gitlab.com/ce/install/requirements.html#unicorn-workers
-	unicorn_worker_processes=$(($(nproc) + 1 ))
+if [ -z "$puma_worker_processes" ]; then
+	#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
+	puma_worker_processes=$(( $(nproc) > 2 ? $(nproc) : 2 ))
 
-	# If the server has at least 2GB of RAM
-	if [ $(free -g --si | grep Mem: | awk '{print $2}') -ge 2 ]; then
-		# Min 3 worker processes
-		unicorn_worker_processes=$(($unicorn_worker_processes>3?$unicorn_worker_processes:3))
+	# If the server has less than 2GB of RAM
+	if [ $(ynh_get_ram --total --ignore_swap) -lt 2000 ]; then
+		puma_min_threads=1
+		puma_max_threads=1
 	else
-		# 2 worker processes
-		unicorn_worker_processes=2
+		puma_min_threads=2
+		puma_max_threads=4
 	fi
-	ynh_app_setting_set --app=$app --key=unicorn_worker_processes --value=$unicorn_worker_processes
-fi
 
-if [ -z "$portSidekiq" ]; then
-	portSidekiq=$(ynh_find_port $(($portUnicorn + 1)))
-	
-	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
+	ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
+	ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
+	ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
+
+	ynh_app_setting_delete --app=$app --key=unicorn_worker_processes
 fi
 
 # If architecture doesn't exist, create it
 if [ -z "$architecture" ]; then
-	# Detect the system architecture
-	if [ -n "$(uname -m | grep 64)" ]; then
+	if [ -n "$(uname -m | grep aarch64)" ]; then
+		ynh_die "Gitlab is not compatible with arm64 architecture"
+	elif [ -n "$(uname -m | grep x86_64)" ]; then
 		architecture="x86-64"
 	elif [ -n "$(uname -m | grep 86)" ]; then
 		ynh_die "Gitlab is not compatible with x86 architecture"
@@ -141,47 +130,24 @@ if [ -z "$port" ]; then
 fi
 
 # If port doesn't exist, retrieve it
-if [ -z "$portUnicorn" ]; then
-	portUnicorn=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
-	ynh_app_setting_set --app=$app --key=unicorn_port --value=$portUnicorn
+if [ -z "$portPuma" ]; then
+	if [ -z "$(ynh_app_setting_get --app="$app" --key=unicorn_port)" ]; then
+		portPuma=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
+	else
+		portPuma=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+	fi
+	ynh_app_setting_set --app=$app --key=puma_port --value=$portPuma
+	ynh_app_setting_delete --app=$app --key=unicorn_port
+fi
+
+if [ -z "$portSidekiq" ]; then
+	portSidekiq=$(ynh_find_port $(($portPuma + 1)))
+	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
 fi
 
 # if this source file exist, remove it
 if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
 	ynh_secure_remove --file="/etc/apt/sources.list.d/gitlab-ce.list"
-fi
-
-# Define the backup strategy: https://docs.gitlab.com/ce/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
-if [ -z "$backup_db" ]; then
-	ynh_app_setting_set --app=$app --key=backup_db --value=1
-fi
-
-if [ -z "$backup_uploads" ]; then
-	ynh_app_setting_set --app=$app --key=backup_uploads --value=1
-fi
-
-if [ -z "$backup_repositories" ]; then
-	ynh_app_setting_set --app=$app --key=backup_repositories --value=1
-fi
-
-if [ -z "$backup_builds" ]; then
-	ynh_app_setting_set --app=$app --key=backup_builds --value=1
-fi
-
-if [ -z "$backup_artifacts" ]; then
-	ynh_app_setting_set --app=$app --key=backup_artifacts --value=1
-fi
-
-if [ -z "$backup_lfs" ]; then
-	ynh_app_setting_set --app=$app --key=backup_lfs --value=1
-fi
-
-if [ -z "$backup_registry" ]; then
-	ynh_app_setting_set --app=$app --key=backup_registry --value=1
-fi
-
-if [ -z "$backup_pages" ]; then
-	ynh_app_setting_set --app=$app --key=backup_pages --value=1
 fi
 
 #=================================================
@@ -203,13 +169,6 @@ ynh_clean_setup () {
 ynh_abort_if_errors
 
 #=================================================
-# CHECK THE PATH
-#=================================================
-
-# Normalize the URL path syntax
-path_url=$(ynh_normalize_url_path $path_url)
-
-#=================================================
 # STANDARD UPGRADE STEPS
 #=================================================
 # INSTALL DEPENDENCIES
@@ -222,8 +181,8 @@ ynh_install_app_dependencies $pkg_dependencies
 # ADD SWAP IF NEEDED
 #=================================================
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
+total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
@@ -241,38 +200,12 @@ ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
 ynh_add_swap --size=$swap_needed
 
 #=================================================
-# PRECONFIGURE GITLAB
-#=================================================
-
-ynh_script_progression --message="Preconfigure gitlab..." --weight=1
-
-ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
-
-mkdir -p $config_path
-
-cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
-ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
-
-ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_PORT__" --replace_string="$portUnicorn" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_WORKER_PROCESSES__" --replace_string="$unicorn_worker_processes" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
-
-ynh_store_file_checksum --file="$config_path/gitlab.rb"
-
-touch "$config_path/gitlab-persistent.rb"
-chown admin: "$config_path/gitlab-persistent.rb"
-
-#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Setting up source files..." --weight=200
+	ynh_script_progression --message="Setting up source files..." --weight=50
 
 	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
 	touch $config_path/skip-auto-backup
@@ -282,7 +215,22 @@ then
 	# Load the last available version
 	source ./upgrade.d/upgrade.last.sh
 	last_version=$gitlab_version
-	last_major_version=${gitlab_version%%.*}
+
+	source_current_major_version () {
+		if [ -e "./upgrade.d/upgrade.$current_major_version.first.sh" ]; then
+			source ./upgrade.d/upgrade.$current_major_version.first.sh
+		elif [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+			source ./upgrade.d/upgrade.$current_major_version.last.sh
+		# Finish with the last migration if the file doesn't exist
+		else
+			source ./upgrade.d/upgrade.last.sh
+		fi
+	}
+
+	# To update GitLab from major version A to B, we have to go to the last minor version
+	# of the major version A and then go to the first minor version of the major version B
+	# to finally go to the current minor version of the major version B
+	# A.last -> B.first -> B.last
 
 	# While the current version is not the last version, do an upgrade
 	while [ "$last_version" != "$current_version" ]
@@ -290,27 +238,28 @@ then
 
 		current_major_version=${current_version%%.*}
 
-		# If the current version is equal to the last minor version of upgrade.$current_major_version.sh, increment the major version
-		if [ "$gitlab_version" = "$current_version" ]; then
-			current_major_version=$(($current_major_version + 1))
+		source_current_major_version
+
+		# if the version stored in the upgrade.$current_major_version.first.sh file is less than or equal
+		# to the current version, and if the version stored in the upgrade.$current_major_version.last.sh file
+		# increment the major version to upgrade to the next version
+		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
+			if [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+				source ./upgrade.d/upgrade.$current_major_version.last.sh
+			else
+				source ./upgrade.d/upgrade.last.sh
+			fi
+			if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
+				current_major_version=$(($current_major_version + 1))
+				source_current_major_version
+			fi
 		fi
 
-		# If the current version has the same major version than the next one,
-		# then it's the last upgrade to do
-		if [ "$last_major_version" -eq "$current_major_version" ]; then
-			current_major_version=last
-		fi
-
-		source ./upgrade.d/upgrade.$current_major_version.sh
 		cp ../conf/$architecture.src.default ../conf/$architecture.src
 		ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
 		ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
-
-		if [ $architecture = "x86-64" ]; then
-			ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_x86_64_source_sha256" --target_file="../conf/$architecture.src"
-		elif [ $architecture = "arm" ]; then
-			ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_arm_source_sha256" --target_file="../conf/$architecture.src"
-		fi
+		ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="../conf/$architecture.src"
+		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="../conf/$architecture.src"
 
 		tempdir="$(mktemp -d)"
 
@@ -329,13 +278,42 @@ then
 fi
 
 #=================================================
+# RECONFIGURE GITLAB
+#=================================================
+ynh_script_progression --message="Reconfigure GitLab..." --weight=13
+
+ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
+
+mkdir -p $config_path
+
+cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
+
+ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
+
+ynh_store_file_checksum --file="$config_path/gitlab.rb"
+
+touch "$config_path/gitlab-persistent.rb"
+chown admin: "$config_path/gitlab-persistent.rb"
+
+gitlab-ctl reconfigure
+
+#=================================================
 # NGINX CONFIGURATION
 #=================================================
 
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_script_progression --message="Configuring nginx web server..." --weight=2
+	ynh_script_progression --message="Configuring NGINX web server..." --weight=2
 	# Create a dedicated nginx config
 	ynh_add_nginx_config client_max_body_size
 fi
@@ -346,7 +324,7 @@ fi
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/unicorn/unicorn_stderr.log" "/var/log/$app/unicorn/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/puma/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
 
 #=================================================
 # WAITING GITLAB
@@ -354,15 +332,15 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 
 if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
-	ynh_script_progression --message="Restarting gitlab..." --weight=15
+	ynh_script_progression --message="Restarting GitLab..." --weight=15
 
-	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -370,4 +348,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of $app completed" --last
+ynh_script_progression --message="Upgrade of GitLab completed" --last

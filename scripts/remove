@@ -16,11 +16,13 @@ ynh_script_progression --message="Loading installation settings..." --weight=2
 
 app=$YNH_APP_INSTANCE_NAME
 
-domain=$(ynh_app_setting_get --app="$app" --key=domain)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
+
+# Used by ynh_remove_nginx_config
+domain=$(ynh_app_setting_get --app="$app" --key=domain)
 
 #=================================================
 # STANDARD REMOVE
@@ -37,7 +39,7 @@ fi
 #=================================================
 # STOP GITLAB
 #=================================================
-ynh_script_progression --message="Stopping gitlab" --weight=8
+ynh_script_progression --message="Stopping GitLab" --weight=8
 
 # I use gitlab-ctl and not ynh_systemd_action or systemctl to stop the service to avoid this error: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/common_installation_problems/README.md#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run during the reinstall of the app
 gitlab-ctl stop
@@ -45,7 +47,7 @@ gitlab-ctl stop
 #=================================================
 # REMOVE GITLAB
 #=================================================
-ynh_script_progression --message="Removing Gitlab" --weight=4
+ynh_script_progression --message="Removing GitLab" --weight=4
 
 dpkg --remove gitlab-ce
 
@@ -69,9 +71,9 @@ ynh_secure_remove --file="$config_path"
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing nginx web server configuration" --weight=1
+ynh_script_progression --message="Removing NGINX web server configuration" --weight=1
 
-# Remove the dedicated nginx config
+# Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
 #=================================================
@@ -84,9 +86,9 @@ if yunohost firewall list | grep -q "\- $port$"; then
 	ynh_exec_warn_less yunohost firewall disallow TCP $port
 fi
 
-if yunohost firewall list | grep -q "\- $portUnicorn$"; then
-	ynh_script_progression --message="Closing port $portUnicorn" --weight=1
-	ynh_exec_warn_less yunohost firewall disallow TCP $portUnicorn
+if yunohost firewall list | grep -q "\- $portPuma$"; then
+	ynh_script_progression --message="Closing port $portPuma" --weight=1
+	ynh_exec_warn_less yunohost firewall disallow TCP $portPuma
 fi
 
 #=================================================
@@ -108,4 +110,4 @@ ynh_del_swap
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Removal of $app completed" --last
+ynh_script_progression --message="Removal of GitLab completed" --last

@@ -33,31 +33,6 @@ overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwri
 old_use_web_account="$(ynh_app_setting_get --app=$app --key=use_web_account)"
 use_web_account="${YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT:-$old_use_web_account}"
 
-# backup_strategy
-old_backup_db="$(ynh_app_setting_get --app=$app --key=backup_db)"
-backup_db="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_DB:-$old_backup_db}"
-
-old_backup_uploads="$(ynh_app_setting_get --app=$app --key=backup_uploads)"
-backup_uploads="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_UPLOADS:-$old_backup_uploads}"
-
-old_backup_repositories="$(ynh_app_setting_get --app=$app --key=backup_repositories)"
-backup_repositories="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REPOSITORIES:-$old_backup_repositories}"
-
-old_backup_builds="$(ynh_app_setting_get --app=$app --key=backup_builds)"
-backup_builds="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_BUILDS:-$old_backup_builds}"
-
-old_backup_artifacts="$(ynh_app_setting_get --app=$app --key=backup_artifacts)"
-backup_artifacts="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_ARTIFACTS:-$old_backup_artifacts}"
-
-old_backup_lfs="$(ynh_app_setting_get --app=$app --key=backup_lfs)"
-backup_lfs="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_LFS:-$old_backup_lfs}"
-
-old_backup_registry="$(ynh_app_setting_get --app=$app --key=backup_registry)"
-backup_registry="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REGISTRY:-$old_backup_registry}"
-
-old_backup_pages="$(ynh_app_setting_get --app=$app --key=backup_pages)"
-backup_pages="${YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_PAGES:-$old_backup_pages}"
-
 #=================================================
 # SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
 #=================================================
@@ -69,22 +44,6 @@ show_config() {
 	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
 
 	ynh_return "YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT=$use_web_account"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_DB=$backup_db"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_UPLOADS=$backup_uploads"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REPOSITORIES=$backup_repositories"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_BUILDS=$backup_builds"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_ARTIFACTS=$backup_artifacts"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_LFS=$backup_lfs"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_REGISTRY=$backup_registry"
-
-	ynh_return "YNH_CONFIG_MAIN_BACKUP_STRATEGY_BACKUP_PAGES=$backup_pages"
 }
 
 #=================================================
@@ -97,23 +56,6 @@ apply_config() {
 
 	# Set overwrite_nginx
 	ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
-
-	# Set backup_db
-	ynh_app_setting_set --app=$app --key=backup_db --value="$backup_db"
-	# Set backup_uploads
-	ynh_app_setting_set --app=$app --key=backup_uploads --value="$backup_uploads"
-	# Set backup_repositories
-	ynh_app_setting_set --app=$app --key=backup_repositories --value="$backup_repositories"
-	# Set backup_builds
-	ynh_app_setting_set --app=$app --key=backup_builds --value="$backup_builds"
-	# Set backup_artifacts
-	ynh_app_setting_set --app=$app --key=backup_artifacts --value="$backup_artifacts"
-	# Set backup_lfs
-	ynh_app_setting_set --app=$app --key=backup_lfs --value="$backup_lfs"
-	# Set backup_registry
-	ynh_app_setting_set --app=$app --key=backup_registry --value="$backup_registry"
-	# Set backup_pages
-	ynh_app_setting_set --app=$app --key=backup_pages --value="$backup_pages"
 }
 
 #=================================================

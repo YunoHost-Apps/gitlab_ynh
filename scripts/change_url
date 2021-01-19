@@ -27,12 +27,13 @@ app=$YNH_APP_INSTANCE_NAME
 ynh_script_progression --message="Loading installation settings..." --weight=1
 
 # Needed for helper "ynh_add_nginx_config"
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
-unicorn_worker_processes=$(ynh_app_setting_get --app="$app" --key=unicorn_worker_processes)
+puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_worker_processes)
+puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
+puma_max_threads=$(ynh_app_setting_get --app="$app" --key=puma_max_threads)
 client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
 
 #=================================================
@@ -54,7 +55,7 @@ fi
 #=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================
-ynh_script_progression --message="Updating nginx web server configuration..." --weight=1
+ynh_script_progression --message="Updating NGINX web server configuration..." --weight=1
 
 nginx_conf_path=/etc/nginx/conf.d/$old_domain.d/$app.conf
 
@@ -63,7 +64,7 @@ if [ $change_path -eq 1 ]; then
 
 	#doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
 
-	gitlab-ctl stop unicorn
+	gitlab-ctl stop puma
 	gitlab-ctl stop sidekiq
 
 	# Make a backup of the original nginx config file if modified
@@ -91,7 +92,7 @@ fi
 #=================================================
 # CONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Configure gitlab..." --weight=28
+ynh_script_progression --message="Configure GitLab..." --weight=28
 
 ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
@@ -105,8 +106,10 @@ path_url="$new_path"
 
 ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_PORT__" --replace_string="$portUnicorn" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__UNICORN_WORKER_PROCESSES__" --replace_string="$unicorn_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
@@ -122,16 +125,16 @@ gitlab-ctl reconfigure
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for gitlab..." --weight=15
+ynh_script_progression --message="Waiting for GitLab..." --weight=15
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 
 #=================================================
 # GENERIC FINALISATION
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -139,4 +142,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Change of URL completed for $app" --last
+ynh_script_progression --message="Change of URL completed for GitLab" --last

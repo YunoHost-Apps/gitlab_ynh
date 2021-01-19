@@ -33,8 +33,7 @@ domain=$(ynh_app_setting_get --app=$app --key=domain)
 path_url=$(ynh_app_setting_get --app=$app --key=path)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
-port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portUnicorn=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
 #=================================================
@@ -67,8 +66,8 @@ ynh_install_app_dependencies $pkg_dependencies
 # ADD SWAP IF NEEDED
 #=================================================
 
-total_memory=$(ynh_check_ram)
-total_swap=$(ynh_check_ram --only_swap)
+total_memory=$(ynh_get_ram --total)
+total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
@@ -88,7 +87,7 @@ ynh_add_swap --size=$swap_needed
 #=================================================
 # RESTORE CONF FILES
 #=================================================
-ynh_script_progression --message="Restoring configuration files of Gitlab..." --weight=1
+ynh_script_progression --message="Restoring configuration files of GitLab..." --weight=1
 
 ynh_restore_file --origin_path="$config_path/gitlab-secrets.json"
 ynh_restore_file --origin_path="$config_path/gitlab.rb"
@@ -97,19 +96,15 @@ ynh_restore_file --origin_path="$config_path/gitlab-persistent.rb"
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Reinstalling gitlab..." --weight=200
+ynh_script_progression --message="Reinstalling GitLab..." --weight=50
 
 source ../settings/scripts/upgrade.d/upgrade.last.sh
 mkdir -p ../conf/
 cp ../settings/conf/$architecture.src.default ../conf/$architecture.src
 ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
 ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
-
-if [ $architecture = "x86-64" ]; then
-	ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_x86_64_source_sha256" --target_file="../conf/$architecture.src"
-elif [ $architecture = "arm" ]; then
-	ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_arm_source_sha256" --target_file="../conf/$architecture.src"
-fi
+ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="../conf/$architecture.src"
+ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="../conf/$architecture.src"
 
 tempdir="$(mktemp -d)"
 
@@ -126,13 +121,13 @@ fi
 #=================================================
 # RESTORE GITLAB DATABASE
 #=================================================
-ynh_script_progression --message="Restoring Gitlab..." --weight=55
+ynh_script_progression --message="Restoring GitLab..." --weight=35
 
 ynh_restore_file --origin_path="/var/opt/$app/backups/last_gitlab_backup.tar"
 
 last_backup="last"
 
-gitlab-ctl stop unicorn
+gitlab-ctl stop puma
 gitlab-ctl stop sidekiq
 
 # Use gitlab-rake to backup
@@ -150,14 +145,14 @@ fi
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/unicorn/unicorn_stderr.log" "/var/log/$app/unicorn/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/puma/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
 
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for gitlab..." --weight=14
+ynh_script_progression --message="Waiting for GitLab..." --weight=14
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/unicorn/current" --line_match="adopted" --timeout=300
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on tcp://127.0.0.1:$portPuma" --timeout=300
 
 #=================================================
 # CHECK THE RESTORED DATA
@@ -168,7 +163,7 @@ gitlab-rake gitlab:check SANITIZE=true
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading nginx web server..." --weight=1
+ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 
@@ -176,4 +171,4 @@ ynh_systemd_action --action=reload --service_name=nginx
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for $app" --last
+ynh_script_progression --message="Restoration completed for GitLab" --last
