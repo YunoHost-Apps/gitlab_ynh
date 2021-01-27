@@ -638,6 +638,10 @@ EOS
 ###! Docs: https://docs.gitlab.com/ee/development/shared_files.html
 # gitlab_rails['shared_path'] = '/var/opt/gitlab/gitlab-rails/shared'
 
+### For storing encrypted configuration files
+###! Docs: https://docs.gitlab.com/ee/administration/encrypted_configuration.html
+# gitlab_rails['encrypted_settings_path'] = '/var/opt/gitlab/gitlab-rails/shared/encrypted_settings'
+
 ### Wait for file system to be mounted
 ###! Docs: https://docs.gitlab.com/omnibus/settings/configuration.html#only-start-omnibus-gitlab-services-after-a-given-filesystem-is-mounted
 # high_availability['mountpoint'] = ["/var/opt/gitlab/git-data", "/var/opt/gitlab/gitlab-rails/shared"]
@@ -854,6 +858,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 # gitlab_workhorse['enable'] = true
 # gitlab_workhorse['ha'] = false
+# gitlab_workhorse['alt_document_root'] = nil
 # gitlab_workhorse['listen_network'] = "unix"
 # gitlab_workhorse['listen_umask'] = 000
 # gitlab_workhorse['listen_addr'] = "/var/opt/gitlab/gitlab-workhorse/sockets/socket"
@@ -1166,8 +1171,8 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['default_statistics_target'] = 1000
 
 ### Available in PostgreSQL 9.6 and later
-# postgresql['min_wal_size'] = 80MB
-# postgresql['max_wal_size'] = 1GB
+# postgresql['min_wal_size'] = "80MB"
+# postgresql['max_wal_size'] = "1GB"
 
 # Backup/Archive settings
 # postgresql['archive_command'] = nil
@@ -1505,7 +1510,7 @@ nginx['listen_https'] = false
 ##! { "receive" => ["fsckObjects = true"], "alias" => ["st = status", "co = checkout"] }
 
 # omnibus_gitconfig['system'] = {
-#  "pack" => ["threads = 1", "useSparse = true"],
+#  "pack" => ["threads = 1"],
 #  "receive" => ["fsckObjects = true", "advertisePushOptions = true"],
 #  "repack" => ["writeBitmaps = true"],
 #  "transfer" => ["hideRefs=^refs/tmp/", "hideRefs=^refs/keep-around/", "hideRefs=^refs/remotes/"],
@@ -1633,7 +1638,7 @@ nginx['listen_https'] = false
 # `pages_nginx['some_setting']` and should be set separately.
 
 # Below you can find settings that are exclusive to "GitLab Pages NGINX"
-# pages_nginx['enable'] = false
+# pages_nginx['enable'] = true
 
 # gitlab_rails['pages_path'] = "/var/opt/gitlab/gitlab-rails/shared/pages"
 
@@ -1950,6 +1955,7 @@ nginx['listen_https'] = false
 # gitlab_exporter['home'] = "/var/opt/gitlab/gitlab-exporter"
 
 ##! Advanced settings. Should be changed only if absolutely needed.
+# gitlab_exporter['server_name'] = 'webrick'
 # gitlab_exporter['listen_address'] = 'localhost'
 # gitlab_exporter['listen_port'] = '9168'
 
@@ -2183,6 +2189,7 @@ nginx['listen_https'] = false
 # letsencrypt['auto_renew_hour'] = 0
 # letsencrypt['auto_renew_minute'] = nil # Should be a number or cron expression, if specified.
 # letsencrypt['auto_renew_day_of_month'] = "*/4"
+# letsencrypt['auto_renew_log_directory'] = '/var/log/gitlab/lets-encrypt'
 
 ##! Turn off automatic init system detection. To skip init detection in
 ##! non-docker containers. Recommended not to change.
@@ -2219,7 +2226,7 @@ nginx['listen_https'] = false
 # gitlab_rails['historical_data_worker_cron'] = "0 12 * * *"
 # gitlab_rails['pseudonymizer_worker_cron'] = "0 23 * * *"
 # gitlab_rails['elastic_index_bulk_cron'] = "*/1 * * * *"
-# gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 0 1 * *"
+# gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 4 * * *"
 
 ################################################################################
 ## Kerberos (EE Only)
