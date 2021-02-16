@@ -7,20 +7,6 @@
             "id": "main",
             "sections": [
                 {
-                    "name": "Public access",
-                    "id": "is_public",
-                    "options": [
-                        {
-                            "name": "is_public",
-                            "ask": {
-                                "en": "Is it a public app ?"
-                            },
-                            "type": "boolean",
-                            "default": true
-                        }
-                    ]
-                },
-                {
                     "name": "Overwriting config files",
                     "id": "overwrite_files",
                     "options": [
