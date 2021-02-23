@@ -196,9 +196,10 @@ ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
 total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
+# https://docs.gitlab.com/ce/install/requirements.html#memory
 # Need at least 2Go of swap
-if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
-	swap_needed=$((2048 - $total_swap))
+if [ $total_swap -lt 2048 ]; then
+	swap_needed=$((2048 - total_swap))
 fi
 
 if [ $swap_needed -gt 0 ]; then
