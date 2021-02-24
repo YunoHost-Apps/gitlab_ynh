@@ -286,6 +286,20 @@ then
 fi
 
 #=================================================
+# CHECK IF KERNEL IS READ-ONLY
+#=================================================
+
+modify_kernel_parameters="true"
+
+for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
+do
+	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+		modify_kernel_parameters="false"
+		break
+	fi
+done
+
+#=================================================
 # RECONFIGURE GITLAB
 #=================================================
 ynh_script_progression --message="Reconfigure GitLab..." --weight=13
@@ -306,6 +320,7 @@ ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma
 ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__MODIFY_KERNEL_PARAMETERS__" --replace_string="$modify_kernel_parameters" --target_file="$config_path/gitlab.rb"
 
 ynh_store_file_checksum --file="$config_path/gitlab.rb"
 

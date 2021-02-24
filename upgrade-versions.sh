@@ -122,4 +122,7 @@ EOS"
     sed -i "s/# nginx\['client_max_body_size'\] = .*/nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'/" $conf_file
     sed -i "s/# nginx\['listen_port'\] = .*/nginx['listen_port'] = __PORT__/" $conf_file
     sed -i "s/# nginx\['listen_https'\] = .*/nginx['listen_https'] = false/" $conf_file
+
+    # Change modify kernel parameters settings
+    sed -i "s/# package\['modify_kernel_parameters'\] = .*/package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__/" $conf_file
 fi
