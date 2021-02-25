@@ -66,23 +66,19 @@ ynh_install_app_dependencies $pkg_dependencies
 # ADD SWAP IF NEEDED
 #=================================================
 
-total_memory=$(ynh_get_ram --total)
 total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
-if [ $total_memory -lt 8192 ]; then
-	# Need a minimum of 8Go of memory
-	swap_needed=$((8192 - $total_memory))
-fi
-
 # Need at least 2Go of swap
-if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
-	swap_needed=$((2048 - $total_swap))
+if [ $total_swap -lt 2048 ]; then
+	swap_needed=$((2048 - total_swap))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
-ynh_add_swap --size=$swap_needed
+if [ $swap_needed -gt 0 ]; then
+	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+	ynh_add_swap --size=$swap_needed
+fi
 
 #=================================================
 # RESTORE CONF FILES
