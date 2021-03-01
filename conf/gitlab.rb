@@ -435,6 +435,9 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Impersonation settings
 # gitlab_rails['impersonation_enabled'] = true
 
+### Application settings cache expiry in seconds. (default: 60)
+# gitlab_rails['application_settings_cache_seconds'] = 60
+
 ### Usage Statistics
 # gitlab_rails['usage_ping_enabled'] = true
 
@@ -655,6 +658,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['extra_google_tag_manager_id'] = '_your_tracking_id'
 # gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
 # gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
+# gitlab_rails['extra_matomo_disable_cookies'] = false
 
 ##! Docs: https://docs.gitlab.com/omnibus/settings/environment-variables.html
 # gitlab_rails['env'] = {
@@ -1299,6 +1303,11 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['lazyfree_lazy_server_del'] = true
 # redis['replica_lazy_flush'] = true
 
+#####! Redis threaded I/O
+#####! Defaults to disabled
+# redis['io_threads'] = 4
+# redis['io_threads_do_reads'] = true
+
 ################################################################################
 ## GitLab Web server
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#using-a-non-bundled-web-server
@@ -1591,8 +1600,9 @@ nginx['listen_https'] = false
 # gitlab_pages['gitlab_secret'] = nil # Generated if not present
 # gitlab_pages['auth_redirect_uri'] = nil # Defaults to projects subdomain of pages_external_url and + '/auth'
 # gitlab_pages['gitlab_server'] = nil # Defaults to external_url
-# gitlab_pages['internal_gitlab_server'] = nil # defaults to gitlab_server, can be changed to internal load balancer
+# gitlab_pages['internal_gitlab_server'] = nil # Defaults to gitlab_server, can be changed to internal load balancer
 # gitlab_pages['auth_secret'] = nil # Generated if not present
+# gitlab_pages['auth_scope'] = nil # Defaults to api, can be changed to read_api to increase security
 
 ##! GitLab API HTTP client connection timeout
 # gitlab_pages['gitlab_client_http_timeout'] = "10s"
@@ -2131,23 +2141,28 @@ nginx['listen_https'] = false
 # praefect['logging_format'] = "json"
 # praefect['virtual_storages'] = {
 #   'default' => {
-#     'praefect-internal-0' => {
-#       'address' => 'tcp://10.23.56.78:8075',
-#       'token' => 'abc123'
-#     },
-#     'praefect-internal-1' => {
-#       'address' => 'tcp://10.76.23.31:8075',
-#       'token' => 'xyz456'
+#     'default_replication_factor' => 3,
+#     'nodes' => {
+#       'praefect-internal-0' => {
+#         'address' => 'tcp://10.23.56.78:8075',
+#         'token' => 'abc123'
+#       },
+#       'praefect-internal-1' => {
+#         'address' => 'tcp://10.76.23.31:8075',
+#         'token' => 'xyz456'
+#       }
 #     }
 #   },
 #   'alternative' => {
-#     'praefect-internal-2' => {
-#       'address' => 'tcp://10.34.1.16:8075',
-#       'token' => 'abc321'
-#     },
-#     'praefect-internal-3' => {
-#       'address' => 'tcp://10.23.18.6:8075',
-#       'token' => 'xyz890'
+#     'nodes' => {
+#       'praefect-internal-2' => {
+#         'address' => 'tcp://10.34.1.16:8075',
+#         'token' => 'abc321'
+#       },
+#       'praefect-internal-3' => {
+#         'address' => 'tcp://10.23.18.6:8075',
+#         'token' => 'xyz890'
+#       }
 #     }
 #   }
 # }
@@ -2194,6 +2209,10 @@ nginx['listen_https'] = false
 ##! Turn off automatic init system detection. To skip init detection in
 ##! non-docker containers. Recommended not to change.
 # package['detect_init'] = true
+
+##! Attempt to modify kernel paramaters. To skip this in containers where the
+##! relevant file system is read-only, set the value to false.
+package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 
 ##! Specify maximum number of tasks that can be created by the systemd unit
 ##! Will be populated as TasksMax value to the unit file if user is on a systemd

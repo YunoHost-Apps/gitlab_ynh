@@ -25,7 +25,7 @@ port=$(ynh_app_setting_get --app="$app" --key=web_port)
 portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
 portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
-puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_worker_processes)
+puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_workers)
 puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
 puma_max_threads=$(ynh_app_setting_get --app="$app" --key=puma_max_threads)
 client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
@@ -58,10 +58,7 @@ if [ -z "$config_path" ]; then
 	ynh_app_setting_set --app=$app --key=config_path --value=$config_path
 fi
 
-if [ -z "$puma_worker_processes" ]; then
-	#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
-	puma_worker_processes=$(( $(nproc) > 2 ? $(nproc) : 2 ))
-
+if [ -z "$puma_max_threads" ] || [ -z "$puma_min_threads" ]; then
 	# If the server has less than 2GB of RAM
 	if [ $(ynh_get_ram --total --ignore_swap) -lt 2000 ]; then
 		puma_min_threads=1
@@ -71,7 +68,6 @@ if [ -z "$puma_worker_processes" ]; then
 		puma_max_threads=4
 	fi
 
-	ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
 	ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
 	ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
 
@@ -178,26 +174,38 @@ ynh_script_progression --message="Installing dependencies..." --weight=5
 ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
-# ADD SWAP IF NEEDED
+# DEFINE THE NUMBER OF WORKERS USED
 #=================================================
 
 total_memory=$(ynh_get_ram --total)
+
+if [ $total_memory -lt 4096 ]; then
+	#https://docs.gitlab.com/omnibus/settings/puma.html#running-in-memory-constrained-environments
+	puma_worker_processes=0
+else
+	#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
+	puma_worker_processes=$(( $(nproc) > 2 ? $(($(nproc) - 1)) : 2 ))
+fi
+
+ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
+
+#=================================================
+# ADD SWAP IF NEEDED
+#=================================================
+
 total_swap=$(ynh_get_ram --total --only_swap)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
-if [ $total_memory -lt 8192 ]; then
-	# Need a minimum of 8Go of memory
-	swap_needed=$((8192 - $total_memory))
-fi
-
 # Need at least 2Go of swap
-if [ $(($total_swap + $swap_needed)) -lt 2048 ]; then
-	swap_needed=$((2048 - $total_swap))
+if [ $total_swap -lt 2048 ]; then
+	swap_needed=$((2048 - total_swap))
 fi
 
-ynh_script_progression --message="Adding $swap_needed Mo to swap..." --weight=1
-ynh_add_swap --size=$swap_needed
+if [ $swap_needed -gt 0 ]; then
+	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+	ynh_add_swap --size=$swap_needed
+fi
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -278,6 +286,20 @@ then
 fi
 
 #=================================================
+# CHECK IF KERNEL IS READ-ONLY
+#=================================================
+
+modify_kernel_parameters="true"
+
+for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
+do
+	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+		modify_kernel_parameters="false"
+		break
+	fi
+done
+
+#=================================================
 # RECONFIGURE GITLAB
 #=================================================
 ynh_script_progression --message="Reconfigure GitLab..." --weight=13
@@ -298,6 +320,7 @@ ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma
 ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
 ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
+ynh_replace_string --match_string="__MODIFY_KERNEL_PARAMETERS__" --replace_string="$modify_kernel_parameters" --target_file="$config_path/gitlab.rb"
 
 ynh_store_file_checksum --file="$config_path/gitlab.rb"
 

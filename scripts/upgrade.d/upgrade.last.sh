@@ -1,13 +1,13 @@
 #!/bin/bash
 
-gitlab_version="13.8.4"
+gitlab_version="13.9.0"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="buster"
 
-gitlab_x86_64_buster_source_sha256="571297ac5765ee2cbd513d7cb083b81a69a077c8db61fee4bd266f79815692b8"
+gitlab_x86_64_buster_source_sha256="5642866110f64ce3a424d312b0779e249595acbcfcb1edff81e6d6c0345db3ce"
 
-gitlab_arm_buster_source_sha256="849d0de1857618e19d6fca1f7a24be18cb09d14c4a163c5af71b06477cab2f29"
+gitlab_arm_buster_source_sha256="4bb579c84a854c0759d2b67f123d1a0ffb96743edf8fce6cbbef5d40147bbde4"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -21,9 +21,10 @@ gitlab_filename="gitlab-ce-${gitlab_version}.deb"
 
 # Action to do in case of failure of the package_check
 package_check_action() {
-	local sysctl_file="$final_path/embedded/cookbooks/package/resources/gitlab_sysctl.rb"
-	ynh_replace_string --match_string="command \"sysctl -e \(.*\)\"" --replace_string="command \"sysctl -e \1 || true\"" --target_file=$sysctl_file
-	
-	sysctl_file="/opt/gitlab/embedded/cookbooks/package/recipes/sysctl.rb"
-	ynh_replace_string --match_string="command \"sysctl -e \(.*\)\"" --replace_string="command \"sysctl -e \1 || true\"" --target_file=$sysctl_file
+	ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
+	cat <<EOF >> "$config_path/gitlab.rb"
+# Last chance to fix Gitlab
+package['modify_kernel_parameters'] = false
+EOF
+	ynh_store_file_checksum --file="$config_path/gitlab.rb"
 }
