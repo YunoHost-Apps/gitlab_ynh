@@ -12,7 +12,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 GitLab est un gestionnaire Web de dépôt Git fournissant des fonctionnalités de wiki, de rapports de bugs et de pipeline CI/CD. GitLab est une application open source développée par GitLab Inc.
 
-**Version incluse :** 13.9.2
+**Version incluse :** 13.10.0
 
 ## Captures d'écran
 
