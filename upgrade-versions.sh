@@ -24,6 +24,16 @@ echo sha256: $new_sha256
 
 sed -i -e "s/gitlab_x86_64_buster_source_sha256=\".*\"/gitlab_x86_64_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
 
+# arm64
+url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/buster/gitlab-ce_$version-ce.0_arm64.deb
+
+new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+
+echo url: $url
+echo sha256: $new_sha256
+
+sed -i -e "s/gitlab_arm64_buster_source_sha256=\".*\"/gitlab_arm64_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+
 # arm
 url=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/buster/gitlab-ce_$version-ce.0_armhf.deb
 

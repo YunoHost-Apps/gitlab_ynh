@@ -188,8 +188,9 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['remove_unaccepted_member_invites_cron_worker'] = "10 15 * * *"
 # gitlab_rails['schedule_migrate_external_diffs_worker_cron'] = "15 * * * *"
 # gitlab_rails['ci_platform_metrics_update_cron_worker'] = '47 9 * * *'
-# gitlab_rails['analytics_instance_statistics_count_job_trigger_worker_cron'] = "50 23 */1 * *"
+# gitlab_rails['analytics_usage_trends_count_job_trigger_worker_cron'] = "50 23 */1 * *"
 # gitlab_rails['member_invitation_reminder_emails_worker_cron'] = "0 0 * * *"
+# gitlab_rails['user_status_cleanup_batch_worker_cron'] = "* * * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -236,6 +237,11 @@ external_url '__GENERATED_EXTERNAL_URL__'
 #    'report_uri' => nil,
 #  }
 # }
+
+### Allowed hosts
+###! Customize the `host` headers that should be catered by the Rails
+###! application. By default, everything is allowed.
+# gitlab_rails['allowed_hosts'] = []
 
 ### Monitoring settings
 ###! IP whitelist controlling access to monitoring endpoints
@@ -1555,8 +1561,13 @@ nginx['listen_https'] = false
 # gitlab_pages['status_uri'] = "/@status"
 
 ##! Tune the maximum number of concurrent connections GitLab Pages will handle.
-##! This should be in the range 1 - 10000, defaulting to 5000.
-# gitlab_pages['max_connections'] = 5000
+##! Default to 0 for unlimited connections.
+# gitlab_pages['max_connections'] = 0
+
+##! Setting the propagate_correlation_id to true allows installations behind a reverse proxy
+##! generate and set a correlation ID to requests sent to GitLab Pages. If a reverse proxy
+##! sets the header value X-Request-ID, the value will be propagated in the request chain.
+# gitlab_pages['propagate_correlation_id'] = false
 
 ##! Configure to use JSON structured logging in GitLab Pages
 # gitlab_pages['log_format'] = "json"
@@ -1613,6 +1624,23 @@ nginx['listen_https'] = false
 ##! Domain configuration source, defaults to disk if set to nil
 # gitlab_pages['domain_config_source'] = nil
 
+##! Advanced settings for API-based configuration for GitLab Pages.
+##! The recommended default values are set inside GitLab Pages.
+##! Should be changed only if absolutely needed.
+
+##! The maximum time a domain's configuration is stored in the cache.
+# gitlab_pages['gitlab_cache_expiry'] = "600s"
+##! The interval at which a domain's configuration is set to be due to refresh (default: 60s).
+# gitlab_pages['gitlab_cache_refresh'] = "60s"
+##! The interval at which expired items are removed from the cache (default: 60s).
+# gitlab_pages['gitlab_cache_cleanup'] = "60s"
+##! The maximum time to wait for a response from the GitLab API per request.
+# gitlab_pages['gitlab_retrieval_timeout'] = "30s"
+##! The interval to wait before retrying to resolve a domain's configuration via the GitLab API.
+# gitlab_pages['gitlab_retrieval_interval'] = "1s"
+##! The maximum number of times to retry to resolve a domain's configuration via the API
+# gitlab_pages['gitlab_retrieval_retries'] = 3
+
 ##! Define custom gitlab-pages HTTP headers for the whole instance
 # gitlab_pages['headers'] = []
 
@@ -1666,6 +1694,11 @@ nginx['listen_https'] = false
 ##! Docs: https://gitlab.com/gitlab-org/cluster-integration/gitlab-agent/blob/master/README.md
 ################################################################################
 
+##! Settings used by the GitLab application
+# gitlab_rails['gitlab_kas_enabled'] = true
+# gitlab_rails['gitlab_kas_external_url'] = ws://gitlab.example.com/-/kubernetes-agent
+# gitlab_rails['gitlab_kas_internal_url'] = grpc://localhost:8153
+
 ##! Enable GitLab KAS
 # gitlab_kas['enable'] = true
 
@@ -1684,6 +1717,8 @@ nginx['listen_https'] = false
 # gitlab_kas['listen_address'] = 'localhost:8150'
 # gitlab_kas['listen_network'] = 'tcp'
 # gitlab_kas['listen_websocket'] = true
+# gitlab_kas['internal_api_listen_network'] = 'tcp'
+# gitlab_kas['internal_api_listen_address'] = 'localhost:8153'
 
 ##! Metrics configuration for GitLab KAS
 # gitlab_kas['metrics_usage_reporting_period'] = 60
@@ -2001,6 +2036,27 @@ nginx['listen_https'] = false
 # grafana['metrics_basic_auth_password'] = 'please_set_a_unique_password' # default: nil
 # grafana['alerting_enabled'] = false
 
+### SMTP Configuration
+#
+# See: http://docs.grafana.org/administration/configuration/#smtp
+#
+# grafana['smtp'] = {
+#   'enabled' => true,
+#   'host' => 'localhost:25',
+#   'user' => nil,
+#   'password' => nil,
+#   'cert_file' => nil,
+#   'key_file' => nil,
+#   'skip_verify' => false,
+#   'from_address' => 'admin@grafana.localhost',
+#   'from_name' => 'Grafana',
+#   'ehlo_identity' => 'dashboard.example.com',
+#   'startTLS_policy' => nil
+# }
+
+# Grafana usage reporting defaults to gitlab_rails['usage_ping_enabled']
+# grafana['reporting_enabled'] = true
+
 ### Dashboards
 #
 # See: http://docs.grafana.org/administration/provisioning/#dashboards
@@ -2261,8 +2317,8 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['kerberos_https'] = true
 
 ################################################################################
-## Package repository (EE Only)
-##! Docs: https://docs.gitlab.com/ee/administration/maven_packages.md
+## Package repository
+##! Docs: https://docs.gitlab.com/ee/administration/packages/
 ################################################################################
 
 # gitlab_rails['packages_enabled'] = true
