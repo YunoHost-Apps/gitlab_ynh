@@ -191,6 +191,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['analytics_usage_trends_count_job_trigger_worker_cron'] = "50 23 */1 * *"
 # gitlab_rails['member_invitation_reminder_emails_worker_cron'] = "0 0 * * *"
 # gitlab_rails['user_status_cleanup_batch_worker_cron'] = "* * * * *"
+# gitlab_rails['namespaces_in_product_marketing_emails_worker_cron'] = "0 9 * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -291,6 +292,15 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
 ####! Permanently remove messages from the mailbox when they are deleted after delivery
 # gitlab_rails['incoming_email_expunge_deleted'] = false
+
+#### Inbox options (for Microsoft Graph)
+# gitlab_rails['incoming_email_inbox_method'] = 'microsoft_graph'
+# gitlab_rails['incoming_email_inbox_options'] {
+#    'tenant_id': 'YOUR-TENANT-ID',
+#    'client_id': 'YOUR-CLIENT-ID',
+#    'client_secret': 'YOUR-CLIENT-SECRET',
+#    'poll_interval': 60  # Optional
+# }
 
 ####! The format of mail_room crash logs
 # mailroom['exit_log_format'] = "plain"
@@ -437,6 +447,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 #   # 'endpoint' => 'https://s3.amazonaws.com', # default: nil - Useful for S3 compliant services such as DigitalOcean Spaces
 #   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
 # }
+# gitlab_rails['pages_local_store_enabled'] = true
+# gitlab_rails['pages_local_store_path'] = "/var/opt/gitlab/gitlab-rails/shared/pages"
 
 ### Impersonation settings
 # gitlab_rails['impersonation_enabled'] = true
@@ -1554,6 +1566,10 @@ nginx['listen_https'] = false
 ##! Configure to expose GitLab Pages on external IP address, serving the HTTPS over PROXYv2
 # gitlab_pages['external_https_proxyv2'] = []
 
+##! Configure cert when using external IP address
+# gitlab_pages['cert'] = "/etc/gitlab/ssl/#{Gitlab['gitlab_pages']['domain']}.crt"
+# gitlab_pages['cert_key'] = "/etc/gitlab/ssl/#{Gitlab['gitlab_pages']['domain']}.key"
+
 ##! Configure to use the default list of cipher suites
 # gitlab_pages['insecure_ciphers'] = false
 
@@ -2159,6 +2175,7 @@ nginx['listen_https'] = false
 # gitaly['daily_maintenance_start_minute'] = 30
 # gitaly['daily_maintenance_duration'] = '30m'
 # gitaly['daily_maintenance_storages'] = ["default"]
+# gitaly['daily_maintenance_disabled'] = false
 # gitaly['cgroups_count'] = 10
 # gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
 # gitaly['cgroups_hierarchy_root'] = 'gitaly'
@@ -2166,6 +2183,9 @@ nginx['listen_https'] = false
 # gitaly['cgroups_memory_limit'] = 1048576
 # gitaly['cgroups_cpu_enabled'] = true
 # gitaly['cgroups_cpu_shares'] = 512
+# gitaly['pack_objects_cache_enabled'] = true
+# gitaly['pack_objects_cache_dir'] = '/var/opt/gitlab/git-data/repositories/+gitaly/PackObjectsCache'
+# gitaly['pack_objects_cache_max_age'] = '5m'
 
 ################################################################################
 ## Praefect
@@ -2293,6 +2313,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['geo_file_download_dispatch_worker_cron'] = "*/10 * * * *"
 # gitlab_rails['geo_repository_sync_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_secondary_registry_consistency_worker'] = "* * * * *"
+# gitlab_rails['geo_secondary_usage_data_cron_worker'] = "0 0 * * 0"
 # gitlab_rails['geo_prune_event_log_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_repository_verification_primary_batch_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_repository_verification_secondary_scheduler_worker_cron'] = "*/5 * * * *"
@@ -2301,7 +2322,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['historical_data_worker_cron'] = "0 12 * * *"
 # gitlab_rails['pseudonymizer_worker_cron'] = "0 23 * * *"
 # gitlab_rails['elastic_index_bulk_cron'] = "*/1 * * * *"
-# gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 4 * * *"
+# gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 4 * * 0"
 
 ################################################################################
 ## Kerberos (EE Only)
