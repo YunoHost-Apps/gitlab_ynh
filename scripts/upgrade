@@ -223,17 +223,17 @@ then
 	current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
 
 	# Load the last available version
-	source ./upgrade.d/upgrade.last.sh
+	source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
 	last_version=$gitlab_version
 
 	source_current_major_version () {
-		if [ -e "./upgrade.d/upgrade.$current_major_version.first.sh" ]; then
-			source ./upgrade.d/upgrade.$current_major_version.first.sh
-		elif [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
-			source ./upgrade.d/upgrade.$current_major_version.last.sh
+		if [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.first.sh" ]; then
+			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.first.sh
+		elif [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh
 		# Finish with the last migration if the file doesn't exist
 		else
-			source ./upgrade.d/upgrade.last.sh
+			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
 		fi
 	}
 
@@ -254,10 +254,10 @@ then
 		# to the current version, and if the version stored in the upgrade.$current_major_version.last.sh file
 		# increment the major version to upgrade to the next version
 		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
-			if [ -e "./upgrade.d/upgrade.$current_major_version.last.sh" ]; then
-				source ./upgrade.d/upgrade.$current_major_version.last.sh
+			if [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+				source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh
 			else
-				source ./upgrade.d/upgrade.last.sh
+				source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
 			fi
 			if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
 				current_major_version=$(($current_major_version + 1))
@@ -265,11 +265,11 @@ then
 			fi
 		fi
 
-		cp ../conf/$architecture.src.default ../conf/$architecture.src
-		ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
-		ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
-		ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="../conf/$architecture.src"
-		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="../conf/$architecture.src"
+		cp $YNH_APP_BASEDIR/conf/$architecture.src.default $YNH_APP_BASEDIR/conf/$architecture.src
+		ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+		ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+		ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
 
 		tempdir="$(mktemp -d)"
 
@@ -310,7 +310,7 @@ ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
 mkdir -p $config_path
 
-cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+cp -f $YNH_APP_BASEDIR/conf/gitlab.rb "$config_path/gitlab.rb"
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"

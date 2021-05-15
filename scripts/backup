@@ -7,7 +7,7 @@
 #=================================================
 
 #Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
-source ../settings/scripts/_common.sh
+source $YNH_APP_BASEDIR/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================

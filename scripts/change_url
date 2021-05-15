@@ -112,7 +112,7 @@ ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
 
 mkdir -p $config_path
 
-cp -f ../conf/gitlab.rb "$config_path/gitlab.rb"
+cp -f $YNH_APP_BASEDIR/conf/gitlab.rb "$config_path/gitlab.rb"
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 domain="$new_domain"
