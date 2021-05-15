@@ -156,6 +156,9 @@ ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path=
 
 gitlab-rake gitlab:check SANITIZE=true
 
+# Allow ssh for git
+usermod -a -G "ssh.app" "git"
+
 #=================================================
 # RELOAD NGINX
 #=================================================

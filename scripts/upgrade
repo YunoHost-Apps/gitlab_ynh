@@ -329,6 +329,9 @@ chown admin: "$config_path/gitlab-persistent.rb"
 
 gitlab-ctl reconfigure
 
+# Allow ssh for git
+usermod -a -G "ssh.app" "git"
+
 #=================================================
 # NGINX CONFIGURATION
 #=================================================

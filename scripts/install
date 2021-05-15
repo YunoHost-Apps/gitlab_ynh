@@ -239,6 +239,9 @@ ynh_script_progression --message="Reconfigure GitLab..." --weight=13
 
 gitlab-ctl reconfigure
 
+# Allow ssh for git
+usermod -a -G "ssh.app" "git"
+
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
