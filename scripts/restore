@@ -77,7 +77,9 @@ fi
 
 if [ $swap_needed -gt 0 ]; then
 	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
-	ynh_add_swap --size=$swap_needed
+	if ! ynh_add_swap --size=$swap_needed; then
+		ynh_print_warn --message="Please add $swap_needed Mo to swap to make Gitlab work properly"
+	fi
 fi
 
 #=================================================
@@ -94,13 +96,12 @@ ynh_restore_file --origin_path="$config_path/gitlab-persistent.rb"
 #=================================================
 ynh_script_progression --message="Reinstalling GitLab..." --weight=50
 
-source ../settings/scripts/upgrade.d/upgrade.last.sh
-mkdir -p ../conf/
-cp ../settings/conf/$architecture.src.default ../conf/$architecture.src
-ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="../conf/$architecture.src"
-ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="../conf/$architecture.src"
-ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="../conf/$architecture.src"
-ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="../conf/$architecture.src"
+source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
+cp $YNH_APP_BASEDIR/conf/$architecture.src.default $YNH_APP_BASEDIR/conf/$architecture.src
+ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
 
 tempdir="$(mktemp -d)"
 
@@ -155,6 +156,9 @@ ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path=
 #=================================================
 
 gitlab-rake gitlab:check SANITIZE=true
+
+# Allow ssh for git
+usermod -a -G "ssh.app" "git"
 
 #=================================================
 # RELOAD NGINX
