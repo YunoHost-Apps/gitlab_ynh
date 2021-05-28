@@ -29,8 +29,8 @@ ynh_script_progression --message="Loading installation settings..." --weight=1
 # Needed for helper "ynh_add_nginx_config"
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
-portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
+puma_port=$(ynh_app_setting_get --app="$app" --key=puma_port)
+sidekiq_port=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
 puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_workers)
 puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
 puma_max_threads=$(ynh_app_setting_get --app="$app" --key=puma_max_threads)
@@ -118,16 +118,9 @@ ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 domain="$new_domain"
 path_url="$new_path"
 
-ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__MODIFY_KERNEL_PARAMETERS__" --replace_string="$modify_kernel_parameters" --target_file="$config_path/gitlab.rb"
+generated_external_url="https://$domain${path_url%/}"
+
+ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 ynh_store_file_checksum --file="$config_path/gitlab.rb"
 
@@ -142,7 +135,7 @@ gitlab-ctl reconfigure
 #=================================================
 ynh_script_progression --message="Waiting for GitLab..." --weight=15
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$portPuma" --timeout=300
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$puma_port" --timeout=300
 
 #=================================================
 # GENERIC FINALISATION

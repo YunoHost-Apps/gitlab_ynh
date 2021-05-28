@@ -1,6 +1,6 @@
-SOURCE_URL=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/__DEBIAN_VERSION__/gitlab-ce___VERSION__-ce.0_armhf.deb/download.deb
-SOURCE_SUM=__SHA256_SUM__
+SOURCE_URL=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/__GITLAB_DEBIAN_VERSION__/gitlab-ce___GITLAB_VERSION__-ce.0_armhf.deb/download.deb
+SOURCE_SUM=__GITLAB_SOURCE_SHA256__
 SOURCE_SUM_PRG=sha256sum
-SOURCE_FILENAME=__SOURCE_FILENAME__
+SOURCE_FILENAME=__GITLAB_FILENAME__
 SOURCE_EXTRACT=false
 SOURCE_FORMAT=deb
