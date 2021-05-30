@@ -87,7 +87,7 @@ ynh_script_progression --message="Find internal port..." --weight=1
 # Find free ports
 port=$(ynh_find_port --port=8080)
 puma_port=$(ynh_find_port --port=$(($port + 1)))
-sidekiq_port=$(ynh_find_port --port=$(($port_puma + 1)))
+sidekiq_port=$(ynh_find_port --port=$(($puma_port + 1)))
 
 ynh_app_setting_set --app=$app --key=web_port --value=$port
 ynh_app_setting_set --app=$app --key=puma_port --value=$puma_port
