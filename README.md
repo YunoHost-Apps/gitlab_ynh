@@ -30,7 +30,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 * Official app website: https://gitlab.com
 * Official user documentation: https://yunohost.org/fr/app_gitlab
 * Official admin documentation: https://docs.gitlab.com/
-* Upstream app code repository:  https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab
+* Upstream app code repository: https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab
 * YunoHost documentation for this app: https://yunohost.org/app_gitlab
 * Report a bug: https://github.com/YunoHost-Apps/gitlab_ynh/issues
 
