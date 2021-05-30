@@ -42,6 +42,7 @@ How to configure GitLab:
 ### Limitations
 
 * GitLab is not compatible with 32-bit architectures.
+
 ## Documentation and resources
 
 * Official app website: https://gitlab.com
