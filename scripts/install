@@ -169,7 +169,8 @@ ynh_script_progression --message="Preconfigure GitLab..." --weight=1
 mkdir -p $config_path
 
 touch "$config_path/gitlab-persistent.rb"
-chown admin: "$config_path/gitlab-persistent.rb"
+chown root:root "$config_path/gitlab-persistent.rb"
+chmod 640 "$config_path/gitlab-persistent.rb"
 
 cp -f $YNH_APP_BASEDIR/conf/gitlab.rb "$config_path/gitlab.rb"
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
@@ -177,12 +178,6 @@ ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 generated_external_url="https://$domain${path_url%/}"
 
 ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
-
-#=================================================
-# STORE THE CONFIG FILE CHECKSUM
-#=================================================
-
-ynh_store_file_checksum --file="$config_path/gitlab.rb"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
