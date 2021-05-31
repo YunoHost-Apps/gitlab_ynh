@@ -86,12 +86,12 @@ ynh_script_progression --message="Find internal port..." --weight=1
 
 # Find free ports
 port=$(ynh_find_port --port=8080)
-portPuma=$(ynh_find_port --port=$(($port + 1)))
-portSidekiq=$(ynh_find_port --port=$(($portPuma + 1)))
+puma_port=$(ynh_find_port --port=$(($port + 1)))
+sidekiq_port=$(ynh_find_port --port=$(($puma_port + 1)))
 
 ynh_app_setting_set --app=$app --key=web_port --value=$port
-ynh_app_setting_set --app=$app --key=puma_port --value=$portPuma
-ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
+ynh_app_setting_set --app=$app --key=puma_port --value=$puma_port
+ynh_app_setting_set --app=$app --key=sidekiq_port --value=$sidekiq_port
 
 #=================================================
 # INSTALL DEPENDENCIES
@@ -174,16 +174,9 @@ chown admin: "$config_path/gitlab-persistent.rb"
 cp -f $YNH_APP_BASEDIR/conf/gitlab.rb "$config_path/gitlab.rb"
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
-ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__MODIFY_KERNEL_PARAMETERS__" --replace_string="$modify_kernel_parameters" --target_file="$config_path/gitlab.rb"
+generated_external_url="https://$domain${path_url%/}"
+
+ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 #=================================================
 # STORE THE CONFIG FILE CHECKSUM
@@ -197,11 +190,7 @@ ynh_store_file_checksum --file="$config_path/gitlab.rb"
 ynh_script_progression --message="Setting up source files..." --weight=50
 
 source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
-cp $YNH_APP_BASEDIR/conf/$architecture.src.default $YNH_APP_BASEDIR/conf/$architecture.src
-ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
-ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
-ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
-ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
 
 tempdir="$(mktemp -d)"
 
@@ -274,7 +263,7 @@ ynh_systemd_action --action=reload --service_name=nginx
 #=================================================
 ynh_script_progression --message="Restarting GitLab..." --weight=15
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$portPuma" --timeout=300
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$puma_port" --timeout=300
 
 #=================================================
 # END OF SCRIPT

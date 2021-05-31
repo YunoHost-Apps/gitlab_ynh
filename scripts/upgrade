@@ -18,12 +18,11 @@ app=$YNH_APP_INSTANCE_NAME
 # Retrieve app settings
 domain=$(ynh_app_setting_get --app="$app" --key=domain)
 path_url=$(ynh_app_setting_get --app="$app" --key=path)
-is_public=$(ynh_app_setting_get --app="$app" --key=is_public)
 final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 config_path=$(ynh_app_setting_get --app=$app --key=config_path)
 port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
-portSidekiq=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
+puma_port=$(ynh_app_setting_get --app="$app" --key=puma_port)
+sidekiq_port=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_workers)
 puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
@@ -40,11 +39,6 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
-
-# Delete is_public if it exists
-if [ ! -z $is_public ]; then
-	ynh_app_setting_delete --app=$app --key=is_public
-fi
 
 # If final_path doesn't exist, create it
 if [ -z "$final_path" ]; then
@@ -126,19 +120,19 @@ if [ -z "$port" ]; then
 fi
 
 # If port doesn't exist, retrieve it
-if [ -z "$portPuma" ]; then
+if [ -z "$puma_port" ]; then
 	if [ -z "$(ynh_app_setting_get --app="$app" --key=unicorn_port)" ]; then
-		portPuma=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
+		puma_port=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
 	else
-		portPuma=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
+		puma_port=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
 	fi
-	ynh_app_setting_set --app=$app --key=puma_port --value=$portPuma
+	ynh_app_setting_set --app=$app --key=puma_port --value=$puma_port
 	ynh_app_setting_delete --app=$app --key=unicorn_port
 fi
 
-if [ -z "$portSidekiq" ]; then
-	portSidekiq=$(ynh_find_port $(($portPuma + 1)))
-	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$portSidekiq
+if [ -z "$sidekiq_port" ]; then
+	sidekiq_port=$(ynh_find_port $(($puma_port + 1)))
+	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$sidekiq_port
 fi
 
 # if this source file exist, remove it
@@ -265,11 +259,7 @@ then
 			fi
 		fi
 
-		cp $YNH_APP_BASEDIR/conf/$architecture.src.default $YNH_APP_BASEDIR/conf/$architecture.src
-		ynh_replace_string --match_string="__VERSION__" --replace_string="$gitlab_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
-		ynh_replace_string --match_string="__SOURCE_FILENAME__" --replace_string="$gitlab_filename" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
-		ynh_replace_string --match_string="__DEBIAN_VERSION__" --replace_string="$gitlab_debian_version" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
-		ynh_replace_string --match_string="__SHA256_SUM__" --replace_string="$gitlab_source_sha256" --target_file="$YNH_APP_BASEDIR/conf/$architecture.src"
+		ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
 
 		tempdir="$(mktemp -d)"
 
@@ -313,16 +303,9 @@ mkdir -p $config_path
 cp -f $YNH_APP_BASEDIR/conf/gitlab.rb "$config_path/gitlab.rb"
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
-ynh_replace_string --match_string="__GENERATED_EXTERNAL_URL__" --replace_string="https://$domain${path_url%/}" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PORT__" --replace_string="$port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_PORT__" --replace_string="$portPuma" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_WORKER_PROCESSES__" --replace_string="$puma_worker_processes" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_MIN_THREADS__" --replace_string="$puma_min_threads" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__PUMA_MAX_THREADS__" --replace_string="$puma_max_threads" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__CLIENT_MAX_BODY_SIZE__" --replace_string="$client_max_body_size" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SSH_PORT__" --replace_string="$ssh_port" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__SIDEKIQ_PORT__" --replace_string="$portSidekiq" --target_file="$config_path/gitlab.rb"
-ynh_replace_string --match_string="__MODIFY_KERNEL_PARAMETERS__" --replace_string="$modify_kernel_parameters" --target_file="$config_path/gitlab.rb"
+generated_external_url="https://$domain${path_url%/}"
+
+ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 ynh_store_file_checksum --file="$config_path/gitlab.rb"
 
@@ -362,7 +345,7 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Restarting GitLab..." --weight=15
 
-	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$portPuma" --timeout=300
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$puma_port" --timeout=300
 fi
 
 #=================================================
