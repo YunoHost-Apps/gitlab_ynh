@@ -103,6 +103,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['smtp_authentication'] = "login"
 # gitlab_rails['smtp_enable_starttls_auto'] = true
 # gitlab_rails['smtp_tls'] = false
+# gitlab_rails['smtp_pool'] = false
 
 ###! **Can be: 'none', 'peer', 'client_once', 'fail_if_no_peer_cert'**
 ###! Docs: http://api.rubyonrails.org/classes/ActionMailer/Base.html
@@ -192,6 +193,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['member_invitation_reminder_emails_worker_cron'] = "0 0 * * *"
 # gitlab_rails['user_status_cleanup_batch_worker_cron'] = "* * * * *"
 # gitlab_rails['namespaces_in_product_marketing_emails_worker_cron'] = "0 9 * * *"
+# gitlab_rails['ssh_keys_expired_notification_worker_cron'] = "0 2 * * *"
+# gitlab_rails['ssh_keys_expiring_soon_notification_worker_cron'] = "0 1 * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -886,6 +889,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['listen_addr'] = "/var/opt/gitlab/gitlab-workhorse/sockets/socket"
 # gitlab_workhorse['auth_backend'] = "http://localhost:8080"
 
+##! Enable Redis keywatcher, if this setting is not present it defaults to true
+# gitlab_workhorse['workhorse_keywatcher'] = true
+
 ##! the empty string is the default in gitlab-workhorse option parser
 # gitlab_workhorse['auth_socket'] = "''"
 
@@ -910,6 +916,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ##! Long polling duration for job requesting for runners
 # gitlab_workhorse['api_ci_long_polling_duration'] = "60s"
+
+##! Propagate X-Request-Id if available. Workhorse will generate a random value otherwise.
+# gitlab_workhorse['propagate_correlation_id'] = false
 
 ##! Log format: default is json, can also be text or none.
 # gitlab_workhorse['log_format'] = "json"
@@ -1013,7 +1022,7 @@ puma['port'] = __PUMA_PORT__
 
 ### **Only change these settings if you understand well what they mean**
 ###! Docs: https://github.com/schneems/puma_worker_killer
-# puma['per_worker_max_memory_mb'] = 850
+# puma['per_worker_max_memory_mb'] = 1024
 
 # puma['exporter_enabled'] = false
 # puma['exporter_address'] = "127.0.0.1"
@@ -1036,6 +1045,12 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['interval'] = nil
 # sidekiq['max_concurrency'] = 50
 # sidekiq['min_concurrency'] = nil
+
+##! GitLab allows route a job to a particular queue determined by an array of ##! routing rules.
+##! Each routing rule is a tuple of queue selector query and corresponding queue. By default,
+##! the routing rules are not configured (empty array)
+
+# sidekiq['routing_rules'] = []
 
 ##! Each entry in the queue_groups array denotes a group of queues that have to be processed by a
 ##! Sidekiq process. Multiple queues can be processed by the same process by
@@ -1433,7 +1448,7 @@ nginx['listen_https'] = false
 # nginx['sendfile'] = 'on'
 # nginx['tcp_nopush'] = 'on'
 # nginx['tcp_nodelay'] = 'on'
-# nginx['gzip'] = "on"
+# nginx['hide_server_tokens'] = 'off'
 # nginx['gzip_http_version'] = "1.0"
 # nginx['gzip_comp_level'] = "2"
 # nginx['gzip_proxied'] = "any"
@@ -1615,11 +1630,11 @@ nginx['listen_https'] = false
 ##! Prometheus metrics for Pages docs: https://gitlab.com/gitlab-org/gitlab-pages/#enable-prometheus-metrics
 # gitlab_pages['metrics_address'] = ":9235"
 
-##! Specifies the minimum SSL/TLS version ("ssl3", "tls1.0", "tls1.1" or "tls1.2")
-# gitlab_pages['tls_min_version'] = "ssl3"
+##! Specifies the minimum TLS version ("tls1.2" or "tls1.3")
+# gitlab_pages['tls_min_version'] = "tls1.2"
 
-##! Specifies the maximum SSL/TLS version ("ssl3", "tls1.0", "tls1.1" or "tls1.2")
-# gitlab_pages['tls_max_version'] = "tls1.2"
+##! Specifies the maximum TLS version ("tls1.2" or "tls1.3")
+# gitlab_pages['tls_max_version'] = "tls1.3"
 
 ##! Pages access control
 # gitlab_pages['access_control'] = false
@@ -1675,6 +1690,9 @@ nginx['listen_https'] = false
 # gitlab_pages['zip_cache_refresh'] = "30s"
 ##! The maximum amount of time it takes to open a zip archive from the file system or object storage.
 # gitlab_pages['zip_open_timeout'] = "30s"
+
+##! Enable serving content from disk instead of Object Storage
+# gitlab_pages['enable_disk'] = nil
 
 # gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
 # gitlab_pages['env'] = {
