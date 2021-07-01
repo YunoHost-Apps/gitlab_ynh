@@ -204,6 +204,27 @@ if [ $swap_needed -gt 0 ]; then
 fi
 
 #=================================================
+# CHECK IF KERNEL IS READ-ONLY
+#=================================================
+
+modify_kernel_parameters="true"
+
+for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
+do
+	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+		modify_kernel_parameters="false"
+		break
+	fi
+done
+
+# For gitlab rb
+
+mkdir -p $config_path
+ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
+
+generated_external_url="https://$domain${path_url%/}"
+
+#=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
@@ -274,32 +295,29 @@ then
 		ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
 
 		current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
+
+		# Sometimes we need to update the gitlab.rb configuration file in order to migrate to the next version.
+		if [ -e "$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" ]; then
+			if [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+				source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh
+			fi
+			if dpkg --compare-versions "$gitlab_version" "ge" "$current_version"; then
+				ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" --destination="$config_path/gitlab.rb"
+
+				touch "$config_path/gitlab-persistent.rb"
+				chown root:root "$config_path/gitlab-persistent.rb"
+				chmod 640 "$config_path/gitlab-persistent.rb"
+
+				gitlab-ctl reconfigure
+			fi
+		fi
 	done
 fi
-
-#=================================================
-# CHECK IF KERNEL IS READ-ONLY
-#=================================================
-
-modify_kernel_parameters="true"
-
-for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
-do
-	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
-		modify_kernel_parameters="false"
-		break
-	fi
-done
 
 #=================================================
 # RECONFIGURE GITLAB
 #=================================================
 ynh_script_progression --message="Reconfigure GitLab..." --weight=13
-
-mkdir -p $config_path
-ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
-
-generated_external_url="https://$domain${path_url%/}"
 
 ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
