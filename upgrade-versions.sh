@@ -12,7 +12,8 @@ version=$2
 current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 gitlab_directory="$( cd "$( dirname "$current_dir/$1" )/../../" >/dev/null 2>&1 && pwd )"
 
-sed -i -e "s/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
+# Only replace the first occurrence
+sed -i -e "0,/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/s//gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
 
 # x86_64
 url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/buster/gitlab-ce_$version-ce.0_amd64.deb
@@ -42,7 +43,15 @@ new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d;
 echo url: $url
 echo sha256: $new_sha256
 
-sed -i -e "s/gitlab_arm_buster_source_sha256=\".*\"/gitlab_arm_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+# Only replace the first occurrence
+sed -i -e "0,/gitlab_arm_buster_source_sha256=\".*\"/s//gitlab_arm_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+
+# if new_sha256 exists for arm, then replace the backup version/sha256 for this arch
+if [ -n "$new_sha256" ]; then
+  sed -i -e "s/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
+  sed -i -e "s/gitlab_arm_buster_source_sha256=\".*\"/gitlab_arm_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+fi
+
 
 if [[ "$(basename $file)" == upgrade.last.sh ]]; then
     # Update manifest
