@@ -296,7 +296,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 
 #### Inbox options (for Microsoft Graph)
 # gitlab_rails['incoming_email_inbox_method'] = 'microsoft_graph'
-# gitlab_rails['incoming_email_inbox_options'] {
+# gitlab_rails['incoming_email_inbox_options'] = {
 #    'tenant_id': 'YOUR-TENANT-ID',
 #    'client_id': 'YOUR-CLIENT-ID',
 #    'client_secret': 'YOUR-CLIENT-SECRET',
@@ -460,10 +460,6 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Usage Statistics
 # gitlab_rails['usage_ping_enabled'] = true
 
-### Seat Link setting
-###! Docs: https://docs.gitlab.com/ee/subscriptions/index.html#seat-link
-# gitlab_rails['seat_link_enabled'] = true
-
 ### GitLab Mattermost
 ###! These settings are void if Mattermost is installed on the same omnibus
 ###! install
@@ -594,6 +590,7 @@ EOS
 
 # gitlab_rails['manage_backup_path'] = true
 # gitlab_rails['backup_path'] = "/var/opt/gitlab/backups"
+# gitlab_rails['backup_gitaly_backup_path'] = "/opt/gitlab/embedded/bin/gitaly-backup"
 
 ###! Docs: https://docs.gitlab.com/ee/raketasks/backup_restore.html#backup-archive-permissions
 # gitlab_rails['backup_archive_permissions'] = 0644
@@ -1155,7 +1152,6 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 ###! restart postgresql if you change any of these and run reconfigure.
 # postgresql['work_mem'] = "16MB"
 # postgresql['maintenance_work_mem'] = "16MB"
-# postgresql['checkpoint_segments'] = 10
 # postgresql['checkpoint_timeout'] = "5min"
 # postgresql['checkpoint_completion_target'] = 0.9
 # postgresql['effective_io_concurrency'] = 1
@@ -1352,25 +1348,28 @@ nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 
 # nginx['ssl_certificate'] = "/etc/gitlab/ssl/#{node['fqdn']}.crt"
 # nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/#{node['fqdn']}.key"
-# nginx['ssl_ciphers'] = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256"
-# nginx['ssl_prefer_server_ciphers'] = "on"
+# nginx['ssl_ciphers'] = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384"
+# nginx['ssl_prefer_server_ciphers'] = "off"
 
 ##! **Recommended by: https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
 ##!                   https://cipherli.st/**
 # nginx['ssl_protocols'] = "TLSv1.2 TLSv1.3"
 
 ##! **Recommended in: https://nginx.org/en/docs/http/ngx_http_ssl_module.html**
-# nginx['ssl_session_cache'] = "builtin:1000  shared:SSL:10m"
+# nginx['ssl_session_cache'] = "shared:SSL:10m"
+
+##! **Recommended in: https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&ocsp=false&guideline=5.6**
+# nginx['ssl_session_tickets'] = "off"
 
 ##! **Default according to https://nginx.org/en/docs/http/ngx_http_ssl_module.html**
-# nginx['ssl_session_timeout'] = "5m"
+# nginx['ssl_session_timeout'] = "1d"
 
 # nginx['ssl_dhparam'] = nil # Path to dhparams.pem, eg. /etc/gitlab/ssl/dhparams.pem
 # nginx['listen_addresses'] = ['*', '[::]']
 
 ##! **Defaults to forcing web browsers to always communicate using only HTTPS**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#setting-http-strict-transport-security
-# nginx['hsts_max_age'] = 31536000
+# nginx['hsts_max_age'] = 63072000
 # nginx['hsts_include_subdomains'] = false
 
 ##! Defaults to stripping path information when making cross-origin requests
@@ -1429,6 +1428,7 @@ nginx['listen_https'] = false
 # nginx['gzip_proxied'] = "any"
 # nginx['gzip_types'] = [ "text/plain", "text/css", "application/x-javascript", "text/xml", "application/xml", "application/xml+rss", "text/javascript", "application/json" ]
 # nginx['keepalive_timeout'] = 65
+# nginx['keepalive_time'] = '1h'
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
 ##! These paths have proxy_request_buffering disabled
@@ -2198,9 +2198,7 @@ nginx['listen_https'] = false
 #  'WRAPPER_JSON_LOGGING' => true
 # }
 # praefect['wrapper_path'] = "/opt/gitlab/embedded/bin/gitaly-wrapper"
-# praefect['virtual_storage_name'] = "praefect"
-# praefect['failover_enabled'] = false
-# praefect['failover_election_strategy'] = 'sql'
+# praefect['failover_enabled'] = true
 # praefect['auth_token'] = ""
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
@@ -2707,6 +2705,10 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ## advertized and by default is the same as patroni['port'].
 # patroni['connect_port'] = '8008'
 
+## The username and password to use for basic auth on write commands to the
+## Patroni API. If not specified then the API does not use basic auth.
+# patroni['username'] = nil
+# patroni['password'] = nil
 
 ################################################################################
 # Consul (EEP only)
