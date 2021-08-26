@@ -931,6 +931,18 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Propagate X-Request-Id if available. Workhorse will generate a random value otherwise.
 # gitlab_workhorse['propagate_correlation_id'] = false
 
+##! A list of CIDR blocks to allow for propagation of correlation ID.
+##! propagate_correlation_id should also be set to true.
+##! For example: %w(127.0.0.1/32 192.168.0.1/32)
+# gitlab_workhorse['trusted_cidrs_for_propagation'] = nil
+
+##! A list of CIDR blocks that must match remote IP addresses to use
+##! X-Forwarded-For HTTP header for the actual client IP. Used in
+##! conjuction with propagate_correlation_id and
+##! trusted_cidrs_for_propagation.
+##! For example: %w(127.0.0.1/32 192.168.0.1/32)
+# gitlab_workhorse['trusted_cidrs_for_x_forwarded_for'] = nil
+
 ##! Log format: default is json, can also be text or none.
 # gitlab_workhorse['log_format'] = "json"
 
@@ -1416,6 +1428,7 @@ nginx['listen_https'] = false
 ### Advanced settings
 # nginx['dir'] = "/var/opt/gitlab/nginx"
 # nginx['log_directory'] = "/var/log/gitlab/nginx"
+# nginx['error_log_level'] = "error"
 # nginx['worker_processes'] = 4
 # nginx['worker_connections'] = 10240
 # nginx['log_format'] = '$remote_addr - $remote_user [$time_local] "$request_method $filtered_request_uri $server_protocol" $status $body_bytes_sent "$filtered_http_referer" "$http_user_agent" $gzip_ratio'
@@ -2647,6 +2660,9 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # patroni['use_slots'] = true
 # patroni['replication_password'] = nil
 # patroni['replication_slots'] = {}
+# patroni['callbacks'] = {}
+# patroni['recovery_conf'] = {}
+# patroni['tags'] = {}
 
 ## Standby cluster replication settings
 # patroni['standby_cluster']['enable'] = false
@@ -2705,10 +2721,28 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ## advertized and by default is the same as patroni['port'].
 # patroni['connect_port'] = '8008'
 
+## Specifies the set of hosts that are allowed to call unsafe REST API endpoints.
+## Each item can be an hostname, IP address, or CIDR address.
+## All hosts are allowed if this is unset.
+# patroni['allowlist'] = []
+# patroni['allowlist_include_members'] = false
+
 ## The username and password to use for basic auth on write commands to the
 ## Patroni API. If not specified then the API does not use basic auth.
 # patroni['username'] = nil
 # patroni['password'] = nil
+
+## TLS configuration for Patroni API. Both certificate and key files are
+## required to enable TLS. If not specified then the API uses plain HTTP.
+# patroni['tls_certificate_file'] = nil
+# patroni['tls_key_file'] = nil
+# patroni['tls_key_password'] = nil
+# patroni['tls_ca_file'] = nil
+# patroni['tls_ciphers'] = nil
+# patroni['tls_client_mode'] = nil
+# patroni['tls_client_certificate_file'] = nil
+# patroni['tls_client_key_file'] = nil
+# patroni['tls_verify'] = true
 
 ################################################################################
 # Consul (EEP only)
