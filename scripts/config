@@ -14,6 +14,8 @@ ynh_abort_if_errors
 # RETRIEVE ARGUMENTS
 #=================================================
 
+final_path=$(ynh_app_setting_get --app=$app --key=final_path)
+
 #=================================================
 # SPECIFIC GETTERS FOR TOML SHORT KEY
 #=================================================
@@ -31,3 +33,8 @@ set__use_web_account() {
         ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
     fi
 }
+
+#=================================================
+# GENERIC FINALIZATION
+#=================================================
+ynh_app_config_run $1
