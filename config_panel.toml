@@ -1,5 +1,4 @@
 version = "1.0"
-name = "GitLab configuration panel"
 
 [main]
 name = "GitLab configuration"
