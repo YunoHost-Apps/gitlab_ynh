@@ -27,7 +27,7 @@ final_path=$(ynh_app_setting_get --app=$app --key=final_path)
 set__use_web_account() {
     if [ -n "${use_web_account}" ]
     then
-        echo "ApplicationSetting.last.update_attributes(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
+        echo "ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
         # Update the config of the app
         ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
