@@ -17,4 +17,3 @@ name = "GitLab configuration"
         [main.users.use_web_account]
         ask = "Authorized external user creation ?"
         type = "boolean"
-        bind = "null"
