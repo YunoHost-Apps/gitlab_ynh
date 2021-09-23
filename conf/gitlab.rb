@@ -572,6 +572,7 @@ EOS
 #     "args" => { "access_type" => "offline", "approval_prompt" => "" }
 #   }
 # ]
+# gitlab_rails['omniauth_cas3_session_duration'] = 28800
 
 ### FortiAuthenticator authentication settings
 # gitlab_rails['forti_authenticator_enabled'] = false
@@ -618,6 +619,12 @@ EOS
 ###! Setting this value will enable Server-Side Encryption with customer provided keys;
 ###!   otherwise S3-managed keys are used.
 # gitlab_rails['backup_encryption_key'] = '<base64-encoded encryption key>'
+
+###! **Turns on AWS Server-Side Encryption with Amazon SSE-KMS (AWS managed but customer-master key)
+# gitlab_rails['backup_upload_storage_options'] = {
+#  'server_side_encryption' => 'aws:kms',
+#  'server_side_encryption_kms_key_id' => 'arn:aws:kms:YOUR-KEY-ID-HERE'
+# }
 
 ###! **Specifies Amazon S3 storage class to use for backups. Valid values
 ###!   include 'STANDARD', 'STANDARD_IA', and 'REDUCED_REDUNDANCY'**
@@ -962,6 +969,11 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Maximum file size in bytes for an image to be considered eligible for rescaling
 # gitlab_workhorse['image_scaler_max_filesize'] = 250000
 
+##! Service name used to register GitLab Workhorse as a Consul service
+# gitlab_workhorse['consul_service_name'] = 'workhorse'
+##! Semantic metadata used when registering GitLab Workhorse as a Consul service
+# gitlab_workhorse['consul_service_meta'] = {}
+
 ################################################################################
 ## GitLab User Settings
 ##! Modify default git user.
@@ -1015,6 +1027,11 @@ puma['port'] = __PUMA_PORT__
 # puma['exporter_address'] = "127.0.0.1"
 # puma['exporter_port'] = 8083
 
+##! Service name used to register Puma as a Consul service
+# puma['consul_service_name'] = 'rails'
+##! Semantic metadata used when registering Puma as a Consul service
+# puma['consul_service_meta'] = {}
+
 ################################################################################
 ## GitLab Sidekiq
 ################################################################################
@@ -1054,6 +1071,11 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['listen_address'] = "localhost"
 sidekiq['listen_port'] = __SIDEKIQ_PORT__
 
+##! Service name used to register Sidekiq as a Consul service
+# sidekiq['consul_service_name'] = 'sidekiq'
+##! Semantic metadata used when registering Sidekiq as a Consul service
+# sidekiq['consul_service_meta'] = {}
+
 ################################################################################
 ## gitlab-shell
 ################################################################################
@@ -1063,7 +1085,6 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # gitlab_shell['log_format'] = 'json'
 # gitlab_shell['http_settings'] = { user: 'username', password: 'password', ca_file: '/etc/ssl/cert.pem', ca_path: '/etc/pki/tls/certs', self_signed_cert: false}
 # gitlab_shell['log_directory'] = "/var/log/gitlab/gitlab-shell/"
-# gitlab_shell['custom_hooks_dir'] = "/opt/gitlab/embedded/service/gitlab-shell/hooks"
 
 # gitlab_shell['auth_file'] = "/var/opt/gitlab/.ssh/authorized_keys"
 
@@ -1462,6 +1483,11 @@ nginx['listen_https'] = false
 #  }
 # }
 
+##! Service name used to register Nginx as a Consul service
+# nginx['consul_service_name'] = 'nginx'
+##! Semantic metadata used when registering NGINX as a Consul service
+# nginx['consul_service_meta'] = {}
+
 ################################################################################
 ## GitLab Logging
 ##! Docs: https://docs.gitlab.com/omnibus/settings/logs.html
@@ -1639,12 +1665,6 @@ nginx['listen_https'] = false
 
 ##! GitLab API JWT Token expiry time
 # gitlab_pages['gitlab_client_jwt_expiry'] = "30s"
-
-##! Fallback to legacy storage
-##! Warning: support for this flag will be removed in %14.3
-##! If you need to use it, please comment on https://gitlab.com/gitlab-org/gitlab/-/issues/331699
-##! and describe why
-# gitlab_pages['use_legacy_storage'] = nil
 
 ##! Advanced settings for API-based configuration for GitLab Pages.
 ##! The recommended default values are set inside GitLab Pages.
@@ -1917,6 +1937,11 @@ nginx['listen_https'] = false
 # prometheus['listen_address'] = 'localhost:9090'
 #
 
+##! Service name used to register Prometheus as a Consul service
+# prometheus['consul_service_name'] = 'prometheus'
+##! Semantic metadata used when registering Prometheus as a Consul service
+# prometheus['consul_service_meta'] = {}
+
 ################################################################################
 ###! **Only needed if Prometheus and Rails are not on the same server.**
 ### For example, in a multi-node architecture, Prometheus will be installed on the monitoring node, while Rails will be on the Rails node.
@@ -1966,6 +1991,11 @@ nginx['listen_https'] = false
 ##! Advanced settings. Should be changed only if absolutely needed.
 # node_exporter['listen_address'] = 'localhost:9100'
 
+##! Service name used to register Node Exporter as a Consul service
+# node_exporter['consul_service_name'] = 'node-exporter'
+##! Semantic metadata used when registering Node Exporter as a Consul service
+# node_exporter['consul_service_meta'] = {}
+
 ################################################################################
 ## Prometheus Redis exporter
 ##! Docs: https://docs.gitlab.com/ee/administration/monitoring/prometheus/redis_exporter.html
@@ -1984,6 +2014,11 @@ nginx['listen_https'] = false
 ##! Advanced settings. Should be changed only if absolutely needed.
 # redis_exporter['listen_address'] = 'localhost:9121'
 
+##! Service name used to register Redis Exporter as a Consul service
+# redis_exporter['consul_service_name'] = 'redis-exporter'
+##! Semantic metadata used when registering Redis Exporter as a Consul service
+# redis_exporter['consul_service_meta'] = {}
+
 ################################################################################
 ## Prometheus Postgres exporter
 ##! Docs: https://docs.gitlab.com/ee/administration/monitoring/prometheus/postgres_exporter.html
@@ -2000,6 +2035,11 @@ nginx['listen_https'] = false
 # }
 # postgres_exporter['sslmode'] = nil
 # postgres_exporter['per_table_stats'] = false
+
+##! Service name used to register Postgres Exporter as a Consul service
+# postgres_exporter['consul_service_name'] = 'postgres-exporter'
+##! Semantic metadata used when registering Postgres Exporter as a Consul service
+# postgres_exporter['consul_service_meta'] = {}
 
 ################################################################################
 ## Prometheus PgBouncer exporter (EE only)
@@ -2137,7 +2177,7 @@ nginx['listen_https'] = false
 #  'PATH' => "/opt/gitlab/bin:/opt/gitlab/embedded/bin:/bin:/usr/bin",
 #  'HOME' => '/var/opt/gitlab',
 #  'TZ' => ':/etc/localtime',
-#  'PYTHONPATH' => "/opt/gitlab/embedded/lib/python3.7/site-packages",
+#  'PYTHONPATH' => "/opt/gitlab/embedded/lib/python3.9/site-packages",
 #  'ICU_DATA' => "/opt/gitlab/embedded/share/icu/current",
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
 #  'WRAPPER_JSON_LOGGING' => true
@@ -2195,6 +2235,12 @@ nginx['listen_https'] = false
 # gitaly['pack_objects_cache_enabled'] = true
 # gitaly['pack_objects_cache_dir'] = '/var/opt/gitlab/git-data/repositories/+gitaly/PackObjectsCache'
 # gitaly['pack_objects_cache_max_age'] = '5m'
+# gitaly['custom_hooks_dir'] = "/var/opt/gitlab/gitaly/custom_hooks"
+
+##! Service name used to register Gitaly as a Consul service
+# gitaly['consul_service_name'] = 'gitaly'
+##! Semantic metadata used when registering Gitaly as a Consul service
+# gitaly['consul_service_meta'] = {}
 
 ################################################################################
 ## Praefect
@@ -2272,6 +2318,11 @@ nginx['listen_https'] = false
 # praefect['database_direct_sslcert'] = '/path/to/client-cert'
 # praefect['database_direct_sslkey'] = '/path/to/client-key'
 # praefect['database_direct_sslrootcert'] = '/path/to/rootcert'
+
+##! Service name used to register Praefect as a Consul service
+# praefect['consul_service_name'] = 'praefect'
+##! Semantic metadata used when registering Praefect as a Consul service
+# praefect['consul_service_meta'] = {}
 
 ################################################################################
 # Storage check
@@ -2790,13 +2841,15 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 #     handler: 'failover_pgbouncer'
 #   }
 # }
+#
+# consul['custom_config_dir'] = '/path/to/service/configs/directory'
 ################################################################################
-# Service desk email settings (EEP only)
+# Service desk email settings
 ################################################################################
 ### Service desk email
 ###! Allow users to create new service desk issues by sending an email to
 ###! service desk address.
-###! Docs: https://docs.gitlab.com/ee/administration/reply_by_email.html
+###! Docs: https://docs.gitlab.com/ee/user/project/service_desk.html
 # gitlab_rails['service_desk_email_enabled'] = false
 
 #### Service Desk Mailbox Settings (via `mail_room`)
@@ -2828,5 +2881,14 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['service_desk_email_port'] = 993
 # gitlab_rails['service_desk_email_ssl'] = true
 # gitlab_rails['service_desk_email_start_tls'] = false
+
+#### Inbox options (for Microsoft Graph)
+# gitlab_rails['service_desk_email_inbox_method'] = 'microsoft_graph'
+# gitlab_rails['service_desk_email_inbox_options'] = {
+#    'tenant_id': 'YOUR-TENANT-ID',
+#    'client_id': 'YOUR-CLIENT-ID',
+#    'client_secret': 'YOUR-CLIENT-SECRET',
+#    'poll_interval': 60  # Optional
+# }
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
