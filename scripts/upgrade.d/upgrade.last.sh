@@ -1,15 +1,15 @@
 #!/bin/bash
 
-gitlab_version="14.2.3"
+gitlab_version="14.3.0"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="buster"
 
-gitlab_x86_64_buster_source_sha256="c83a3f9d73e4b2178b13a856aa41bd7eea5319c0bddec4cc50f29e294e02adda"
+gitlab_x86_64_buster_source_sha256="c5cfb7b1cfda23ff5d0b0a6651850cc838f5488915f76a28fc7ae80b13f88225"
 
-gitlab_arm64_buster_source_sha256="b5980a570c62943b744ec71e5124e3efd88418331edc4f2dde4a14bcefa8b52e"
+gitlab_arm64_buster_source_sha256="f52869377d872a6514e96b89149d42c97698517d40f86d9de607ce2b8cbc2520"
 
-gitlab_arm_buster_source_sha256="323e9c182a95c3f67335907426dc9e917f8a065b4da4014053a84c85b190ee8f"
+gitlab_arm_buster_source_sha256="b884b64b743b64d05907ed24c1ec50313d30a7b0e43f3bd1e223ae6d215cd1c0"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -20,8 +20,8 @@ elif [ "$architecture" = "arm64" ]; then
 elif [ "$architecture" = "arm" ]; then
 	# If the version for arm doesn't exist, then use an older one
 	if [ -z "$gitlab_arm_buster_source_sha256" ]; then
-		gitlab_version="14.2.3"
-		gitlab_arm_buster_source_sha256="323e9c182a95c3f67335907426dc9e917f8a065b4da4014053a84c85b190ee8f"
+		gitlab_version="14.3.0"
+		gitlab_arm_buster_source_sha256="b884b64b743b64d05907ed24c1ec50313d30a7b0e43f3bd1e223ae6d215cd1c0"
 	fi
 	gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 fi
