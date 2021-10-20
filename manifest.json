@@ -13,7 +13,6 @@
         "website": "https://gitlab.com",
         "demo": "https://gitlab.com/explore",
         "admindoc": "https://docs.gitlab.com/",
-        "userdoc": "https://yunohost.org/fr/app_gitlab",
         "code": "https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab"
     },
     "license": "MIT",
@@ -32,19 +31,16 @@
         "install": [
             {
                 "name": "domain",
-                "type": "domain",
-                "example": "example.com"
+                "type": "domain"
             },
             {
                 "name": "path",
                 "type": "path",
-                "example": "/gitlab",
                 "default": "/gitlab"
             },
             {
                 "name": "admin",
-                "type": "user",
-                "example": "johndoe"
+                "type": "user"
             },
             {
                 "name": "is_public",
