@@ -308,7 +308,7 @@ then
 				chown root:root "$config_path/gitlab-persistent.rb"
 				chmod 640 "$config_path/gitlab-persistent.rb"
 
-				gitlab-ctl reconfigure
+				gitlab-ctl reconfigure > /dev/null
 			fi
 		fi
 	done
@@ -325,7 +325,7 @@ touch "$config_path/gitlab-persistent.rb"
 chown root:root "$config_path/gitlab-persistent.rb"
 chmod 640 "$config_path/gitlab-persistent.rb"
 
-gitlab-ctl reconfigure
+gitlab-ctl reconfigure > /dev/null
 
 # Allow ssh for git
 usermod -a -G "ssh.app" "git"
