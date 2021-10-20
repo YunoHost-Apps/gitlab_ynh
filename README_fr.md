@@ -42,7 +42,6 @@ Comment configurer GitLab :
 ## Documentations et ressources
 
 * Site officiel de l'app : https://gitlab.com
-* Documentation officielle utilisateur : https://yunohost.org/fr/app_gitlab
 * Documentation officielle de l'admin : https://docs.gitlab.com/
 * Dépôt de code officiel de l'app : https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab
 * Documentation YunoHost pour cette app : https://yunohost.org/app_gitlab
