@@ -286,8 +286,7 @@ then
 
 		ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
-		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
-		then # This command will fail in lxc env
+		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename; then # This command will fail in lxc env
 			package_check_action # defined in upgrade.d/upgrade.X.sh
 			ynh_exec_warn_less dpkg --configure gitlab-ce
 		fi
@@ -310,6 +309,16 @@ then
 
 				gitlab-ctl reconfigure
 			fi
+		fi
+
+
+		# https://docs.gitlab.com/ee/update/#checking-for-background-migrations-before-upgrading
+		if dpkg --compare-versions "$current_version" "ge" "12.9"; then
+			while ! gitlab-rails runner -e production 'puts Gitlab::BackgroundMigration.remaining'
+			do
+				ynh_print_info --message="Wait for the migration in the background to finish"
+				sleep 1
+			done
 		fi
 	done
 fi
