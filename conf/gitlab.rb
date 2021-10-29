@@ -573,6 +573,7 @@ EOS
 #   }
 # ]
 # gitlab_rails['omniauth_cas3_session_duration'] = 28800
+# gitlab_rails['omniauth_saml_message_max_byte_size'] = 250000
 
 ### FortiAuthenticator authentication settings
 # gitlab_rails['forti_authenticator_enabled'] = false
@@ -790,6 +791,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_trace_chunks_sentinels'] = nil
 # gitlab_rails['redis_actioncable_instance'] = nil
 # gitlab_rails['redis_actioncable_sentinels'] = nil
+# gitlab_rails['redis_rate_limiting_instance'] = nil
+# gitlab_rails['redis_rate_limiting_sentinels'] = nil
 
 ################################################################################
 ## Container Registry settings
@@ -1132,6 +1135,8 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['log_truncate_on_rotation'] = nil
 # postgresql['log_rotation_age'] = nil
 # postgresql['log_rotation_size'] = nil
+##! 'username' affects the system and PostgreSQL user accounts created during installation and cannot be changed
+##! on an existing installation. See https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/3606 for more details.
 # postgresql['username'] = "gitlab-psql"
 # postgresql['group'] = "gitlab-psql"
 ##! `SQL_USER_PASSWORD_HASH` can be generated using the command `gitlab-ctl pg-password-md5 gitlab`
@@ -1268,6 +1273,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['maxmemory'] = "0"
 # redis['maxmemory_policy'] = "noeviction"
 # redis['maxmemory_samples'] = "5"
+# redis['stop_writes_on_bgsave_error'] = true
 # redis['tcp_backlog'] = 511
 # redis['tcp_timeout'] = "60"
 # redis['tcp_keepalive'] = "300"
@@ -1636,10 +1642,6 @@ nginx['listen_https'] = false
 # gitlab_pages['artifacts_server'] = true
 # gitlab_pages['artifacts_server_url'] = nil # Defaults to external_url + '/api/v4'
 # gitlab_pages['artifacts_server_timeout'] = 10
-
-##! Environments that do not support bind-mounting should set this parameter to
-##! true. This is incompatible with the artifacts server
-# gitlab_pages['inplace_chroot'] = false
 
 ##! Prometheus metrics for Pages docs: https://gitlab.com/gitlab-org/gitlab-pages/#enable-prometheus-metrics
 # gitlab_pages['metrics_address'] = ":9235"

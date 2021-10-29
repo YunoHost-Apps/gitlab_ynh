@@ -13,7 +13,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD.
 
-**Version incluse :** 14.3.2~ynh1
+**Version incluse :** 14.4.0~ynh1
 
 **Démo :** https://gitlab.com/explore
 
@@ -42,7 +42,6 @@ Comment configurer GitLab :
 ## Documentations et ressources
 
 * Site officiel de l'app : https://gitlab.com
-* Documentation officielle utilisateur : https://yunohost.org/fr/app_gitlab
 * Documentation officielle de l'admin : https://docs.gitlab.com/
 * Dépôt de code officiel de l'app : https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab
 * Documentation YunoHost pour cette app : https://yunohost.org/app_gitlab
