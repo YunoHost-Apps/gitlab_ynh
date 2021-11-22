@@ -1,0 +1,19 @@
+version = "1.0"
+
+[main]
+name = "GitLab configuration"
+
+    [main.overwrite_files]
+    name = "Overwriting config files"
+
+        [main.overwrite_files.overwrite_nginx]
+        ask = "Overwrite the nginx config file ?"
+        type = "boolean"
+        help = "If the file is overwritten, a backup will be created."
+
+    [main.users]
+    name = "External users"
+    
+        [main.users.use_web_account]
+        ask = "Authorized external user creation ?"
+        type = "boolean"
