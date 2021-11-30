@@ -195,6 +195,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['namespaces_in_product_marketing_emails_worker_cron'] = "0 9 * * *"
 # gitlab_rails['ssh_keys_expired_notification_worker_cron'] = "0 2 * * *"
 # gitlab_rails['ssh_keys_expiring_soon_notification_worker_cron'] = "0 1 * * *"
+# gitlab_rails['loose_foreign_keys_cleanup_worker_cron'] = "*/5 * * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -680,6 +681,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ### Extra customization
 # gitlab_rails['extra_google_analytics_id'] = '_your_tracking_id'
 # gitlab_rails['extra_google_tag_manager_id'] = '_your_tracking_id'
+# gitlab_rails['extra_one_trust_id'] = '_your_one_trust_id'
 # gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
 # gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
 # gitlab_rails['extra_matomo_disable_cookies'] = false
@@ -793,6 +795,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_actioncable_sentinels'] = nil
 # gitlab_rails['redis_rate_limiting_instance'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
+# gitlab_rails['redis_sessions_instance'] = nil
+# gitlab_rails['redis_sessions_sentinels'] = nil
 
 ################################################################################
 ## Container Registry settings
@@ -1615,6 +1619,10 @@ nginx['listen_https'] = false
 ##! Default to 0 for unlimited connections.
 # gitlab_pages['max_connections'] = 0
 
+##! Configure the maximum length of URIs accepted by GitLab Pages
+##! By default is limited for security reasons. Set 0 for unlimited
+# gitlab_pages['max_uri_length'] = 1024
+
 ##! Setting the propagate_correlation_id to true allows installations behind a reverse proxy
 ##! generate and set a correlation ID to requests sent to GitLab Pages. If a reverse proxy
 ##! sets the header value X-Request-ID, the value will be propagated in the request chain.
@@ -1707,6 +1715,16 @@ nginx['listen_https'] = false
 ##! Enable serving content from disk instead of Object Storage
 # gitlab_pages['enable_disk'] = nil
 
+##! Rate-limiting options below work in report-only mode:
+##! they only count rejected requests, but don't reject them
+##! enable `FF_ENABLE_RATE_LIMITER=true` environment variable to
+##! reject requests.
+
+##! Rate limit per source IP in number of requests per second, 0 means is disabled
+# gitlab_pages['rate_limit_source_ip'] = 50.0
+##! Rate limit per source IP maximum burst allowed per second
+# gitlab_pages['rate_limit_source_ip_burst'] = 600
+
 # gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
 # gitlab_pages['env'] = {
 #   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
@@ -1745,6 +1763,7 @@ nginx['listen_https'] = false
 # gitlab_rails['gitlab_kas_enabled'] = true
 # gitlab_rails['gitlab_kas_external_url'] = ws://gitlab.example.com/-/kubernetes-agent
 # gitlab_rails['gitlab_kas_internal_url'] = grpc://localhost:8153
+# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = ws://gitlab.example.com/-/kubernetes-agent
 
 ##! Enable GitLab KAS
 # gitlab_kas['enable'] = true
@@ -1760,15 +1779,28 @@ nginx['listen_https'] = false
 ##! Shared secret used for authentication between KAS and GitLab
 # gitlab_kas['api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
 
+##! Shared secret used for authentication between different KAS instances in a multi-node setup
+# gitlab_kas['private_api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
+
 ##! Listen configuration for GitLab KAS
 # gitlab_kas['listen_address'] = 'localhost:8150'
 # gitlab_kas['listen_network'] = 'tcp'
 # gitlab_kas['listen_websocket'] = true
 # gitlab_kas['internal_api_listen_network'] = 'tcp'
 # gitlab_kas['internal_api_listen_address'] = 'localhost:8153'
+# gitlab_kas['kubernetes_api_listen_address'] = 'localhost:8154'
+# gitlab_kas['private_api_listen_network'] = 'tcp'
+# gitlab_kas['private_api_listen_address'] = 'localhost:8155'
 
 ##! Metrics configuration for GitLab KAS
 # gitlab_kas['metrics_usage_reporting_period'] = 60
+
+##! Environment variables for GitLab KAS
+# gitlab_kas['env'] = {
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   # In a multi-node setup, this address MUST be reachable from other KAS instances. In a single-node setup, it can be on localhost for simplicity
+#   'OWN_PRIVATE_API_URL' => 'grpc://localhost:8155'
+# }
 
 ##! Directories for GitLab KAS
 # gitlab_kas['dir'] = '/var/opt/gitlab/gitlab-kas'
@@ -2074,6 +2106,10 @@ nginx['listen_https'] = false
 ##! Manage gitlab-exporter sidekiq probes. false by default when Sentinels are
 ##! found.
 # gitlab_exporter['probe_sidekiq'] = true
+##! Service name used to register GitLab Exporter as a Consul service
+# gitlab_exporter['consul_service_name'] = 'gitlab-exporter'
+##! Semantic metadata used when registering GitLab Exporter as a Consul service
+# gitlab_exporter['consul_service_meta'] = {}
 
 # To completely disable prometheus, and all of it's exporters, set to false
 # prometheus_monitoring['enable'] = true

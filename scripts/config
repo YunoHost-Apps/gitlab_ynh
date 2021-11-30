@@ -6,65 +6,33 @@
 # IMPORT GENERIC HELPERS
 #=================================================
 
-source _common.sh
 source /usr/share/yunohost/helpers
+
+ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS
 #=================================================
 
-app=${YNH_APP_INSTANCE_NAME:-$YNH_APP_ID}
-
-
 #=================================================
-# LOAD VALUES
+# SPECIFIC GETTERS FOR TOML SHORT KEY
 #=================================================
 
-# Load the real value from the app config or elsewhere.
-# Then get the value from the form.
-# If the form has a value for a variable, take the value from the form,
-# Otherwise, keep the value from the app config.
-
-# Overwrite nginx configuration
-old_overwrite_nginx="$(ynh_app_setting_get --app=$app --key=overwrite_nginx)"
-overwrite_nginx="${YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX:-$old_overwrite_nginx}"
-
-# use_web_account
-old_use_web_account="$(ynh_app_setting_get --app=$app --key=use_web_account)"
-use_web_account="${YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT:-$old_use_web_account}"
-
 #=================================================
-# SHOW_CONFIG FUNCTION FOR 'SHOW' COMMAND
+# SPECIFIC SETTERS FOR TOML SHORT KEYS
 #=================================================
 
-show_config() {
-	# here you are supposed to read some config file/database/other then print the values
-	# echo "YNH_CONFIG_${PANEL_ID}_${SECTION_ID}_${OPTION_ID}=value"
+set__use_web_account() {
+    if [ -n "${use_web_account}" ]
+    then
+        echo "ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
-	ynh_return "YNH_CONFIG_MAIN_OVERWRITE_FILES_OVERWRITE_NGINX=$overwrite_nginx"
-
-	ynh_return "YNH_CONFIG_MAIN_USERS_USE_WEB_ACCOUNT=$use_web_account"
-}
-
-#=================================================
-# MODIFY THE CONFIGURATION
-#=================================================
-
-apply_config() {
-	# Change use_web_account
-	yunohost app action run $app web_account --args use_web_account=$use_web_account
-
-	# Set overwrite_nginx
-	ynh_app_setting_set --app=$app --key=overwrite_nginx --value="$overwrite_nginx"
+        # Update the config of the app
+        ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
+    fi
 }
 
 #=================================================
 # GENERIC FINALIZATION
 #=================================================
-# SELECT THE ACTION FOLLOWING THE GIVEN ARGUMENT
-#=================================================
-
-case $1 in
-  show) show_config;;
-  apply) apply_config;;
-esac
+ynh_app_config_run $1
