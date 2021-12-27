@@ -682,6 +682,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['extra_google_analytics_id'] = '_your_tracking_id'
 # gitlab_rails['extra_google_tag_manager_id'] = '_your_tracking_id'
 # gitlab_rails['extra_one_trust_id'] = '_your_one_trust_id'
+# gitlab_rails['extra_google_tag_manager_nonce_id'] = '_your_google_tag_manager_id'
 # gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
 # gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
 # gitlab_rails['extra_matomo_disable_cookies'] = false
@@ -1073,10 +1074,18 @@ puma['port'] = __PUMA_PORT__
 
 # sidekiq['negate'] = false
 
+##! Specifies where Prometheus metrics endpoints should be made available for Sidekiq processes.
 # sidekiq['metrics_enabled'] = true
 # sidekiq['exporter_log_enabled'] = false
 # sidekiq['listen_address'] = "localhost"
 sidekiq['listen_port'] = __SIDEKIQ_PORT__
+
+##! Specifies where health-check endpoints should be made available for Sidekiq processes.
+##! Defaults to the same settings as for Prometheus metrics (see above).
+# sidekiq['health_checks_enabled'] = true
+# sidekiq['health_checks_log_enabled'] = false
+# sidekiq['health_checks_listen_address'] = "localhost"
+# sidekiq['health_checks_listen_port'] = 8082
 
 ##! Service name used to register Sidekiq as a Consul service
 # sidekiq['consul_service_name'] = 'sidekiq'

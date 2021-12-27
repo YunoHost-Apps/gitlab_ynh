@@ -8,6 +8,7 @@
 # Example: ./upgrade-versions.sh scripts/upgrade.d/upgrade.last.sh 13.3.1
 
 file=$(basename $1)
+debian_versions=("buster" "bullseye")
 version=$2
 current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 gitlab_directory="$( cd "$( dirname "$current_dir/$1" )/../../" >/dev/null 2>&1 && pwd )"
@@ -15,42 +16,46 @@ gitlab_directory="$( cd "$( dirname "$current_dir/$1" )/../../" >/dev/null 2>&1 
 # Only replace the first occurrence
 sed -i -e "0,/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/s//gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
 
-# x86_64
-url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/buster/gitlab-ce_$version-ce.0_amd64.deb
+for debian_version in "${debian_versions[@]}"
+do
 
-new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+  # x86_64
+  url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_$version-ce.0_amd64.deb
 
-echo url: $url
-echo sha256: $new_sha256
+  new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
 
-sed -i -e "s/gitlab_x86_64_buster_source_sha256=\".*\"/gitlab_x86_64_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+  echo url: $url
+  echo sha256: $new_sha256
 
-# arm64
-url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/buster/gitlab-ce_$version-ce.0_arm64.deb
+  sed -i -e "s/gitlab_x86_64_${debian_version}_source_sha256=\".*\"/gitlab_x86_64_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
 
-new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+  # arm64
+  url=https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_$version-ce.0_arm64.deb
 
-echo url: $url
-echo sha256: $new_sha256
+  new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
 
-sed -i -e "s/gitlab_arm64_buster_source_sha256=\".*\"/gitlab_arm64_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+  echo url: $url
+  echo sha256: $new_sha256
 
-# arm
-url=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/buster/gitlab-ce_$version-ce.0_armhf.deb
+  sed -i -e "s/gitlab_arm64_${debian_version}_source_sha256=\".*\"/gitlab_arm64_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
 
-new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+  # arm
+  url=https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/${debian_version}/gitlab-ce_$version-ce.0_armhf.deb
 
-echo url: $url
-echo sha256: $new_sha256
+  new_sha256=$(curl -s $url | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
 
-# Only replace the first occurrence
-sed -i -e "0,/gitlab_arm_buster_source_sha256=\".*\"/s//gitlab_arm_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+  echo url: $url
+  echo sha256: $new_sha256
 
-# if new_sha256 exists for arm, then replace the backup version/sha256 for this arch
-if [ -n "$new_sha256" ]; then
-  sed -i -e "s/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
-  sed -i -e "s/gitlab_arm_buster_source_sha256=\".*\"/gitlab_arm_buster_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
-fi
+  # Only replace the first occurrence
+  sed -i -e "0,/gitlab_arm_${debian_version}_source_sha256=\".*\"/s//gitlab_arm_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+
+  # if new_sha256 exists for arm, then replace the backup version/sha256 for this arch
+  if [ -n "$new_sha256" ]; then
+    sed -i -e "s/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
+    sed -i -e "s/gitlab_arm_${debian_version}_source_sha256=\".*\"/gitlab_arm_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
+  fi
+done
 
 
 if [[ "$(basename $file)" == upgrade.last.sh ]]; then

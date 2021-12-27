@@ -7,7 +7,7 @@ name = "GitLab configuration"
     name = "Overwriting config files"
 
         [main.overwrite_files.overwrite_nginx]
-        ask = "Overwrite the nginx config file ?"
+        ask = "Overwrite the NGINX config file?"
         type = "boolean"
         help = "If the file is overwritten, a backup will be created."
 
@@ -15,5 +15,5 @@ name = "GitLab configuration"
     name = "External users"
     
         [main.users.use_web_account]
-        ask = "Authorized external user creation ?"
+        ask = "Authorized external user creation?"
         type = "boolean"
