@@ -15,6 +15,10 @@ architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 if [ "$architecture" = "x86-64" ]; then
 	gitlab_debian_version="$(lsb_release -sc)"
 
+	if [ "$gitlab_debian_version" = "bullseye" ]
+	then
+		gitlab_debian_version="buster"
+	fi
 	if [ "$gitlab_debian_version" = "buster" ]
 	then
 		gitlab_source_sha256=$gitlab_x86_64_buster_source_sha256
