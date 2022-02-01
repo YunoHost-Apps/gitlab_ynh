@@ -841,6 +841,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['log_formatter'] = "text"
 # registry['rootcertbundle'] = "/var/opt/gitlab/registry/certificate.crt"
 # registry['health_storagedriver_enabled'] = true
+# registry['middleware'] = nil
 # registry['storage_delete_enabled'] = true
 # registry['validation_enabled'] = false
 # registry['autoredirect'] = false
@@ -1293,6 +1294,27 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['uid'] = nil
 # redis['gid'] = nil
 
+### Redis TLS settings
+###! To run Redis over TLS, specify values for the following settings
+# redis['tls_port'] = nil
+# redis['tls_cert_file'] = nil
+# redis['tls_key_file'] = nil
+
+###! Other TLS related optional settings
+# redis['tls_dh_params_file'] = nil
+# redis['tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# redis['tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# redis['tls_auth_clients'] = 'optional'
+# redis['tls_replication'] = nil
+# redis['tls_cluster'] = nil
+# redis['tls_protocols'] = nil
+# redis['tls_ciphers'] = nil
+# redis['tls_ciphersuites'] = nil
+# redis['tls_prefer_server_ciphers'] = nil
+# redis['tls_session_caching'] = nil
+# redis['tls_session_cache_size'] = nil
+# redis['tls_session_cache_timeout'] = nil
+
 ### Disable or obfuscate unnecessary redis command names
 ### Uncomment and edit this block to add or remove entries.
 ### See https://docs.gitlab.com/omnibus/settings/redis.html#renamed-commands
@@ -1437,6 +1459,10 @@ nginx['listen_port'] = __PORT__
 ##! **Override only if your reverse proxy internally communicates over HTTP**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#supporting-proxied-ssl
 nginx['listen_https'] = false
+
+##! **Override only if you use a reverse proxy with proxy protocol enabled**
+##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#configuring-proxy-protocol
+# nginx['proxy_protocol'] = false
 
 # nginx['custom_gitlab_server_config'] = "location ^~ /foo-namespace/bar-project/raw/ {\n deny all;\n}\n"
 # nginx['custom_nginx_config'] = "include /etc/nginx/conf.d/example.conf;"
@@ -1733,6 +1759,10 @@ nginx['listen_https'] = false
 # gitlab_pages['rate_limit_source_ip'] = 50.0
 ##! Rate limit per source IP maximum burst allowed per second
 # gitlab_pages['rate_limit_source_ip_burst'] = 600
+##! Rate limit per domain name in number of requests per second, 0 means is disabled
+# gitlab_pages['rate_limit_domain'] = 0
+##! Rate limit per domain name maximum burst allowed per second
+# gitlab_pages['rate_limit_domain_burst'] = 10000
 
 # gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
 # gitlab_pages['env'] = {
@@ -1770,9 +1800,9 @@ nginx['listen_https'] = false
 
 ##! Settings used by the GitLab application
 # gitlab_rails['gitlab_kas_enabled'] = true
-# gitlab_rails['gitlab_kas_external_url'] = ws://gitlab.example.com/-/kubernetes-agent
+# gitlab_rails['gitlab_kas_external_url'] = ws://gitlab.example.com/-/kubernetes-agent/
 # gitlab_rails['gitlab_kas_internal_url'] = grpc://localhost:8153
-# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = ws://gitlab.example.com/-/kubernetes-agent
+# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = https://gitlab.example.com/-/kubernetes-agent/
 
 ##! Enable GitLab KAS
 # gitlab_kas['enable'] = true
@@ -2563,6 +2593,27 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ##!   the replicas will be reconfigured by the Sentinels anyway, but not with
 ##!   the exact parallel-syncs progression as specified.
 # sentinel['failover_timeout'] = 60000
+
+### Sentinel TLS settings
+###! To run Sentinel over TLS, specify values for the following settings
+# sentinel['tls_port'] = nil
+# sentinel['tls_cert_file'] = nil
+# sentinel['tls_key_file'] = nil
+
+###! Other TLS related optional settings
+# sentinel['tls_dh_params_file'] = nil
+# sentinel['tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# sentinel['tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# sentinel['tls_auth_clients'] = 'optional'
+# sentinel['tls_replication'] = nil
+# sentinel['tls_cluster'] = nil
+# sentinel['tls_protocols'] = nil
+# sentinel['tls_ciphers'] = nil
+# sentinel['tls_ciphersuites'] = nil
+# sentinel['tls_prefer_server_ciphers'] = nil
+# sentinel['tls_session_caching'] = nil
+# sentinel['tls_session_cache_size'] = nil
+# sentinel['tls_session_cache_timeout'] = nil
 
 ################################################################################
 ## Additional Database Settings (EE only)
