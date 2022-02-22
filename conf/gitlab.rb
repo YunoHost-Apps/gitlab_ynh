@@ -331,6 +331,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['object_store']['objects']['packages']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['dependency_proxy']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['terraform_state']['bucket'] = nil
+# gitlab_rails['object_store']['objects']['ci_secure_files']['bucket'] = nil
 
 ### Job Artifacts
 # gitlab_rails['artifacts_enabled'] = true
@@ -424,6 +425,23 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['terraform_state_object_store_enabled'] = false
 # gitlab_rails['terraform_state_object_store_remote_directory'] = "terraform"
 # gitlab_rails['terraform_state_object_store_connection'] = {
+#   'provider' => 'AWS',
+#   'region' => 'eu-west-1',
+#   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
+#   'aws_secret_access_key' => 'AWS_SECRET_ACCESS_KEY',
+#   # # The below options configure an S3 compatible host instead of AWS
+#   # 'host' => 's3.amazonaws.com',
+#   # 'aws_signature_version' => 4, # For creation of signed URLs. Set to 2 if provider does not support v4.
+#   # 'endpoint' => 'https://s3.amazonaws.com', # default: nil - Useful for S3 compliant services such as DigitalOcean Spaces
+#   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
+# }
+
+### CI Secure Files
+# gitlab_rails['ci_secure_files_enabled'] = true
+# gitlab_rails['ci_secure_files_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/ci_secure_files"
+# gitlab_rails['ci_secure_files_object_store_enabled'] = false
+# gitlab_rails['ci_secure_files_object_store_remote_directory'] = "ci-secure-files"
+# gitlab_rails['ci_secure_files_object_store_connection'] = {
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
 #   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
@@ -1825,11 +1843,19 @@ nginx['listen_https'] = false
 # gitlab_kas['listen_address'] = 'localhost:8150'
 # gitlab_kas['listen_network'] = 'tcp'
 # gitlab_kas['listen_websocket'] = true
+# gitlab_kas['certificate_file'] = "/path/to/certificate.pem"
+# gitlab_kas['key_file'] = "/path/to/key.pem"
 # gitlab_kas['internal_api_listen_network'] = 'tcp'
 # gitlab_kas['internal_api_listen_address'] = 'localhost:8153'
+# gitlab_kas['internal_api_certificate_file'] = "/path/to/certificate.pem"
+# gitlab_kas['internal_api_key_file'] = "/path/to/key.pem"
 # gitlab_kas['kubernetes_api_listen_address'] = 'localhost:8154'
+# gitlab_kas['kubernetes_api_certificate_file'] = "/path/to/certificate.pem"
+# gitlab_kas['kubernetes_api_key_file'] = "/path/to/key.pem"
 # gitlab_kas['private_api_listen_network'] = 'tcp'
 # gitlab_kas['private_api_listen_address'] = 'localhost:8155'
+# gitlab_kas['private_api_certificate_file'] = "/path/to/certificate.pem"
+# gitlab_kas['private_api_key_file'] = "/path/to/key.pem"
 
 ##! Metrics configuration for GitLab KAS
 # gitlab_kas['metrics_usage_reporting_period'] = 60
@@ -1840,6 +1866,10 @@ nginx['listen_https'] = false
 #   # In a multi-node setup, this address MUST be reachable from other KAS instances. In a single-node setup, it can be on localhost for simplicity
 #   'OWN_PRIVATE_API_URL' => 'grpc://localhost:8155'
 # }
+
+##! Error Reporting and Logging with Sentry
+# gitlab_kas['sentry_dsn'] = 'https://<key>@sentry.io/<project>'
+# gitlab_kas['sentry_environment'] = 'production'
 
 ##! Directories for GitLab KAS
 # gitlab_kas['dir'] = '/var/opt/gitlab/gitlab-kas'
@@ -2615,6 +2645,14 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # sentinel['tls_session_cache_size'] = nil
 # sentinel['tls_session_cache_timeout'] = nil
 
+### Sentinel hostname support
+###! When enabled, Redis will leverage hostname support
+###! Generally this does not need to be changed as we determine this based on
+###! the provided input from `redis['announce_ip']`
+###! * This is configured to `true` when a fully qualified hostname is provided
+###! * This is configured to `false` when an IP address is provided
+# sentinel['use_hostnames'] = <calculated>
+
 ################################################################################
 ## Additional Database Settings (EE only)
 ##! Docs: https://docs.gitlab.com/ee/administration/database_load_balancing.html
@@ -2941,6 +2979,24 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # }
 #
 # consul['custom_config_dir'] = '/path/to/service/configs/directory'
+#
+
+#### HTTP API ports
+# consul['http_port'] = nil
+# consul['https_port'] = nil
+
+#### Gossip encryption
+# consul['encryption_key'] = nil
+# consul['encryption_verify_incoming'] = nil
+# consul['encryption_verify_outgoing'] = nil
+
+#### TLS settings
+# consul['use_tls'] = false
+# consul['tls_ca_file'] = nil
+# consul['tls_certificate_file'] = nil
+# consul['tls_key_file'] = nil
+# consul['tls_verify_client'] = nil
+
 ################################################################################
 # Service desk email settings
 ################################################################################
@@ -2988,5 +3044,27 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 #    'client_secret': 'YOUR-CLIENT-SECRET',
 #    'poll_interval': 60  # Optional
 # }
+
+################################################################################
+## Spamcheck (EE only)
+#################################################################################
+
+# spamcheck['enable'] = false
+# spamcheck['dir'] = '/var/opt/gitlab/spamcheck'
+# spamcheck['port'] = 8001
+# spamcheck['external_port'] = nil
+# spamcheck['monitoring_address'] = ':8003'
+# spamcheck['log_level'] = 'info'
+# spamcheck['log_format'] = 'json'
+# spamcheck['log_output'] = 'stdout'
+# spamcheck['monitor_mode'] = false
+# spamcheck['allowlist'] = {}
+# spamcheck['denylist'] = {}
+# spamcheck['log_directory'] = "/var/log/gitlab/spamcheck"
+# spamcheck['env_directory'] = "/opt/gitlab/etc/spamcheck/env"
+# spamcheck['env'] = {
+#   'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/cers'
+# }
+# spamcheck['classifier']['log_directory'] = "/var/log/gitlab/spam-classifier"
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
