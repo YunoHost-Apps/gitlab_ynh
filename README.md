@@ -17,7 +17,7 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Shipped version:** 14.8.2~ynh1
+**Shipped version:** 14.8.3~ynh1
 
 **Demo:** https://gitlab.com/explore
 
