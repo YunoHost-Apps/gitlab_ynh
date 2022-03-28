@@ -31,7 +31,6 @@ elif [ "$architecture" = "arm64" ]; then
 	then
 		gitlab_source_sha256=$gitlab_arm64_buster_source_sha256
 	fi
-	gitlab_source_sha256=$gitlab_arm64_buster_source_sha256
 elif [ "$architecture" = "arm" ]; then
 	# If the version for arm doesn't exist, then use an older one
 	if [ -z "$gitlab_arm_buster_source_sha256" ]; then
