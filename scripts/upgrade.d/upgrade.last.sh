@@ -1,15 +1,15 @@
 #!/bin/bash
 
-gitlab_version="14.9.1"
+gitlab_version="14.9.2"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="$(lsb_release -sc)"
 
-gitlab_x86_64_bullseye_source_sha256="c5945ec778701ed1f29d663527929102c17527e75e0a07804c2d58ae74d0786e"
-gitlab_x86_64_buster_source_sha256="d1546e23522690b3f314e1edbb165d24684dd70de2c6e075a040d02b5e48dfb2"
+gitlab_x86_64_bullseye_source_sha256="4a9b94edcd97f09198aeb8f64d973f0a892f6554d18afedf688ae9d1ca21e9b3"
+gitlab_x86_64_buster_source_sha256="f51e05dd6d352a5b5c13e174ddf70c71c60109140b9274b77ae63c61eb701611"
 
-gitlab_arm64_bullseye_source_sha256="6e0a03d5aa85797610ca1eea24f2bbe1c974f61e04673ad00391c7dedd236ae7"
-gitlab_arm64_buster_source_sha256="f883acc3fdad0cf27080a247abd94891724d452f8e75e9f1b19a07121af702b3"
+gitlab_arm64_bullseye_source_sha256="7826fad61eae70138ff06a33b3471466a11c5237c0960daecde1b94a3e694265"
+gitlab_arm64_buster_source_sha256="6b4493b2d55ad6cd796036324dd1953e58ecb7ccf80dc4d02f5a4dbf0d56c8b8"
 
 gitlab_arm_buster_source_sha256="c8fcc05aa2ede0556798b732dd823c8d7f8b153a7c6683cc2f619f014429679e"
 
