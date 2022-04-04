@@ -11,7 +11,7 @@ gitlab_x86_64_buster_source_sha256="f51e05dd6d352a5b5c13e174ddf70c71c60109140b92
 gitlab_arm64_bullseye_source_sha256="7826fad61eae70138ff06a33b3471466a11c5237c0960daecde1b94a3e694265"
 gitlab_arm64_buster_source_sha256="6b4493b2d55ad6cd796036324dd1953e58ecb7ccf80dc4d02f5a4dbf0d56c8b8"
 
-gitlab_arm_buster_source_sha256="c8fcc05aa2ede0556798b732dd823c8d7f8b153a7c6683cc2f619f014429679e"
+gitlab_arm_buster_source_sha256="38033ef2cfcf23e466795a3630645a45cbc1ca771d4273e29398ec7641255ef1"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -34,8 +34,8 @@ elif [ "$architecture" = "arm64" ]; then
 elif [ "$architecture" = "arm" ]; then
 	# If the version for arm doesn't exist, then use an older one
 	if [ -z "$gitlab_arm_buster_source_sha256" ]; then
-		gitlab_version="14.9.1"
-		gitlab_arm_buster_source_sha256="c8fcc05aa2ede0556798b732dd823c8d7f8b153a7c6683cc2f619f014429679e"
+		gitlab_version="14.9.2"
+		gitlab_arm_buster_source_sha256="38033ef2cfcf23e466795a3630645a45cbc1ca771d4273e29398ec7641255ef1"
 	fi
 	gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 fi
