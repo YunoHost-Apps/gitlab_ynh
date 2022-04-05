@@ -317,8 +317,16 @@ then
 
 		# https://docs.gitlab.com/ee/update/#checking-for-background-migrations-before-upgrading
 		if dpkg --compare-versions "$current_version" "ge" "12.9"; then
+		        
+			counter=0
 			while ! gitlab-rails runner -e production 'puts Gitlab::BackgroundMigration.remaining'
 			do
+				counter=$((counter + 1))
+				if [ $counter -gt 1200 ]
+				then
+				    ynh_print_warn --message="Timeout: a background migration runs for at least 20min !"
+				    break
+				fi
 				ynh_print_info --message="Wait for the migration in the background to finish"
 				sleep 1
 			done
