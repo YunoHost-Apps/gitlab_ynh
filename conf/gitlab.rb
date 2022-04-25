@@ -728,7 +728,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   'bantime' => 3600
 # }
 
-###! **We do not recommend changing these directories.**
 # gitlab_rails['dir'] = "/var/opt/gitlab/gitlab-rails"
 # gitlab_rails['log_directory'] = "/var/log/gitlab/gitlab-rails"
 
@@ -782,6 +781,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_keepalives_count'] = nil
 # gitlab_rails['db_tcp_user_timeout'] = nil
 # gitlab_rails['db_application_name'] = nil
+# gitlab_rails['db_database_tasks'] = true
 
 
 ### GitLab Redis settings
@@ -1778,6 +1778,17 @@ nginx['listen_https'] = false
 # gitlab_pages['zip_cache_refresh'] = "30s"
 ##! The maximum amount of time it takes to open a zip archive from the file system or object storage.
 # gitlab_pages['zip_open_timeout'] = "30s"
+##! Zip HTTP Client timeout
+# gitlab_pages['zip_http_client_timeout'] = "30m"
+
+##! ReadTimeout is the maximum duration for reading the entire request, including the body. A zero or negative value means there will be no timeout.
+# gitlab_pages['server_read_timeout'] = "5s"
+##! ReadHeaderTimeout is the amount of time allowed to read request headers. A zero or negative value means there will be no timeout.
+# gitlab_pages['server_read_header_timeout'] = "1s"
+##! WriteTimeout is the maximum duration before timing out writes of the response. A zero or negative value means there will be no timeout.
+# gitlab_pages['server_write_timeout'] = "5m"
+##! KeepAlive specifies the keep-alive period for network connections accepted by this listener. If zero, keep-alives are enabled if supported by the protocol and operating system. If negative, keep-alives are disabled.
+# gitlab_pages['server_keep_alive'] = "15s"
 
 ##! Enable serving content from disk instead of Object Storage
 # gitlab_pages['enable_disk'] = nil
@@ -1843,9 +1854,9 @@ nginx['listen_https'] = false
 
 ##! Settings used by the GitLab application
 # gitlab_rails['gitlab_kas_enabled'] = true
-# gitlab_rails['gitlab_kas_external_url'] = ws://gitlab.example.com/-/kubernetes-agent/
-# gitlab_rails['gitlab_kas_internal_url'] = grpc://localhost:8153
-# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = https://gitlab.example.com/-/kubernetes-agent/
+# gitlab_rails['gitlab_kas_external_url'] = 'ws://gitlab.example.com/-/kubernetes-agent/'
+# gitlab_rails['gitlab_kas_internal_url'] = 'grpc://localhost:8153'
+# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = 'https://gitlab.example.com/-/kubernetes-agent/'
 
 ##! Enable GitLab KAS
 # gitlab_kas['enable'] = true
@@ -2318,10 +2329,7 @@ nginx['listen_https'] = false
 #  'WRAPPER_JSON_LOGGING' => true
 # }
 
-##! internal_socket_dir is the directory that will contain internal gitaly sockets,
-##! separate from socket_path which is the socket that external clients listen on
-
-# gitaly['internal_socket_dir'] = "/var/opt/gitlab/gitaly"
+# gitaly['runtime_dir'] = "/var/opt/gitlab/gitaly/run"
 # gitaly['socket_path'] = "/var/opt/gitlab/gitaly/gitaly.socket"
 # gitaly['listen_addr'] = "localhost:8075"
 # gitaly['tls_listen_addr'] = "localhost:9075"
@@ -2353,6 +2361,17 @@ nginx['listen_https'] = false
 #   }, {
 #     'rpc' => "/gitaly.SSHService/SSHUploadPack",
 #     'max_per_repo' => 5
+#   }
+# ]
+# gitaly['rate_limiting'] = [
+#   {
+#     'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
+#     'interval' => '1m',
+#     'burst' => 10
+#   }, {
+#     'rpc' => "/gitaly.SSHService/SSHUploadPack",
+#     'interval' => '1m',
+#     'burst' => 5
 #   }
 # ]
 #
@@ -2725,6 +2744,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # geo_secondary['db_sslrootcert'] = nil
 # geo_secondary['db_sslca'] = nil
 # geo_secondary['db_prepared_statements'] = false
+# geo_secondary['db_database_tasks'] = true
 
 ################################################################################
 ## GitLab Geo Secondary Tracking Database (EE only)
@@ -2737,6 +2757,13 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # geo_postgresql['pgbouncer_user_password'] = nil
 ##! `SQL_USER_PASSWORD_HASH` can be generated using the command `gitlab-ctl pg-password-md5 gitlab`
 # geo_postgresql['sql_user_password'] = 'SQL_USER_PASSWORD_HASH'
+# geo_postgresql['log_directory'] = '/var/log/gitlab/geo-postgresql'
+
+################################################################################
+## GitLab Geo Log Cursor Daemon (EE only)
+################################################################################
+
+# geo_logcursor['log_directory'] = '/var/log/gitlab/geo-logcursor'
 
 ################################################################################
 ## Unleash
