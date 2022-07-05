@@ -1,17 +1,17 @@
 #!/bin/bash
 
-gitlab_version="14.10.5"
+gitlab_version="15.0.4"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="$(lsb_release -sc)"
 
-gitlab_x86_64_bullseye_source_sha256="75a4a53afe53e8c0286523b2067c79da629b14afd1142ae5ed838945a80530e5"
-gitlab_x86_64_buster_source_sha256="1462b565780412f9f5776ac85cf2e07fe31d94af156a9232abfad280b1162dbc"
+gitlab_x86_64_bullseye_source_sha256="2958fc7f986ab0f6d71d297a0f9d1eca65b25c7a2da176c607db75f056cef5ca"
+gitlab_x86_64_buster_source_sha256="0c803fb16d4a3767cb9d29c9b7fd01480d203b0e633626692ec1b2cfab4e06dd"
 
-gitlab_arm64_bullseye_source_sha256="03148ca8b71505545be74cc2aed14f2f252eadfb7c7a2c30f4da9d650f5e8fc8"
-gitlab_arm64_buster_source_sha256="bbb08026c00c00d6f8f797e15cc8b9d29baaab66d6ddf5642689b3321ed4a8c3"
+gitlab_arm64_bullseye_source_sha256="c9b5e4e8ce80f72f750bf0d9cbebcbc9042be8176eb805661db8f92e48041460"
+gitlab_arm64_buster_source_sha256="28caaa6bb0c55f06cfaf93ffea22d0567bfc1d5395a44bc2549318655b5243c8"
 
-gitlab_arm_buster_source_sha256="24a1c3089bc2836591a153a38a04ae8e0f8807d7e877e5d7fa64987f84699d56"
+gitlab_arm_buster_source_sha256="49a1d860eb533baa3e2037b0dd73ada0e5c6709ac4c9d53db2d045bc385f0292"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -34,8 +34,8 @@ elif [ "$architecture" = "arm64" ]; then
 elif [ "$architecture" = "arm" ]; then
 	# If the version for arm doesn't exist, then use an older one
 	if [ -z "$gitlab_arm_buster_source_sha256" ]; then
-		gitlab_version="14.10.5"
-		gitlab_arm_buster_source_sha256="24a1c3089bc2836591a153a38a04ae8e0f8807d7e877e5d7fa64987f84699d56"
+		gitlab_version="15.0.4"
+		gitlab_arm_buster_source_sha256="49a1d860eb533baa3e2037b0dd73ada0e5c6709ac4c9d53db2d045bc385f0292"
 	fi
 	gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 fi
