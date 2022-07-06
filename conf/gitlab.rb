@@ -84,6 +84,11 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['gitlab_ssh_user'] = ''
 # gitlab_rails['time_zone'] = 'UTC'
 
+### Rails asset / CDN host
+###! Defines a url for a host/cdn to use for the Rails assets
+###! Docs: https://docs.gitlab.com/omnibus/settings/configuration.html#set-a-content-delivery-network-url
+# gitlab_rails['cdn_host'] = 'https://mycdnsubdomain.fictional-cdn.com'
+
 ### Request duration
 ###! Tells the rails application how long it has to complete a request
 ###! This value needs to be lower than the worker timeout set in puma.
@@ -437,7 +442,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # }
 
 ### CI Secure Files
-# gitlab_rails['ci_secure_files_enabled'] = true
+# gitlab_rails['ci_secure_files_enabled'] = false
 # gitlab_rails['ci_secure_files_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/ci_secure_files"
 # gitlab_rails['ci_secure_files_object_store_enabled'] = false
 # gitlab_rails['ci_secure_files_object_store_remote_directory'] = "ci-secure-files"
@@ -809,7 +814,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ################################################################################
 ## Container Registry settings
-##! Docs: https://docs.gitlab.com/ee/administration/container_registry.html
+##! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html
 ################################################################################
 
 # registry_external_url 'https://registry.example.com'
@@ -1533,7 +1538,7 @@ nginx['listen_https'] = false
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
 ##! These paths have proxy_request_buffering disabled
-# nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
+# nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
 
 ### Nginx status
 # nginx['status'] = {
@@ -2355,7 +2360,6 @@ nginx['listen_https'] = false
 # gitaly['ruby_max_rss'] = 300000000 # RSS threshold in bytes for triggering a gitaly-ruby restart
 # gitaly['ruby_graceful_restart_timeout'] = '10m' # Grace time for a gitaly-ruby process to finish ongoing requests
 # gitaly['ruby_restart_delay'] = '5m' # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
-# gitaly['ruby_rugged_git_config_search_path'] = "/opt/gitlab/embedded/etc" # Location of system-wide gitconfig file
 # gitaly['ruby_num_workers'] = 3 # Number of gitaly-ruby worker processes. Minimum 2, default 2.
 # gitaly['concurrency'] = [
 #   {
@@ -2383,13 +2387,13 @@ nginx['listen_https'] = false
 # gitaly['daily_maintenance_duration'] = '30m'
 # gitaly['daily_maintenance_storages'] = ["default"]
 # gitaly['daily_maintenance_disabled'] = false
-# gitaly['cgroups_count'] = 10
 # gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
 # gitaly['cgroups_hierarchy_root'] = 'gitaly'
-# gitaly['cgroups_memory_enabled'] = true
-# gitaly['cgroups_memory_limit'] = 1048576
-# gitaly['cgroups_cpu_enabled'] = true
+# gitaly['cgroups_memory_bytes'] = 1048576
 # gitaly['cgroups_cpu_shares'] = 512
+# gitaly['cgroups_repositories_count'] = 1000
+# gitaly['cgroups_repositories_memory_bytes'] = 12884901888
+# gitaly['cgroups_repositories_cpu_shares'] = 128
 # gitaly['pack_objects_cache_enabled'] = true
 # gitaly['pack_objects_cache_dir'] = '/var/opt/gitlab/git-data/repositories/+gitaly/PackObjectsCache'
 # gitaly['pack_objects_cache_max_age'] = '5m'
@@ -2536,7 +2540,6 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ## Auxiliary cron jobs applicable to GitLab EE only
 ################################################################################
 #
-# gitlab_rails['geo_file_download_dispatch_worker_cron'] = "*/10 * * * *"
 # gitlab_rails['geo_repository_sync_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_secondary_registry_consistency_worker'] = "* * * * *"
 # gitlab_rails['geo_secondary_usage_data_cron_worker'] = "0 0 * * 0"

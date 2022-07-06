@@ -17,7 +17,7 @@ Si vous n'avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) pour
 
 Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD
 
-**Version incluse :** 15.0.1~ynh1
+**Version incluse :** 15.1.1~ynh1
 
 **Démo :** https://gitlab.com/explore
 
