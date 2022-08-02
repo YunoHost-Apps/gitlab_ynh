@@ -260,6 +260,55 @@ then
 	# While the current version is not the last version, do an upgrade
 	while [ "$last_version" != "$current_version" ]
 	do
+		# https://docs.gitlab.com/ee/update/#checking-for-background-migrations-before-upgrading
+		if dpkg --compare-versions "$current_version" "ge" "12.9"; then
+			checkBackgroundMigration=1
+		else
+			checkBackgroundMigration=0;
+		fi
+		if dpkg --compare-versions "$current_version" "ge" "15.1"; then
+			checkDBBackgroundMigration=2
+		elif dpkg --compare-versions "$current_version" "ge" "14.0"; then
+			checkDBBackgroundMigration=1
+		else
+			checkDBBackgroundMigration=0;
+		fi
+		if dpkg --compare-versions "$current_version" "ge" "14.7"; then
+			checkBatchedBackgroundMigration=1
+		else
+			checkBatchedBackgroundMigration=0;
+		fi
+
+		counter=0
+		while [ $checkBackgroundMigration -eq 1 ] || [ $checkDBBackgroundMigration -ge 1 ] || [ $checkBatchedBackgroundMigration -eq 1 ]
+		do
+			counter=$((counter + 1))
+			if [ $counter -gt 1200 ]
+			then
+				ynh_print_warn --message="Timeout: a background migration runs for at least 20min !"
+				break
+			fi
+
+			if [ $checkBackgroundMigration -eq 1 ] && gitlab-rails runner -e production 'puts Gitlab::BackgroundMigration.remaining' | grep -q -w 0
+			then
+				checkBackgroundMigration=0
+			fi
+
+			if [ $checkDBBackgroundMigration -eq 2 ] && gitlab-rails runner -e production 'puts Gitlab::Database::BackgroundMigration::BatchedMigration.queued.count' | grep -q -w 0
+			then
+				checkDBBackgroundMigration=0
+			elif [ $checkDBBackgroundMigration -eq 1 ] && gitlab-rails runner -e production 'puts Gitlab::Database::BackgroundMigrationJob.pending' | wc -l | grep -q -w 0
+			then
+				checkDBBackgroundMigration=0
+			fi
+
+			if [ $checkBatchedBackgroundMigration -eq 1 ] && echo "select COUNT(*) from batched_background_migrations where status <> 3;" | gitlab-psql -t -A | grep -q -w 0
+			then
+				checkBatchedBackgroundMigration=0
+			fi
+			ynh_print_info --message="Wait for the migration in the background to finish"
+			sleep 1
+		done
 
 		current_major_version=${current_version%%.*}
 
@@ -313,52 +362,6 @@ then
 				ynh_secure_remove --file="/tmp/gitlab_upgrade_$current_version.log"
 			fi
 		fi
-
-
-		# https://docs.gitlab.com/ee/update/#checking-for-background-migrations-before-upgrading
-		if dpkg --compare-versions "$current_version" "ge" "12.9"; then
-			checkBackgroundMigration=1
-		else
-			checkBackgroundMigration=0;
-		fi
-		if dpkg --compare-versions "$current_version" "ge" "14.0"; then
-			checkDBBackgroundMigration=1
-		else
-			checkDBBackgroundMigration=0;
-		fi
-		if dpkg --compare-versions "$current_version" "ge" "14.7"; then
-			checkBatchedBackgroundMigration=1
-		else
-			checkBatchedBackgroundMigration=0;
-		fi
-
-		counter=0
-		while [ $checkBackgroundMigration -eq 1 ] || [ $checkDBBackgroundMigration -eq 1 ] || [ $checkBatchedBackgroundMigration -eq 1 ]
-		do
-			counter=$((counter + 1))
-			if [ $counter -gt 1200 ]
-			then
-				ynh_print_warn --message="Timeout: a background migration runs for at least 20min !"
-				break
-			fi
-
-			if [ $checkBackgroundMigration -eq 1 ] && gitlab-rails runner -e production 'puts Gitlab::BackgroundMigration.remaining' | grep -q -w 0
-			then
-				checkBackgroundMigration=0
-			fi
-
-			if [ $checkDBBackgroundMigration -eq 1 ] && gitlab-rails runner -e production 'puts Gitlab::Database::BackgroundMigrationJob.pending' | wc -l | grep -q -w 0
-			then
-				checkDBBackgroundMigration=0
-			fi
-
-			if [ $checkBatchedBackgroundMigration -eq 1 ] && echo "select COUNT(*) from batched_background_migrations where status <> 3;" | gitlab-psql -t -A | grep -q -w 0
-			then
-				checkBatchedBackgroundMigration=0
-			fi
-			ynh_print_info --message="Wait for the migration in the background to finish"
-			sleep 1
-		done
 	done
 fi
 
