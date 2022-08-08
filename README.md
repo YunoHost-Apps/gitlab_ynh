@@ -19,6 +19,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 **Shipped version:** 15.2.2~ynh1
 
+
 **Demo:** https://gitlab.com/explore
 
 ## Screenshots
