@@ -13,7 +13,8 @@
         "website": "https://gitlab.com",
         "demo": "https://gitlab.com/explore",
         "admindoc": "https://docs.gitlab.com/",
-        "code": "https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab"
+        "code": "https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab",
+        "cpe": "cpe:2.3:a:gitlab:gitlab"
     },
     "license": "MIT",
     "maintainer": {
