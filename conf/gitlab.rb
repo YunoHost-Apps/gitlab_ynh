@@ -201,6 +201,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['ssh_keys_expired_notification_worker_cron'] = "0 2 * * *"
 # gitlab_rails['ssh_keys_expiring_soon_notification_worker_cron'] = "0 1 * * *"
 # gitlab_rails['loose_foreign_keys_cleanup_worker_cron'] = "*/5 * * * *"
+# gitlab_rails['ci_runner_versions_reconciliation_worker_cron'] = "20 * * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -310,8 +311,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # }
 
 #### How incoming emails are delivered to Rails process. Accept either sidekiq
-#### or webhook. The default config is sidekiq.
-# gitlab_rails['incoming_email_delivery_method'] = "sidekiq"
+#### or webhook. The default config is webhook.
+# gitlab_rails['incoming_email_delivery_method'] = "webhook"
 
 #### Token to authenticate webhook requests. The token must be exactly 32 bytes,
 #### encoded with base64
@@ -1060,6 +1061,10 @@ puma['port'] = __PUMA_PORT__
 # puma['exporter_tls_enabled'] = false
 # puma['exporter_tls_cert_path'] = ""
 # puma['exporter_tls_key_path'] = ""
+
+# puma['prometheus_scrape_scheme'] = 'http'
+# puma['prometheus_scrape_tls_server_name'] = 'localhost'
+# puma['prometheus_scrape_tls_skip_verification'] = false
 
 ##! Service name used to register Puma as a Consul service
 # puma['consul_service_name'] = 'rails'
@@ -2230,6 +2235,11 @@ nginx['listen_https'] = false
 # gitlab_exporter['tls_cert_path'] = '/etc/gitlab/ssl/gitlab-exporter.crt'
 # gitlab_exporter['tls_key_path'] = '/etc/gitlab/ssl/gitlab-exporter.key'
 
+##! Prometheus scrape related configs
+# gitlab_exporter['prometheus_scrape_scheme'] = 'http'
+# gitlab_exporter['prometheus_scrape_tls_server_name'] = 'localhost'
+# gitlab_exporter['prometheus_scrape_tls_skip_verification'] = false
+
 ##! Manage gitlab-exporter sidekiq probes. false by default when Sentinels are
 ##! found.
 # gitlab_exporter['probe_sidekiq'] = true
@@ -2253,7 +2263,7 @@ nginx['listen_https'] = false
 ##! Docs: https://docs.gitlab.com/ee/administration/monitoring/prometheus/#prometheus-as-a-grafana-data-source
 ################################################################################
 
-# grafana['enable'] = true
+# grafana['enable'] = false
 # grafana['log_directory'] = '/var/log/gitlab/grafana'
 # grafana['home'] = '/var/opt/gitlab/grafana'
 # grafana['admin_password'] = 'admin'
@@ -3128,8 +3138,8 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # }
 
 #### How service desk emails are delivered to Rails process. Accept either
-#### sidekiq or webhook. The default config is sidekiq.
-# gitlab_rails['service_desk_email_delivery_method'] = "sidekiq"
+#### sidekiq or webhook. The default config is webhook.
+# gitlab_rails['service_desk_email_delivery_method'] = "webhook"
 
 #### Token to authenticate webhook requests. The token must be exactly 32 bytes,
 #### encoded with base64
