@@ -54,7 +54,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ##!   redis_sentinel_role redis_master_role redis_replica_role geo_primary_role geo_secondary_role
 ##!   postgres_role consul_role application_role monitoring_role
 ##! For more details on each role, see:
-##! https://docs.gitlab.com/omnibus/roles/README.html#roles
+##! https://docs.gitlab.com/omnibus/roles/index.html#roles
 ##!
 # roles ['redis_sentinel_role', 'redis_master_role']
 
@@ -177,7 +177,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! Periodically executed jobs, to self-heal Gitlab, do external
 ###! synchronizations, etc.
 ###! Docs: https://github.com/ondrejbartas/sidekiq-cron#adding-cron-job
-###!       https://docs.gitlab.com/ee/ci/yaml/README.html#artifactsexpire_in
+###!       https://docs.gitlab.com/ee/ci/yaml/index.html#artifactsexpire_in
 # gitlab_rails['stuck_ci_jobs_worker_cron'] = "0 0 * * *"
 # gitlab_rails['expire_build_artifacts_worker_cron'] = "*/7 * * * *"
 # gitlab_rails['environments_auto_stop_cron_worker_cron'] = "24 * * * *"
@@ -1857,7 +1857,7 @@ nginx['listen_https'] = false
 
 ################################################################################
 ## GitLab CI
-##! Docs: https://docs.gitlab.com/ee/ci/quick_start/README.html
+##! Docs: https://docs.gitlab.com/ee/ci/quick_start/
 ################################################################################
 
 # gitlab_ci['gitlab_ci_all_broken_builds'] = true
@@ -2371,6 +2371,7 @@ nginx['listen_https'] = false
 # gitaly['tls_listen_addr'] = "localhost:9075"
 # gitaly['certificate_path'] = "/var/opt/gitlab/gitaly/certificate.pem"
 # gitaly['key_path'] = "/var/opt/gitlab/gitaly/key.pem"
+# gitaly['gpg_signing_key_path'] = "/var/opt/gitlab/gitaly/signing_key.gpg"
 # gitaly['prometheus_listen_addr'] = "localhost:9236"
 # gitaly['logging_level'] = "warn"
 # gitaly['logging_format'] = "json"
@@ -2746,7 +2747,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ##! Docs: https://docs.gitlab.com/ee/gitlab-geo
 ################################################################################
 ##! Geo roles 'geo_primary_role' and 'geo_secondary_role' are set above with
-##! other roles. For more information, see: https://docs.gitlab.com/omnibus/roles/README.html#roles.
+##! other roles. For more information, see: https://docs.gitlab.com/omnibus/roles/index.html#roles.
 
 # This is an optional identifier which Geo nodes can use to identify themselves.
 # For example, if external_url is the same for two secondaries, you must specify
@@ -3063,12 +3064,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 #     }
 #   }
 # }
-# consul['watchers'] = {
-#   'postgresql' => {
-#     enable: false,
-#     handler: 'failover_pgbouncer'
-#   }
-# }
+# consul['watchers'] = []
 #
 # consul['custom_config_dir'] = '/path/to/service/configs/directory'
 #
