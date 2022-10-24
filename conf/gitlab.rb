@@ -263,6 +263,18 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ###! but continue accepting application requests.
 # gitlab_rails['shutdown_blackout_seconds'] = 10
 
+### Microsoft Graph Mailer
+###! Allows delivery of emails using Microsoft Graph API with OAuth 2.0 client
+###! credentials flow.
+###! Docs: https://docs.gitlab.com/omnibus/settings/microsoft_graph_mailer.html
+# gitlab_rails['microsoft_graph_mailer_enabled'] = false
+# gitlab_rails['microsoft_graph_mailer_user_id'] = "YOUR-USER-ID"
+# gitlab_rails['microsoft_graph_mailer_tenant'] = "YOUR-TENANT-ID"
+# gitlab_rails['microsoft_graph_mailer_client_id'] = "YOUR-CLIENT-ID"
+# gitlab_rails['microsoft_graph_mailer_client_secret'] = "YOUR-CLIENT-SECRET-ID"
+# gitlab_rails['microsoft_graph_mailer_azure_ad_endpoint'] = "https://login.microsoftonline.com"
+# gitlab_rails['microsoft_graph_mailer_graph_endpoint'] = "https://graph.microsoft.com"
+
 ### Reply by email
 ###! Allow users to comment on issues and merge requests by replying to
 ###! notification emails.
@@ -1476,6 +1488,7 @@ nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 # nginx['ssl_session_timeout'] = "1d"
 
 # nginx['ssl_dhparam'] = nil # Path to dhparams.pem, eg. /etc/gitlab/ssl/dhparams.pem
+# nginx['ssl_password_file'] = nil # Path to file with passphrases for ssl certificate secret keys
 # nginx['listen_addresses'] = ['*', '[::]']
 
 ##! **Defaults to forcing web browsers to always communicate using only HTTPS**
@@ -2458,7 +2471,6 @@ nginx['listen_https'] = false
 # praefect['key_path'] = "/var/opt/gitlab/prafect/key.pem"
 # praefect['prometheus_listen_addr'] = "localhost:9652"
 # praefect['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
-# praefect['separate_database_metrics'] = true
 # praefect['logging_level'] = "warn"
 # praefect['logging_format'] = "json"
 # praefect['virtual_storages'] = {
