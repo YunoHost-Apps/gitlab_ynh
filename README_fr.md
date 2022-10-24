@@ -19,6 +19,7 @@ Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bu
 
 **Version incluse :** 15.5.0~ynh1
 
+
 **Démo :** https://gitlab.com/explore
 
 ## Captures d'écran
