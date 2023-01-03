@@ -491,6 +491,9 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Impersonation settings
 # gitlab_rails['impersonation_enabled'] = true
 
+### Disable jQuery and CSS animations
+# gitlab_rails['disable_animations'] = false
+
 ### Application settings cache expiry in seconds. (default: 60)
 # gitlab_rails['application_settings_cache_seconds'] = 60
 
@@ -598,7 +601,7 @@ EOS
 # gitlab_rails['omniauth_block_auto_created_users'] = true
 # gitlab_rails['omniauth_auto_link_ldap_user'] = false
 # gitlab_rails['omniauth_auto_link_saml_user'] = false
-# gitlab_rails['omniauth_auto_link_user'] = ['saml']
+# gitlab_rails['omniauth_auto_link_user'] = ['twitter']
 # gitlab_rails['omniauth_external_providers'] = ['twitter', 'google_oauth2']
 # gitlab_rails['omniauth_allow_bypass_two_factor'] = ['google_oauth2']
 # gitlab_rails['omniauth_providers'] = [
@@ -712,6 +715,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['extra_matomo_url'] = '_your_matomo_url'
 # gitlab_rails['extra_matomo_site_id'] = '_your_matomo_site_id'
 # gitlab_rails['extra_matomo_disable_cookies'] = false
+# gitlab_rails['extra_maximum_text_highlight_size_kilobytes'] = 512
 
 ##! Docs: https://docs.gitlab.com/omnibus/settings/environment-variables.html
 # gitlab_rails['env'] = {
@@ -1097,7 +1101,7 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['shutdown_timeout'] = 4
 # sidekiq['queue_selector'] = false
 # sidekiq['interval'] = nil
-# sidekiq['max_concurrency'] = 50
+# sidekiq['max_concurrency'] = 20
 # sidekiq['min_concurrency'] = nil
 
 ##! GitLab allows route a job to a particular queue determined by an array of ##! routing rules.
@@ -2425,6 +2429,17 @@ nginx['listen_https'] = false
 #   }
 # ]
 #
+## Gitaly knows to set up the required default configuration for spawned Git
+## commands automatically. It should thus not be required to configure anything
+## here, except in very special situations where you must e.g. tweak specific
+## performance-related settings or enable debugging facilities. It is not safe in
+## general to set Git configuration that may change Git output in ways that are
+## unexpected by Gitaly.
+# gitaly['gitconfig'] = [
+#   { 'section': 'pack', 'key': 'threads', 'value': '4' }
+#   { 'section': 'http', 'subsection': 'http://example.com', 'key': 'proxy', 'value': 'http://example.proxy.com' }
+# ]
+#
 # gitaly['daily_maintenance_start_hour'] = 22
 # gitaly['daily_maintenance_start_minute'] = 30
 # gitaly['daily_maintenance_duration'] = '30m'
@@ -2526,6 +2541,7 @@ nginx['listen_https'] = false
 # praefect['database_direct_sslcert'] = '/path/to/client-cert'
 # praefect['database_direct_sslkey'] = '/path/to/client-key'
 # praefect['database_direct_sslrootcert'] = '/path/to/rootcert'
+# praefect['graceful_stop_timeout'] = '1m'
 
 ##! Service name used to register Praefect as a Consul service
 # praefect['consul_service_name'] = 'praefect'
