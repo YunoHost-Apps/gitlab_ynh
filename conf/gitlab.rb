@@ -747,7 +747,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['store_initial_root_password'] = true
 
 #### Set path to an initial license to be used while bootstrapping GitLab.
-####! **Only applicable on initial setup, future license updations need to be done via UI.
+####! **Only applicable on initial setup, future license updates need to be done via UI.
 ####! Updating the file specified in this path won't yield any change after the first reconfigure run.
 # gitlab_rails['initial_license_file'] = '/etc/gitlab/company.gitlab-license'
 
@@ -1016,7 +1016,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ################################################################################
 ## GitLab User Settings
 ##! Modify default git user.
-##! Docs: https://docs.gitlab.com/omnibus/settings/configuration.html#changing-the-name-of-the-git-user-group
+##! Docs: https://docs.gitlab.com/omnibus/settings/configuration.html#change-the-name-of-the-git-user-or-group
 ################################################################################
 
 # user['username'] = "git"
@@ -1209,7 +1209,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['home'] = "/var/opt/gitlab/postgresql"
 # postgresql['user_path'] = "/opt/gitlab/embedded/bin:/opt/gitlab/bin:$PATH"
 # postgresql['sql_user'] = "gitlab"
-# postgresql['max_connections'] = 200
+# postgresql['max_connections'] = 400
 # postgresql['md5_auth_cidr_addresses'] = []
 # postgresql['trust_auth_cidr_addresses'] = []
 # postgresql['wal_buffers'] = "-1"
@@ -1661,21 +1661,14 @@ nginx['listen_https'] = false
 ##! internal git
 ################################################################################
 
+##! The format of the Omnibus gitconfig is:
+##! { "section" => ["subsection = value"] }
+##! For example:
+##! { "pack" => ["threads = 1"] }
 ##! For multiple options under one header use array of comma separated values,
 ##! eg.:
 ##! { "receive" => ["fsckObjects = true"], "alias" => ["st = status", "co = checkout"] }
-
-# omnibus_gitconfig['system'] = {
-#  "pack" => ["threads = 1"],
-#  "receive" => ["fsckObjects = true", "advertisePushOptions = true"],
-#  "repack" => ["writeBitmaps = true"],
-#  "transfer" => ["hideRefs=^refs/tmp/", "hideRefs=^refs/keep-around/", "hideRefs=^refs/remotes/"],
-#  "core" => [
-#    'alternateRefsCommand="exit 0 #"',
-#    "fsyncObjectFiles = true"
-#  ],
-#  "fetch" => ["writeCommitGraph = true"]
-# }
+# omnibus_gitconfig['system'] = {}
 
 ################################################################################
 ## GitLab Pages
@@ -1951,6 +1944,14 @@ nginx['listen_https'] = false
 # gitlab_kas['dir'] = '/var/opt/gitlab/gitlab-kas'
 # gitlab_kas['log_directory'] = '/var/log/gitlab/gitlab-kas'
 # gitlab_kas['env_directory'] = '/opt/gitlab/etc/gitlab-kas/env'
+
+################################################################################
+## GitLab Suggested Reviewers (EE Only)
+##! Docs: https://docs.gitlab.com/ee/user/project/merge_requests/reviews/#suggested-reviewers
+################################################################################
+
+##! Shared secret used for authentication between Suggested Reviewers and GitLab
+# suggested_reviewers['api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
 
 ################################################################################
 ## GitLab Mattermost
@@ -3002,7 +3003,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # patroni['postgresql']['wal_log_hints'] = 'on'
 # patroni['postgresql']['max_worker_processes'] = 8
 # patroni['postgresql']['max_locks_per_transaction'] = 64
-# patroni['postgresql']['max_connections'] = 200
+# patroni['postgresql']['max_connections'] = 400
 # patroni['postgresql']['checkpoint_timeout'] = 30
 
 ## The following can hold different values on all nodes.
