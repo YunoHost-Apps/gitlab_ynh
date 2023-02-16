@@ -6,6 +6,7 @@ It shall NOT be edited by hand.
 # GitLab pour YunoHost
 
 [![Niveau d’intégration](https://dash.yunohost.org/integration/gitlab.svg)](https://dash.yunohost.org/appci/app/gitlab) ![Statut du fonctionnement](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Statut de maintenance](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+
 [![Installer GitLab avec YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
 *[Read this readme in english.](./README.md)*
@@ -17,7 +18,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 
 Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD
 
-**Version incluse :** 15.8.0~ynh1
+**Version incluse :** 15.8.3~ynh1
 
 **Démo :** https://gitlab.com/explore
 
