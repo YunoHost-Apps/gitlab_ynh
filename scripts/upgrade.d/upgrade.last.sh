@@ -1,18 +1,18 @@
 #!/bin/bash
 
-gitlab_version="15.8.3"
+gitlab_version="15.9.1"
 
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="$(lsb_release -sc)"
 
-gitlab_x86_64_bullseye_source_sha256="51f80218b21a074991eaa73d33f6a731f30851ade555f6e2446b452b3248612d"
-gitlab_x86_64_buster_source_sha256="13776b70a58a39bed2795415c28ff7354a287ac7103178816a50680e933dbc8e"
+gitlab_x86_64_bullseye_source_sha256="d5ad1cdbbe0f1528f9fc1354aaf62458fad148a3e43999e708b4b3e3ed922560"
+gitlab_x86_64_buster_source_sha256="e3f3bc4f434f5036236c0eeeb33a58bc87d64a625a4592fb4c22bbadcc0499ee"
 
-gitlab_arm64_bullseye_source_sha256="5ef36081b15732a8b49f1f8120d513c652eef6c5d77418bad82ebe3f1e72c6f7"
-gitlab_arm64_buster_source_sha256="a9cfafa3a906e6d6e4d7923d9331b6d971129fc247142ab9c9d1cc9a5f0db982"
+gitlab_arm64_bullseye_source_sha256="10c8935db7f66929e809b52a2b354d3d5b01034ed596a0379add13b7e75e5ed7"
+gitlab_arm64_buster_source_sha256="b521658326b24b1b647fedd18028253f96d264b48a6faf1a313b75925890f6d6"
 
-gitlab_arm_buster_source_sha256="e92988ba6f860202a2bce0f529db2e1ba1f180dcc951e679001b9142d0d29e98"
-gitlab_arm_bullseye_source_sha256="839680fafe0be6dbd9333c914cad38a4d8ff8b16b4b6922de551cc073e4c8147"
+gitlab_arm_buster_source_sha256="e90e6b0ad4f619040f7e518a83ca4bbcdf373665edbe1edfbe13320de44f54f0"
+gitlab_arm_bullseye_source_sha256="b59b524b602da091a6b5a989349c7895c468f9083584192fce1056e9cb164d4b"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -37,16 +37,16 @@ elif [ "$architecture" = "arm" ]; then
 	then
 		# If the version for arm doesn't exist, then use an older one
 		if [ -z "$gitlab_arm_buster_source_sha256" ]; then
-			gitlab_version="15.8.3"
-			gitlab_arm_buster_source_sha256="e92988ba6f860202a2bce0f529db2e1ba1f180dcc951e679001b9142d0d29e98"
+			gitlab_version="15.9.1"
+			gitlab_arm_buster_source_sha256="e90e6b0ad4f619040f7e518a83ca4bbcdf373665edbe1edfbe13320de44f54f0"
 		fi
 		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 	elif [ "$gitlab_debian_version" = "buster" ]
 	then
 		# If the version for arm doesn't exist, then use an older one
 		if [ -z "$gitlab_arm_bullseye_source_sha256" ]; then
-			gitlab_version="15.8.3"
-			gitlab_arm_bullseye_source_sha256="839680fafe0be6dbd9333c914cad38a4d8ff8b16b4b6922de551cc073e4c8147"
+			gitlab_version="15.9.1"
+			gitlab_arm_bullseye_source_sha256="b59b524b602da091a6b5a989349c7895c468f9083584192fce1056e9cb164d4b"
 		fi
 		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
 	fi
