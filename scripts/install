@@ -10,37 +10,11 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-ynh_clean_setup () {
-	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
-
-	ynh_clean_check_starting
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# RETRIEVE ARGUMENTS FROM THE MANIFEST
-#=================================================
-
-domain=$YNH_APP_ARG_DOMAIN
-path_url=$YNH_APP_ARG_PATH
-is_public=$YNH_APP_ARG_IS_PUBLIC
-use_web_account=$YNH_APP_ARG_USE_WEB_ACCOUNT
-admin=$YNH_APP_ARG_ADMIN
-
-app=$YNH_APP_INSTANCE_NAME
-
-#=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
 ynh_script_progression --message="Validating installation parameters..." --weight=1
 
 config_path=/etc/$app
-final_path=/opt/$app
-test ! -e "$final_path" || ynh_die --message="This path already contains a folder"
 
 # Detect the system architecture
 if [ -n "$(uname -m | grep arm64)" ] || [ -n "$(uname -m | grep aarch64)" ]; then
@@ -59,47 +33,17 @@ fi
 # Could be an option?
 client_max_body_size="250m"
 
-# Register (book) web path
-ynh_webpath_register --app=$app --domain=$domain --path_url=$path_url
-
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
 ynh_script_progression --message="Storing installation settings..." --weight=2
 
-ynh_app_setting_set --app=$app --key=admin --value=$admin
-ynh_app_setting_set --app=$app --key=path --value=$path_url
-ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
-ynh_app_setting_set --app=$app --key=final_path --value=$final_path
-ynh_app_setting_set --app=$app --key=config_path --value=$config_path
 ynh_app_setting_set --app=$app --key=architecture --value=$architecture
 ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
-
 ynh_app_setting_set --app=$app --key=overwrite_nginx --value="1"
 
 #=================================================
 # STANDARD MODIFICATIONS
-#=================================================
-# FIND A PORT
-#=================================================
-ynh_script_progression --message="Find internal port..." --weight=1
-
-# Find free ports
-port=$(ynh_find_port --port=8080)
-puma_port=$(ynh_find_port --port=$(($port + 1)))
-sidekiq_port=$(ynh_find_port --port=$(($puma_port + 1)))
-
-ynh_app_setting_set --app=$app --key=web_port --value=$port
-ynh_app_setting_set --app=$app --key=puma_port --value=$puma_port
-ynh_app_setting_set --app=$app --key=sidekiq_port --value=$sidekiq_port
-
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Installing dependencies..." --weight=5
-
-ynh_install_app_dependencies $pkg_dependencies
-
 #=================================================
 # DEFINE THE NUMBER OF WORKERS USED
 #=================================================
@@ -174,7 +118,7 @@ chmod 640 "$config_path/gitlab-persistent.rb"
 
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
-generated_external_url="https://$domain${path_url%/}"
+generated_external_url="https://$domain${path%/}"
 
 ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
@@ -236,19 +180,8 @@ usermod -a -G "ssh.app" "git"
 yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/puma/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
 
 #=================================================
-# SETUP SSOWAT
-#=================================================
-ynh_script_progression --message="Configuring SSOwat..." --weight=1
-
-# Make app public if necessary
-if [ $is_public -eq 1 ]; then
-	ynh_permission_update --permission="main" --add="visitors"
-fi
-
-#=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 

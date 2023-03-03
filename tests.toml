@@ -1,0 +1,8 @@
+test_format = 1.0
+
+[default]
+    # -------------------------------
+    # Commits to test upgrade from
+    # -------------------------------
+
+    test_upgrade_from.7c352aff3fb13fc425d76716477c28db5d54ac99.name = "Upgrade from 12.9.2"
