@@ -2,7 +2,7 @@
     "name": "GitLab",
     "id": "gitlab",
     "packaging_format": 1,
-    "version": "15.8.3~ynh1",
+    "version": "15.9.1~ynh1",
     "description": {
         "en": "Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features",
         "fr": "Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD"

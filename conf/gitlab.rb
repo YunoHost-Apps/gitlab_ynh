@@ -201,7 +201,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['ssh_keys_expired_notification_worker_cron'] = "0 2 * * *"
 # gitlab_rails['ssh_keys_expiring_soon_notification_worker_cron'] = "0 1 * * *"
 # gitlab_rails['loose_foreign_keys_cleanup_worker_cron'] = "*/5 * * * *"
-# gitlab_rails['ci_runner_versions_reconciliation_worker_cron'] = "20 * * * *"
+# gitlab_rails['ci_runner_versions_reconciliation_worker_cron'] = "@daily"
+# gitlab_rails['ci_runners_stale_machines_cleanup_worker_cron'] = "36 4 * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -310,7 +311,12 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['incoming_email_idle_timeout'] = 60
 ####! The file name for internal `mail_room` JSON logfile
 # gitlab_rails['incoming_email_log_file'] = "/var/log/gitlab/mailroom/mail_room_json.log"
+####! This marks incoming messages deleted after delivery.
+####! If you are using Microsoft Graph API instead of IMAP, set this to false to retain
+####! messages in the inbox since deleted messages are auto-expunged after some time.
+# gitlab_rails['incoming_email_delete_after_delivery'] = true
 ####! Permanently remove messages from the mailbox when they are marked as deleted after delivery
+####! Only applies to IMAP. Microsoft Graph will auto-expunge any deleted messages.
 # gitlab_rails['incoming_email_expunge_deleted'] = false
 
 #### Inbox options (for Microsoft Graph)
@@ -358,6 +364,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['object_store']['objects']['dependency_proxy']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['terraform_state']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['ci_secure_files']['bucket'] = nil
+# gitlab_rails['object_store']['objects']['pages']['bucket'] = nil
 
 ### Job Artifacts
 # gitlab_rails['artifacts_enabled'] = true
@@ -828,6 +835,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_sessions_instance'] = nil
 # gitlab_rails['redis_sessions_sentinels'] = nil
+# gitlab_rails['redis_repository_cache_instance'] = nil
+# gitlab_rails['redis_repository_cache_sentinels'] = nil
+# gitlab_rails['redis_yml_override'] = nil
 
 ################################################################################
 ## Container Registry settings
@@ -1099,7 +1109,6 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['log_directory'] = "/var/log/gitlab/sidekiq"
 # sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
-# sidekiq['queue_selector'] = false
 # sidekiq['interval'] = nil
 # sidekiq['max_concurrency'] = 20
 # sidekiq['min_concurrency'] = nil
@@ -1115,11 +1124,6 @@ puma['port'] = __PUMA_PORT__
 ##! separating them with a comma within the group entry, a `*` will process all queues
 
 # sidekiq['queue_groups'] = ['*']
-
-##! If negate is enabled then Sidekiq will process all the queues that
-##! don't match those in queue_groups.
-
-# sidekiq['negate'] = false
 
 ##! Specifies where Prometheus metrics endpoints should be made available for Sidekiq processes.
 # sidekiq['metrics_enabled'] = true
@@ -1167,6 +1171,36 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 
 ##! **We do not recommend changing this directory.**
 # gitlab_shell['dir'] = "/var/opt/gitlab/gitlab-shell"
+
+################################################################################
+## gitlab-sshd
+################################################################################
+
+# gitlab_sshd['enable'] = false
+# gitlab_sshd['generate_host_keys'] = true
+# gitlab_sshd['dir'] = "/var/opt/gitlab/gitlab-sshd"
+
+# gitlab-sshd outputs most logs to /var/log/gitlab/gitlab-shell/gitlab-shell.log.
+# This directory only stores stdout/stderr output from the daemon.
+# gitlab_sshd['log_directory'] = "/var/log/gitlab/gitlab-sshd/"
+
+# gitlab_sshd['env_directory'] = '/opt/gitlab/etc/gitlab-sshd/env'
+# gitlab_sshd['listen_address'] = 'localhost:2222'
+# gitlab_sshd['metrics_address'] = 'localhost:9122'
+# gitlab_sshd['concurrent_sessions_limit'] = 100
+# gitlab_sshd['proxy_protocol'] = false
+# gitlab_sshd['proxy_policy'] = 'use'
+# gitlab_sshd['proxy_header_timeout'] = '500ms'
+# gitlab_sshd['grace_period'] = 55
+# gitlab_sshd['client_alive_interval'] = nil
+# gitlab_sshd['ciphers'] = nil
+# gitlab_sshd['kex_algorithms'] = nil
+# gitlab_sshd['macs'] = nil
+# gitlab_sshd['login_grace_time'] = 60
+# gitlab_sshd['host_keys_dir'] = '/var/opt/gitlab/gitlab-sshd'
+# gitlab_sshd['host_keys_glob'] = 'ssh_host_*_key'
+# gitlab_sshd['host_certs_dir'] = '/var/opt/gitlab/gitlab-sshd'
+# gitlab_sshd['host_certs_glob'] = 'ssh_host_*-cert.pub'
 
 ################################################################
 ## GitLab PostgreSQL
@@ -1884,7 +1918,7 @@ nginx['listen_https'] = false
 # gitlab_rails['gitlab_kas_enabled'] = true
 # gitlab_rails['gitlab_kas_external_url'] = 'ws://gitlab.example.com/-/kubernetes-agent/'
 # gitlab_rails['gitlab_kas_internal_url'] = 'grpc://localhost:8153'
-# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = 'https://gitlab.example.com/-/kubernetes-agent/'
+# gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = 'https://gitlab.example.com/-/kubernetes-agent/k8s-proxy/'
 
 ##! Enable GitLab KAS
 # gitlab_kas['enable'] = true
@@ -2479,7 +2513,6 @@ nginx['listen_https'] = false
 # }
 # praefect['wrapper_path'] = "/opt/gitlab/embedded/bin/gitaly-wrapper"
 # praefect['failover_enabled'] = true
-# praefect['failover_timeout'] = "10s"
 # praefect['auth_token'] = ""
 # praefect['auth_transitioning'] = false
 # praefect['listen_addr'] = "localhost:2305"
