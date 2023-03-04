@@ -138,10 +138,10 @@ EOS"
     sed -i "s/# puma\['worker_processes'\] = .*/puma['worker_processes'] = __PUMA_WORKER_PROCESSES__/" $conf_file
     sed -i "s/# puma\['min_threads'\] = .*/puma['min_threads'] = __PUMA_MIN_THREADS__/" $conf_file
     sed -i "s/# puma\['max_threads'\] = .*/puma['max_threads'] = __PUMA_MAX_THREADS__/" $conf_file
-    sed -i "s/# puma\['port'\] = .*/puma['port'] = __PUMA_PORT__/" $conf_file
+    sed -i "s/# puma\['port'\] = .*/puma['port'] = __PORT_PUMA__/" $conf_file
 
     # Change sidekiq settings
-    sed -i "s/# sidekiq\['listen_port'\] = .*/sidekiq['listen_port'] = __SIDEKIQ_PORT__/" $conf_file
+    sed -i "s/# sidekiq\['listen_port'\] = .*/sidekiq['listen_port'] = __PORT_SIDEKIQ__/" $conf_file
 
     # Change nginx settings
     sed -i "s/# nginx\['client_max_body_size'\] = .*/nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'/" $conf_file
