@@ -19,7 +19,7 @@ cpe = "???" # FIXME: optional but recommended if relevant, this is meant to cont
 fund = "???" # FIXME: optional but recommended (or remove if irrelevant / not applicable). This is meant to be an URL where people can financially support this app, especially when its development is based on volunteers and/or financed by its community. YunoHost may later advertise it in the webadmin.
 
 [integration]
-yunohost = ">= 4.2.3"
+yunohost = ">= 11.1.15"
 architectures = ["amd64", "armhf", "arm64"]
 multi_instance = false
 ldap = true
