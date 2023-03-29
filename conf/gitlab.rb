@@ -634,6 +634,12 @@ EOS
 # gitlab_rails['forti_token_cloud_client_id'] = 'forti_token_cloud_client_id'
 # gitlab_rails['forti_token_cloud_client_secret'] = 's3cr3t'
 
+### DuoAuth authentication settings
+# gitlab_rails['duo_auth_enabled'] = false
+# gitlab_rails['duo_auth_integration_key'] = 'duo_auth_integration_key'
+# gitlab_rails['duo_auth_secret_key'] = 'duo_auth_secret_key'
+# gitlab_rails['duo_auth_hostname'] = 'duo_auth.example.com'
+
 ### Backup Settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/backups.html
 
@@ -793,6 +799,11 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_application_name'] = nil
 # gitlab_rails['db_database_tasks'] = true
 
+### Gitlab decomposed database settings
+###! Docs: https://docs.gitlab.com/omnibus/settings/database.html
+# gitlab_rails['databases']['ci']['enable'] = false
+# gitlab_rails['databases']['ci']['db_database'] = 'gitlabhq_production'
+# gitlab_rails['databases']['ci']['database_tasks'] = false
 
 ### GitLab Redis settings
 ###! Connect to your own Redis instance
@@ -819,24 +830,67 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   {'host' => '127.0.0.1', 'port' => 26379},
 # ]
 
+
+#### Cluster support
+####! Cluster support is only available for selected Redis instances. `resque.yml` will not
+####! support cluster mode to maintain full-compatibility with the GitLab rails application.
+####!
+####! To have Redis Cluster working, you must declare `redis_{instance}_cluster_nodes`
+####! `redis_{instance}_username` and `redis_{instance}_password` are required if ACL
+####! is enabled for the Redis servers.
+# gitlab_rails['redis_xxxx_cluster_nodes'] = [
+#    {'host' => '127.0.0.1', 'port' => 6379},
+# ]
+
 #### Separate instances support
 ###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html#running-with-multiple-redis-instances
 # gitlab_rails['redis_cache_instance'] = nil
 # gitlab_rails['redis_cache_sentinels'] = nil
+# gitlab_rails['redis_cache_username'] = nil
+# gitlab_rails['redis_cache_password'] = nil
+# gitlab_rails['redis_cache_cluster_nodes'] = nil
 # gitlab_rails['redis_queues_instance'] = nil
 # gitlab_rails['redis_queues_sentinels'] = nil
+# gitlab_rails['redis_queues_username'] = nil
+# gitlab_rails['redis_queues_password'] = nil
+# gitlab_rails['redis_queues_cluster_nodes'] = nil
 # gitlab_rails['redis_shared_state_instance'] = nil
 # gitlab_rails['redis_shared_state_sentinels'] = nil
+# gitlab_rails['redis_shared_state_username'] = nil
+# gitlab_rails['redis_shared_state_password'] = nil
+# gitlab_rails['redis_shared_state_cluster_nodes'] = nil
 # gitlab_rails['redis_trace_chunks_instance'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels'] = nil
+# gitlab_rails['redis_trace_chunks_username'] = nil
+# gitlab_rails['redis_trace_chunks_password'] = nil
+# gitlab_rails['redis_trace_chunks_cluster_nodes'] = nil
 # gitlab_rails['redis_actioncable_instance'] = nil
 # gitlab_rails['redis_actioncable_sentinels'] = nil
+# gitlab_rails['redis_actioncable_username'] = nil
+# gitlab_rails['redis_actioncable_password'] = nil
+# gitlab_rails['redis_actioncable_cluster_nodes'] = nil
 # gitlab_rails['redis_rate_limiting_instance'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
+# gitlab_rails['redis_rate_limiting_username'] = nil
+# gitlab_rails['redis_rate_limiting_password'] = nil
+# gitlab_rails['redis_rate_limiting_cluster_nodes'] = nil
 # gitlab_rails['redis_sessions_instance'] = nil
 # gitlab_rails['redis_sessions_sentinels'] = nil
+# gitlab_rails['redis_sessions_username'] = nil
+# gitlab_rails['redis_sessions_password'] = nil
+# gitlab_rails['redis_sessions_cluster_nodes'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_instance'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_sentinels'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_username'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_password'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_cluster_nodes'] = nil
 # gitlab_rails['redis_repository_cache_instance'] = nil
 # gitlab_rails['redis_repository_cache_sentinels'] = nil
+# gitlab_rails['redis_repository_cache_username'] = nil
+# gitlab_rails['redis_repository_cache_password'] = nil
+# gitlab_rails['redis_repository_cache_cluster_nodes'] = nil
+
+
 # gitlab_rails['redis_yml_override'] = nil
 
 ################################################################################
@@ -1364,6 +1418,8 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 
 # redis['enable'] = true
 # redis['ha'] = false
+# redis['start_down'] = false
+# redis['set_replicaof'] = false
 # redis['hz'] = 10
 # redis['dir'] = "/var/opt/gitlab/redis"
 # redis['log_directory'] = "/var/log/gitlab/redis"
@@ -1920,7 +1976,8 @@ nginx['listen_https'] = false
 # gitlab_rails['gitlab_kas_internal_url'] = 'grpc://localhost:8153'
 # gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = 'https://gitlab.example.com/-/kubernetes-agent/k8s-proxy/'
 
-##! Enable GitLab KAS
+##! Define to enable GitLab KAS
+# gitlab_kas_external_url "ws://gitlab.example.com/-/kubernetes-agent/"
 # gitlab_kas['enable'] = true
 
 ##! Agent configuration for GitLab KAS
@@ -2398,7 +2455,7 @@ nginx['listen_https'] = false
 
 ################################################################################
 ## Gitaly
-##! Docs:
+##! Docs: https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html
 ################################################################################
 
 # The gitaly['enable'] option exists for the purpose of cluster
@@ -2418,88 +2475,113 @@ nginx['listen_https'] = false
 #  'WRAPPER_JSON_LOGGING' => true
 # }
 
-# gitaly['runtime_dir'] = "/var/opt/gitlab/gitaly/run"
-# gitaly['socket_path'] = "/var/opt/gitlab/gitaly/gitaly.socket"
-# gitaly['listen_addr'] = "localhost:8075"
-# gitaly['tls_listen_addr'] = "localhost:9075"
-# gitaly['certificate_path'] = "/var/opt/gitlab/gitaly/certificate.pem"
-# gitaly['key_path'] = "/var/opt/gitlab/gitaly/key.pem"
-# gitaly['gpg_signing_key_path'] = "/var/opt/gitlab/gitaly/signing_key.gpg"
-# gitaly['prometheus_listen_addr'] = "localhost:9236"
-# gitaly['logging_level'] = "warn"
-# gitaly['logging_format'] = "json"
-# gitaly['logging_sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
-# gitaly['logging_ruby_sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
-# gitaly['logging_sentry_environment'] = "production"
-# gitaly['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
-# gitaly['auth_token'] = '<secret>'
-# gitaly['auth_transitioning'] = false # When true, auth is logged to Prometheus but NOT enforced
-# gitaly['graceful_restart_timeout'] = '1m' # Grace time for a gitaly process to finish ongoing requests
-# gitaly['git_catfile_cache_size'] = 100 # Number of 'git cat-file' processes kept around for re-use
-# gitaly['git_bin_path'] = "/opt/gitlab/embedded/bin/git" # A custom path for the 'git' executable
-# gitaly['use_bundled_git'] = true # Whether to use bundled Git.
 # gitaly['open_files_ulimit'] = 15000 # Maximum number of open files allowed for the gitaly process
-# gitaly['ruby_max_rss'] = 300000000 # RSS threshold in bytes for triggering a gitaly-ruby restart
-# gitaly['ruby_graceful_restart_timeout'] = '10m' # Grace time for a gitaly-ruby process to finish ongoing requests
-# gitaly['ruby_restart_delay'] = '5m' # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
-# gitaly['ruby_num_workers'] = 3 # Number of gitaly-ruby worker processes. Minimum 2, default 2.
-# gitaly['concurrency'] = [
-#   {
-#     'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
-#     'max_per_repo' => 20
-#   }, {
-#     'rpc' => "/gitaly.SSHService/SSHUploadPack",
-#     'max_per_repo' => 5
-#   }
-# ]
-# gitaly['rate_limiting'] = [
-#   {
-#     'rpc' => "/gitaly.SmartHTTPService/PostReceivePack",
-#     'interval' => '1m',
-#     'burst' => 10
-#   }, {
-#     'rpc' => "/gitaly.SSHService/SSHUploadPack",
-#     'interval' => '1m',
-#     'burst' => 5
-#   }
-# ]
-#
-## Gitaly knows to set up the required default configuration for spawned Git
-## commands automatically. It should thus not be required to configure anything
-## here, except in very special situations where you must e.g. tweak specific
-## performance-related settings or enable debugging facilities. It is not safe in
-## general to set Git configuration that may change Git output in ways that are
-## unexpected by Gitaly.
-# gitaly['gitconfig'] = [
-#   { 'section': 'pack', 'key': 'threads', 'value': '4' }
-#   { 'section': 'http', 'subsection': 'http://example.com', 'key': 'proxy', 'value': 'http://example.proxy.com' }
-# ]
-#
-# gitaly['daily_maintenance_start_hour'] = 22
-# gitaly['daily_maintenance_start_minute'] = 30
-# gitaly['daily_maintenance_duration'] = '30m'
-# gitaly['daily_maintenance_storages'] = ["default"]
-# gitaly['daily_maintenance_disabled'] = false
-# gitaly['cgroups_mountpoint'] = '/sys/fs/cgroup'
-# gitaly['cgroups_hierarchy_root'] = 'gitaly'
-# gitaly['cgroups_memory_bytes'] = 1048576
-# gitaly['cgroups_cpu_shares'] = 512
-# gitaly['cgroups_repositories_count'] = 1000
-# gitaly['cgroups_repositories_memory_bytes'] = 12884901888
-# gitaly['cgroups_repositories_cpu_shares'] = 128
-# gitaly['pack_objects_cache_enabled'] = true
-# gitaly['pack_objects_cache_dir'] = '/var/opt/gitlab/git-data/repositories/+gitaly/PackObjectsCache'
-# gitaly['pack_objects_cache_max_age'] = '5m'
-# gitaly['custom_hooks_dir'] = "/var/opt/gitlab/gitaly/custom_hooks"
-
 ##! Service name used to register Gitaly as a Consul service
 # gitaly['consul_service_name'] = 'gitaly'
 ##! Semantic metadata used when registering Gitaly as a Consul service
 # gitaly['consul_service_meta'] = {}
+# gitaly['configuration'] = {
+#   socket_path: '/var/opt/gitlab/gitaly/gitaly.socket',
+#   runtime_dir: '/var/opt/gitlab/gitaly/run',
+#   listen_addr: 'localhost:8075',
+#   prometheus_listen_addr: 'localhost:9236',
+#   tls_listen_addr: 'localhost:9075',
+#   tls: {
+#     certificate_path: '/var/opt/gitlab/gitaly/certificate.pem',
+#     key_path: '/var/opt/gitlab/gitaly/key.pem',
+#   },
+#   graceful_restart_timeout: '1m', # Grace time for a gitaly process to finish ongoing requests
+#   logging: {
+#     level: 'warn',
+#     format: 'json',
+#     sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
+#     ruby_sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
+#     sentry_environment: 'production',
+#   },
+#   prometheus: {
+#     grpc_latency_buckets: [0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0],
+#   },
+#   auth: {
+#     token: '<secret>',
+#     transitioning: false, # When true, auth is logged to Prometheus but NOT enforced
+#   },
+#   git: {
+#     catfile_cache_size: 100, # Number of 'git cat-file' processes kept around for re-use
+#     bin_path: '/opt/gitlab/embedded/bin/git', # A custom path for the 'git' executable
+#     use_bundled_binaries: true, # Whether to use bundled Git.
+#     signing_key: '/var/opt/gitlab/gitaly/signing_key.gpg',
+#     ## Gitaly knows to set up the required default configuration for spawned Git
+#     ## commands automatically. It should thus not be required to configure anything
+#     ## here, except in very special situations where you must e.g. tweak specific
+#     ## performance-related settings or enable debugging facilities. It is not safe in
+#     ## general to set Git configuration that may change Git output in ways that are
+#     ## unexpected by Gitaly.
+#     config: [
+#       { key: 'pack.threads', value: '4' },
+#       { key: 'http.http://example.com.proxy', value: 'http://example.proxy.com' },
+#     ],
+#   },
+#   'gitaly-ruby': {
+#     max_rss: 300000000, # RSS threshold in bytes for triggering a gitaly-ruby restart
+#     graceful_restart_timeout: '10m', # Grace time for a gitaly-ruby process to finish ongoing requests
+#     restart_delay: '5m', # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
+#     num_workers: 3, # Number of gitaly-ruby worker processes. Minimum 2, default 2.
+#   },
+#   hooks: {
+#     custom_hooks_dir: '/var/opt/gitlab/gitaly/custom_hooks',
+#   },
+#   daily_maintenance: {
+#     disabled: false,
+#     start_hour: 22,
+#     start_minute: 30,
+#     duration: '30m',
+#     storages: ['default'],
+#   },
+#   cgroups: {
+#     mountpoint: '/sys/fs/cgroup',
+#     hierarchy_root: 'gitaly',
+#     memory_bytes: 1048576,
+#     cpu_shares: 512,
+#     cpu_quota_us: 400000
+#     repositories: {
+#       count: 1000,
+#       memory_bytes: 12884901888,
+#       cpu_shares: 128,
+#       cpu_quota_us: 200000
+#     },
+#   },
+#   concurrency: [
+#     {
+#       rpc: '/gitaly.SmartHTTPService/PostReceivePack',
+#       max_per_repo: 20,
+#     },
+#     {
+#       rpc: '/gitaly.SSHService/SSHUploadPack',
+#       max_per_repo: 5,
+#     },
+#   ],
+#   rate_limiting: [
+#     {
+#       rpc: '/gitaly.SmartHTTPService/PostReceivePack',
+#       interval: '1m',
+#       burst: 10,
+#     },
+#     {
+#       rpc: '/gitaly.SSHService/SSHUploadPack',
+#       interval: '1m',
+#       burst: 5,
+#     },
+#   ],
+#   pack_objects_cache: {
+#     enabled: true,
+#     dir: '/var/opt/gitlab/git-data/repositories/+gitaly/PackObjectsCache',
+#     max_age: '5m',
+#   },
+# }
 
 ################################################################################
 ## Praefect
-##! Docs: https://gitlab.com/gitlab-org/gitaly/blob/master/doc/design_ha.md
+##! Docs: https://docs.gitlab.com/ee/administration/gitaly/praefect.html
 ################################################################################
 
 # praefect['enable'] = false
@@ -2512,75 +2594,102 @@ nginx['listen_https'] = false
 #  'WRAPPER_JSON_LOGGING' => true
 # }
 # praefect['wrapper_path'] = "/opt/gitlab/embedded/bin/gitaly-wrapper"
-# praefect['failover_enabled'] = true
-# praefect['auth_token'] = ""
-# praefect['auth_transitioning'] = false
-# praefect['listen_addr'] = "localhost:2305"
-# praefect['tls_listen_addr'] = "localhost:3305"
-# praefect['certificate_path'] = "/var/opt/gitlab/prafect/certificate.pem"
-# praefect['key_path'] = "/var/opt/gitlab/prafect/key.pem"
-# praefect['prometheus_listen_addr'] = "localhost:9652"
-# praefect['prometheus_grpc_latency_buckets'] = "[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0]"
-# praefect['logging_level'] = "warn"
-# praefect['logging_format'] = "json"
-# praefect['virtual_storages'] = {
-#   'default' => {
-#     'default_replication_factor' => 3,
-#     'nodes' => {
-#       'praefect-internal-0' => {
-#         'address' => 'tcp://10.23.56.78:8075',
-#         'token' => 'abc123'
-#       },
-#       'praefect-internal-1' => {
-#         'address' => 'tcp://10.76.23.31:8075',
-#         'token' => 'xyz456'
-#       }
-#     }
-#   },
-#   'alternative' => {
-#     'nodes' => {
-#       'praefect-internal-2' => {
-#         'address' => 'tcp://10.34.1.16:8075',
-#         'token' => 'abc321'
-#       },
-#       'praefect-internal-3' => {
-#         'address' => 'tcp://10.23.18.6:8075',
-#         'token' => 'xyz890'
-#       }
-#     }
-#   }
-# }
-# praefect['background_verification_verification_interval'] = "72h"
-# praefect['background_verification_delete_invalid_records'] = false
-# praefect['sentry_dsn'] = "https://<key>:<secret>@sentry.io/<project>"
-# praefect['sentry_environment'] = "production"
 # praefect['auto_migrate'] = true
-# praefect['database_host'] = 'postgres.external'
-# praefect['database_port'] = 6432
-# praefect['database_user'] = 'praefect'
-# praefect['database_password'] = 'secret'
-# praefect['database_dbname'] = 'praefect_production'
-# praefect['database_sslmode'] = 'disable'
-# praefect['database_sslcert'] = '/path/to/client-cert'
-# praefect['database_sslkey'] = '/path/to/client-key'
-# praefect['database_sslrootcert'] = '/path/to/rootcert'
-# praefect['reconciliation_scheduling_interval'] = '5m'
-# praefect['reconciliation_histogram_buckets'] = '[0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0]'
-# praefect['database_direct_host'] = 'postgres.internal'
-# praefect['database_direct_port'] = 5432
-# praefect['database_direct_user'] = 'praefect'
-# praefect['database_direct_password'] = 'secret'
-# praefect['database_direct_dbname'] = 'praefect_production_direct'
-# praefect['database_direct_sslmode'] = 'disable'
-# praefect['database_direct_sslcert'] = '/path/to/client-cert'
-# praefect['database_direct_sslkey'] = '/path/to/client-key'
-# praefect['database_direct_sslrootcert'] = '/path/to/rootcert'
-# praefect['graceful_stop_timeout'] = '1m'
-
 ##! Service name used to register Praefect as a Consul service
 # praefect['consul_service_name'] = 'praefect'
 ##! Semantic metadata used when registering Praefect as a Consul service
 # praefect['consul_service_meta'] = {}
+# praefect['configuration'] = {
+#   listen_addr: 'localhost:2305',
+#   prometheus_listen_addr: 'localhost:9652',
+#   tls_listen_addr: 'localhost:3305',
+#   auth: {
+#     token: '',
+#     transitioning: false,
+#   },
+#   logging: {
+#     format: 'json',
+#     level: 'warn',
+#   },
+#   failover: {
+#     enabled: true,
+#   },
+#   background_verification: {
+#     delete_invalid_records: false,
+#     verification_interval: '72h',
+#   },
+#   reconciliation: {
+#     scheduling_interval: '5m',
+#     histogram_buckets: [0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0],
+#   },
+#   tls: {
+#     certificate_path: '/var/opt/gitlab/prafect/certificate.pem',
+#     key_path: '/var/opt/gitlab/prafect/key.pem',
+#   },
+#   database: {
+#     host: 'postgres.external',
+#     port: 6432,
+#     user: 'praefect',
+#     password: 'secret',
+#     dbname: 'praefect_production',
+#     sslmode: 'disable',
+#     sslcert: '/path/to/client-cert',
+#     sslkey: '/path/to/client-key',
+#     sslrootcert: '/path/to/rootcert',
+#     session_pooled: {
+#       host: 'postgres.internal',
+#       port: 5432,
+#       user: 'praefect',
+#       password: 'secret',
+#       dbname: 'praefect_production_direct',
+#       sslmode: 'disable',
+#       sslcert: '/path/to/client-cert',
+#       sslkey: '/path/to/client-key',
+#       sslrootcert: '/path/to/rootcert',
+#     },
+#   },
+#   sentry: {
+#     sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
+#     sentry_environment: 'production',
+#   },
+#   prometheus: {
+#     grpc_latency_buckets: [0.001, 0.005, 0.025, 0.1, 0.5, 1.0, 10.0, 30.0, 60.0, 300.0, 1500.0],
+#   },
+#   graceful_stop_timeout: '1m',
+#   virtual_storage: [
+#     {
+#       name: 'default',
+#       default_replication_factor: 3,
+#       node: [
+#         {
+#           storage: 'praefect-internal-0',
+#           address: 'tcp://10.23.56.78:8075',
+#           token: 'abc123',
+#         },
+#         {
+#           storage: 'praefect-internal-1',
+#           address: 'tcp://10.76.23.31:8075',
+#           token: 'xyz456',
+#         },
+#       ],
+#   	},
+#     {
+#       name: 'alternative',
+#       node: [
+#         {
+#           storage: 'praefect-internal-2',
+#           address: 'tcp://10.34.1.16:8075',
+#           token: 'abc321',
+#         },
+#         {
+#           storage: 'praefect-internal-3',
+#           address: 'tcp://10.23.18.6:8075',
+#           token: 'xyz890',
+#         },
+#       ],
+#     },
+#   ],
+# }
 
 ################################################################################
 # Storage check
