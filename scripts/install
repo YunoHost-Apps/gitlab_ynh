@@ -134,7 +134,11 @@ tempdir="$(mktemp -d)"
 
 ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
+chmod 755 $install_dir
+
 ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
+
+ynh_secure_remove --file="$tempdir"
 
 #=================================================
 # NGINX CONFIGURATION

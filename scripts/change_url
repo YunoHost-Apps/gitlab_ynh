@@ -44,6 +44,7 @@ done
 #=================================================
 ynh_script_progression --message="Configure GitLab..." --weight=28
 
+config_path=/etc/$app
 mkdir -p $config_path
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 domain="$new_domain"

@@ -44,6 +44,8 @@ fi
 ynh_script_progression --message="Restoring configuration files of GitLab..." --weight=1
 
 config_path=/etc/$app
+chmod 755 $install_dir
+
 ynh_restore_file --origin_path="$config_path/gitlab-secrets.json"
 ynh_restore_file --origin_path="$config_path/gitlab.rb"
 ynh_restore_file --origin_path="$config_path/gitlab-persistent.rb"

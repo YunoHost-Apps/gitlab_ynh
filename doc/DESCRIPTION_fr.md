@@ -1,0 +1,1 @@
+Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD

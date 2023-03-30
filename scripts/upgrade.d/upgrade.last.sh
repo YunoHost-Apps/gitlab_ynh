@@ -11,8 +11,8 @@ gitlab_x86_64_buster_source_sha256="223b4c3eafd3edf44d9b8153f834c24aface03ea7585
 gitlab_arm64_bullseye_source_sha256="63d29c92eb956631a478735a6c692bbb315c898b2041b2f545c12302b230c97f"
 gitlab_arm64_buster_source_sha256="8a29a50bab93d7bbd2bfcfbd968c051739a20d2750c3cee0da2d676738928a77"
 
-gitlab_arm_buster_source_sha256="60f4c441e8f6f25934d6be3bcb9a8fe058b05b7076e7087a18ff747f9afa4b3a"
 gitlab_arm_bullseye_source_sha256="a7a195bf8a74e6ca688de2debe23c0cd5482d989377dcaf7042df484731e10cc"
+gitlab_arm_buster_source_sha256="60f4c441e8f6f25934d6be3bcb9a8fe058b05b7076e7087a18ff747f9afa4b3a"
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -35,20 +35,10 @@ elif [ "$architecture" = "arm64" ]; then
 elif [ "$architecture" = "arm" ]; then
 	if [ "$gitlab_debian_version" = "bullseye" ]
 	then
-		# If the version for arm doesn't exist, then use an older one
-		if [ -z "$gitlab_arm_buster_source_sha256" ]; then
-			gitlab_version="15.10.0"
-			gitlab_arm_buster_source_sha256="60f4c441e8f6f25934d6be3bcb9a8fe058b05b7076e7087a18ff747f9afa4b3a"
-		fi
-		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
+		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
 	elif [ "$gitlab_debian_version" = "buster" ]
 	then
-		# If the version for arm doesn't exist, then use an older one
-		if [ -z "$gitlab_arm_bullseye_source_sha256" ]; then
-			gitlab_version="15.10.0"
-			gitlab_arm_bullseye_source_sha256="a7a195bf8a74e6ca688de2debe23c0cd5482d989377dcaf7042df484731e10cc"
-		fi
-		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
+		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 	fi
 fi
 

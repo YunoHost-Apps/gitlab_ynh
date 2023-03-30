@@ -20,6 +20,7 @@ upgrade_type=$(ynh_check_app_version_changed)
 #=================================================
 
 config_path=/etc/$app
+chmod 755 $install_dir
 
 if [ -z "$puma_max_threads" ] || [ -z "$puma_min_threads" ]; then
 	# If the server has less than 2GB of RAM

@@ -47,14 +47,7 @@ do
   echo url: $url
   echo sha256: $new_sha256
 
-  # Only replace the first occurrence
-  sed -i -e "0,/gitlab_arm_${debian_version}_source_sha256=\".*\"/s//gitlab_arm_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
-
-  # if new_sha256 exists for arm, then replace the backup version/sha256 for this arch
-  if [ -n "$new_sha256" ]; then
-    sed -i -e "s/gitlab_version=\"[^0-9.]*[0-9.]*[0-9.]\"/gitlab_version=\"$version\"/" $gitlab_directory/scripts/upgrade.d/$file
-    sed -i -e "s/gitlab_arm_${debian_version}_source_sha256=\".*\"/gitlab_arm_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
-  fi
+  sed -i -e "s/gitlab_arm_${debian_version}_source_sha256=\".*\"/gitlab_arm_${debian_version}_source_sha256=\"$new_sha256\"/" $gitlab_directory/scripts/upgrade.d/$file
 done
 
 
