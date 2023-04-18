@@ -16,7 +16,6 @@
 		setup_public=1
 		upgrade=1
 		upgrade=1		from_commit=2cc84310aeff7055342b445c1aee01d4183d5ae2
-		upgrade=1		from_commit=7c352aff3fb13fc425d76716477c28db5d54ac99
 		backup_restore=1
 		multi_instance=0
 		port_already_use=1	(8080)
@@ -27,5 +26,3 @@ Notification=none
 ;;; Upgrade options
 	; commit=2cc84310aeff7055342b445c1aee01d4183d5ae2
 		name=11.6.3
-	; commit=7c352aff3fb13fc425d76716477c28db5d54ac99
-		name=12.9.2
