@@ -1435,6 +1435,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['tcp_keepalive'] = "300"
 # redis['uid'] = nil
 # redis['gid'] = nil
+# redis['startup_delay'] = 0
 
 ### Redis TLS settings
 ###! To run Redis over TLS, specify values for the following settings
@@ -1466,6 +1467,10 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 #   'KEYS': ''
 #}
 #
+
+###! Configure timeout (in seconds) for runit's sv commands used for managing
+###! the Redis service
+# redis['runit_sv_timeout'] = nil
 
 ###! **To enable only Redis service in this machine, uncomment
 ###!   one of the lines below (choose master or replica instance types).**
@@ -1697,6 +1702,7 @@ nginx['listen_https'] = false
 # logging['logrotate_method'] = "copytruncate" # see 'man logrotate'
 # logging['logrotate_postrotate'] = nil # no postrotate command by default
 # logging['logrotate_dateformat'] = nil # use date extensions for rotated files rather than numbers e.g. a value of "-%Y-%m-%d" would give rotated files like production.log-2016-03-09.gz
+# logging['log_group'] = nil # assign this group to specified log directories and use it for runit-managed logs, can be overridden per-service
 
 ### UDP log forwarding
 ##! Docs: http://docs.gitlab.com/omnibus/settings/logs.html#udp-log-forwarding
@@ -2463,6 +2469,7 @@ nginx['listen_https'] = false
 # gitaly['enable'] = true
 # gitaly['dir'] = "/var/opt/gitlab/gitaly"
 # gitaly['log_directory'] = "/var/log/gitlab/gitaly"
+# gitaly['log_group'] = nil
 # gitaly['bin_path'] = "/opt/gitlab/embedded/bin/gitaly"
 # gitaly['env_directory'] = "/opt/gitlab/etc/gitaly/env"
 # gitaly['env'] = {
