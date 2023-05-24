@@ -133,7 +133,6 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['gitlab_email_smime_ca_certs_file'] = '/etc/gitlab/ssl/gitlab_smime_cas.crt'
 
 ### GitLab user privileges
-# gitlab_rails['gitlab_default_can_create_group'] = true
 # gitlab_rails['gitlab_username_changing_enabled'] = true
 
 ### Default Theme
@@ -746,6 +745,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 # gitlab_rails['dir'] = "/var/opt/gitlab/gitlab-rails"
 # gitlab_rails['log_directory'] = "/var/log/gitlab/gitlab-rails"
+# gitlab_rails['log_group'] = nil
 
 #### Change the initial default admin password and shared runner registration tokens.
 ####! **Only applicable on initial setup, changing these settings after database
@@ -801,7 +801,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Gitlab decomposed database settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/database.html
-# gitlab_rails['databases']['ci']['enable'] = false
+# gitlab_rails['databases']['ci']['enable'] = true
 # gitlab_rails['databases']['ci']['db_database'] = 'gitlabhq_production'
 # gitlab_rails['databases']['ci']['database_tasks'] = false
 
@@ -1207,7 +1207,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # gitlab_shell['log_level'] = 'INFO'
 # gitlab_shell['log_format'] = 'json'
 # gitlab_shell['http_settings'] = { user: 'username', password: 'password', ca_file: '/etc/ssl/cert.pem', ca_path: '/etc/pki/tls/certs'}
-# gitlab_shell['log_directory'] = "/var/log/gitlab/gitlab-shell/"
+# gitlab_shell['log_directory'] = "/var/log/gitlab/gitlab-shell"
 
 # gitlab_shell['auth_file'] = "/var/opt/gitlab/.ssh/authorized_keys"
 
@@ -1310,7 +1310,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # postgresql['hot_standby'] = "off"
 
 ### SSL settings
-# See https://www.postgresql.org/docs/12/static/runtime-config-connection.html#GUC-SSL-CERT-FILE for more details
+# See https://www.postgresql.org/docs/13/static/runtime-config-connection.html#GUC-SSL-CERT-FILE for more details
 # postgresql['ssl'] = 'on'
 # postgresql['hostssl'] = false
 # postgresql['ssl_ciphers'] = 'HIGH:MEDIUM:+3DES:!aNULL:!SSLv3:!TLSv1'
@@ -1399,7 +1399,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 #     }
 #   ]
 # }
-# See https://www.postgresql.org/docs/12/static/auth-pg-hba-conf.html for an explanation
+# See https://www.postgresql.org/docs/13/static/auth-pg-hba-conf.html for an explanation
 # of the values
 
 ### Version settings
@@ -1423,6 +1423,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['hz'] = 10
 # redis['dir'] = "/var/opt/gitlab/redis"
 # redis['log_directory'] = "/var/log/gitlab/redis"
+# redis['log_group'] = nil
 # redis['username'] = "gitlab-redis"
 # redis['group'] = "gitlab-redis"
 # redis['maxclients'] = "10000"
@@ -1644,6 +1645,7 @@ nginx['listen_https'] = false
 ### Advanced settings
 # nginx['dir'] = "/var/opt/gitlab/nginx"
 # nginx['log_directory'] = "/var/log/gitlab/nginx"
+# nginx['log_group'] = nil
 # nginx['error_log_level'] = "error"
 # nginx['worker_processes'] = 4
 # nginx['worker_connections'] = 10240
@@ -1717,6 +1719,7 @@ nginx['listen_https'] = false
 ##! remote port to ship log messages to via UDP
 # logging['udp_log_shipping_port'] = 514
 
+
 ################################################################################
 ## Logrotate
 ##! Docs: https://docs.gitlab.com/omnibus/settings/logs.html#logrotate
@@ -1724,6 +1727,7 @@ nginx['listen_https'] = false
 ################################################################################
 # logrotate['enable'] = true
 # logrotate['log_directory'] = "/var/log/gitlab/logrotate"
+# logrotate['log_group'] = nil
 
 ################################################################################
 ## Users and groups accounts
@@ -1825,6 +1829,7 @@ nginx['listen_https'] = false
 # gitlab_pages['use_http2'] = true
 # gitlab_pages['dir'] = "/var/opt/gitlab/gitlab-pages"
 # gitlab_pages['log_directory'] = "/var/log/gitlab/gitlab-pages"
+# gitlab_pages['log_group'] = nil
 
 # gitlab_pages['artifacts_server'] = true
 # gitlab_pages['artifacts_server_url'] = nil # Defaults to external_url + '/api/v4'
@@ -2040,6 +2045,7 @@ nginx['listen_https'] = false
 ##! Directories for GitLab KAS
 # gitlab_kas['dir'] = '/var/opt/gitlab/gitlab-kas'
 # gitlab_kas['log_directory'] = '/var/log/gitlab/gitlab-kas'
+# gitlab_kas['log_group'] = nil
 # gitlab_kas['env_directory'] = '/opt/gitlab/etc/gitlab-kas/env'
 
 ################################################################################
@@ -2157,6 +2163,7 @@ nginx['listen_https'] = false
 # prometheus['shell'] = '/bin/sh'
 # prometheus['home'] = '/var/opt/gitlab/prometheus'
 # prometheus['log_directory'] = '/var/log/gitlab/prometheus'
+# prometheus['log_group'] = nil
 # prometheus['rules_files'] = ['/var/opt/gitlab/prometheus/rules/*.rules']
 # prometheus['scrape_interval'] = 15
 # prometheus['scrape_timeout'] = 15
@@ -2234,6 +2241,7 @@ nginx['listen_https'] = false
 # alertmanager['enable'] = true
 # alertmanager['home'] = '/var/opt/gitlab/alertmanager'
 # alertmanager['log_directory'] = '/var/log/gitlab/alertmanager'
+# alertmanager['log_group'] = nil
 # alertmanager['admin_email'] = 'admin@example.com'
 # alertmanager['flags'] = {
 #   'web.listen-address' => "localhost:9093",
@@ -2257,6 +2265,7 @@ nginx['listen_https'] = false
 # node_exporter['enable'] = true
 # node_exporter['home'] = '/var/opt/gitlab/node-exporter'
 # node_exporter['log_directory'] = '/var/log/gitlab/node-exporter'
+# node_exporter['log_group'] = nil
 # node_exporter['flags'] = {
 #   'collector.textfile.directory' => "/var/opt/gitlab/node-exporter/textfile_collector"
 # }
@@ -2280,6 +2289,7 @@ nginx['listen_https'] = false
 
 # redis_exporter['enable'] = true
 # redis_exporter['log_directory'] = '/var/log/gitlab/redis-exporter'
+# redis_exporter['log_group'] = nil
 # redis_exporter['flags'] = {
 #   'redis.addr' => "unix:///var/opt/gitlab/redis/redis.socket",
 # }
@@ -2304,6 +2314,7 @@ nginx['listen_https'] = false
 # postgres_exporter['enable'] = true
 # postgres_exporter['home'] = '/var/opt/gitlab/postgres-exporter'
 # postgres_exporter['log_directory'] = '/var/log/gitlab/postgres-exporter'
+# postgres_exporter['log_group'] = nil
 # postgres_exporter['flags'] = {}
 # postgres_exporter['listen_address'] = 'localhost:9187'
 # postgres_exporter['env_directory'] = '/opt/gitlab/etc/postgres-exporter/env'
@@ -2325,6 +2336,7 @@ nginx['listen_https'] = false
 
 # pgbouncer_exporter['enable'] = false
 # pgbouncer_exporter['log_directory'] = "/var/log/gitlab/pgbouncer-exporter"
+# pgbouncer_exporter['log_group'] = nil
 # pgbouncer_exporter['listen_address'] = 'localhost:9188'
 # pgbouncer_exporter['env_directory'] = '/opt/gitlab/etc/pgbouncer-exporter/env'
 # pgbouncer_exporter['env'] = {
@@ -2339,6 +2351,7 @@ nginx['listen_https'] = false
 
 # gitlab_exporter['enable'] = true
 # gitlab_exporter['log_directory'] = "/var/log/gitlab/gitlab-exporter"
+# gitlab_exporter['log_group'] = nil
 # gitlab_exporter['home'] = "/var/opt/gitlab/gitlab-exporter"
 
 ##! Advanced settings. Should be changed only if absolutely needed.
@@ -2380,7 +2393,9 @@ nginx['listen_https'] = false
 ################################################################################
 
 # grafana['enable'] = false
+# grafana['enable_deprecated_service'] = false
 # grafana['log_directory'] = '/var/log/gitlab/grafana'
+# grafana['log_group'] = nil
 # grafana['home'] = '/var/opt/gitlab/grafana'
 # grafana['admin_password'] = 'admin'
 # grafana['allow_user_sign_up'] = false
@@ -2502,7 +2517,6 @@ nginx['listen_https'] = false
 #     level: 'warn',
 #     format: 'json',
 #     sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
-#     ruby_sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
 #     sentry_environment: 'production',
 #   },
 #   prometheus: {
@@ -2528,12 +2542,6 @@ nginx['listen_https'] = false
 #       { key: 'http.http://example.com.proxy', value: 'http://example.proxy.com' },
 #     ],
 #   },
-#   'gitaly-ruby': {
-#     max_rss: 300000000, # RSS threshold in bytes for triggering a gitaly-ruby restart
-#     graceful_restart_timeout: '10m', # Grace time for a gitaly-ruby process to finish ongoing requests
-#     restart_delay: '5m', # Period of sustained high RSS that needs to be observed before restarting gitaly-ruby
-#     num_workers: 3, # Number of gitaly-ruby worker processes. Minimum 2, default 2.
-#   },
 #   hooks: {
 #     custom_hooks_dir: '/var/opt/gitlab/gitaly/custom_hooks',
 #   },
@@ -2549,7 +2557,7 @@ nginx['listen_https'] = false
 #     hierarchy_root: 'gitaly',
 #     memory_bytes: 1048576,
 #     cpu_shares: 512,
-#     cpu_quota_us: 400000
+#     cpu_quota_us: 400000,
 #     repositories: {
 #       count: 1000,
 #       memory_bytes: 12884901888,
@@ -2594,6 +2602,7 @@ nginx['listen_https'] = false
 # praefect['enable'] = false
 # praefect['dir'] = "/var/opt/gitlab/praefect"
 # praefect['log_directory'] = "/var/log/gitlab/praefect"
+# praefect['log_group'] = nil
 # praefect['env_directory'] = "/opt/gitlab/etc/praefect/env"
 # praefect['env'] = {
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
@@ -2704,6 +2713,7 @@ nginx['listen_https'] = false
 # storage_check['enable'] = false
 # storage_check['target'] = 'unix:///var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
 # storage_check['log_directory'] = '/var/log/gitlab/storage-check'
+# storage_check['log_group'] = nil
 
 ################################################################################
 # Let's Encrypt integration
@@ -2915,6 +2925,9 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ###! * This is configured to `false` when an IP address is provided
 # sentinel['use_hostnames'] = <calculated>
 
+### Sentinel log settings
+# sentinel['log_directory'] = '/var/log/gitlab/sentinel'
+
 ################################################################################
 ## Additional Database Settings (EE only)
 ##! Docs: https://docs.gitlab.com/ee/administration/database_load_balancing.html
@@ -2980,6 +2993,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ################################################################################
 
 # geo_logcursor['log_directory'] = '/var/log/gitlab/geo-logcursor'
+# geo_logcursor['log_group'] = nil
 
 ################################################################################
 ## Unleash
@@ -2999,6 +3013,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ################################################################################
 # pgbouncer['enable'] = false
 # pgbouncer['log_directory'] = '/var/log/gitlab/pgbouncer'
+# pgbouncer['log_group'] = nil
 # pgbouncer['data_directory'] = '/var/opt/gitlab/pgbouncer'
 # pgbouncer['env_directory'] = '/opt/gitlab/etc/pgbouncer/env'
 # pgbouncer['env'] = {
@@ -3135,6 +3150,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 
 ## Log settings
 # patroni['log_directory'] = '/var/log/gitlab/patroni'
+# patroni['log_group'] = nil
 # patroni['log_level'] = 'INFO'
 
 ## Consul specific settings
@@ -3214,6 +3230,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # consul['config_dir'] = '/var/opt/gitlab/consul/config.d'
 # consul['data_dir'] = '/var/opt/gitlab/consul/data'
 # consul['log_directory'] = '/var/log/gitlab/consul'
+# consul['log_group'] = nil
 # consul['env_directory'] = '/opt/gitlab/etc/consul/env'
 # consul['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
@@ -3336,6 +3353,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # spamcheck['allowlist'] = {}
 # spamcheck['denylist'] = {}
 # spamcheck['log_directory'] = "/var/log/gitlab/spamcheck"
+# spamcheck['log_group'] = nil
 # spamcheck['env_directory'] = "/opt/gitlab/etc/spamcheck/env"
 # spamcheck['env'] = {
 #   'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/cers'
