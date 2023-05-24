@@ -123,7 +123,7 @@ ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$conf
 # RECONFIGURE GITLAB
 #=================================================
 
-gitlab-ctl reconfigure
+ynh_exec_warn_less gitlab-ctl reconfigure
 
 #=================================================
 # WAITING GITLAB
