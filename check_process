@@ -24,5 +24,5 @@
 Email=
 Notification=none
 ;;; Upgrade options
-	; commit=2cc84310aeff7055342b445c1aee01d4183d5ae2
+	; commit=722fa8db9d8d840064ffc64338e1170da7cafc37
 		name=15.0.0
