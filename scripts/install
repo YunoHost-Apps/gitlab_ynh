@@ -222,7 +222,7 @@ ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web
 #=================================================
 ynh_script_progression --message="Reconfigure GitLab..." --weight=13
 
-gitlab-ctl reconfigure
+ynh_exec_warn_less gitlab-ctl reconfigure
 
 # Allow ssh for git
 usermod -a -G "ssh.app" "git"
