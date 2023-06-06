@@ -67,7 +67,7 @@ else
 	puma_max_threads=4
 fi
 
-ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
+ynh_app_setting_set --app=$app --key=puma_worker_processes --value=$puma_worker_processes
 ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
 ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
 
