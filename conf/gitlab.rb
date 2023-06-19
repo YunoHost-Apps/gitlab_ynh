@@ -2483,7 +2483,6 @@ nginx['listen_https'] = false
 # deployments, see https://docs.gitlab.com/ee/administration/gitaly/index.html .
 # gitaly['enable'] = true
 # gitaly['dir'] = "/var/opt/gitlab/gitaly"
-# gitaly['log_directory'] = "/var/log/gitlab/gitaly"
 # gitaly['log_group'] = nil
 # gitaly['bin_path'] = "/opt/gitlab/embedded/bin/gitaly"
 # gitaly['env_directory'] = "/opt/gitlab/etc/gitaly/env"
@@ -2514,6 +2513,7 @@ nginx['listen_https'] = false
 #   },
 #   graceful_restart_timeout: '1m', # Grace time for a gitaly process to finish ongoing requests
 #   logging: {
+#     dir: "/var/log/gitlab/gitaly"
 #     level: 'warn',
 #     format: 'json',
 #     sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
