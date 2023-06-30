@@ -35,20 +35,10 @@ elif [ "$architecture" = "arm64" ]; then
 elif [ "$architecture" = "arm" ]; then
 	if [ "$gitlab_debian_version" = "bullseye" ]
 	then
-		# If the version for arm doesn't exist, then use an older one
-		if [ -z "$gitlab_arm_buster_source_sha256" ]; then
-			gitlab_version="15.11.5"
-			gitlab_arm_buster_source_sha256="838c832db002b3db16d52f92f2d1390737e43ad81dff78b185829d01ce4e2096"
-		fi
-		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
+		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
 	elif [ "$gitlab_debian_version" = "buster" ]
 	then
-		# If the version for arm doesn't exist, then use an older one
-		if [ -z "$gitlab_arm_bullseye_source_sha256" ]; then
-			gitlab_version="15.11.5"
-			gitlab_arm_bullseye_source_sha256="fdbe645ef18cfeeef2fc15c9979c6ced35f6717873538b2ade934e3e24b1dd51"
-		fi
-		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
+		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 	fi
 fi
 
