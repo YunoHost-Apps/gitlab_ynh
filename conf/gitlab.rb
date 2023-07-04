@@ -201,7 +201,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['ssh_keys_expiring_soon_notification_worker_cron'] = "0 1 * * *"
 # gitlab_rails['loose_foreign_keys_cleanup_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['ci_runner_versions_reconciliation_worker_cron'] = "@daily"
-# gitlab_rails['ci_runners_stale_machines_cleanup_worker_cron'] = "36 4 * * *"
+# gitlab_rails['ci_runners_stale_machines_cleanup_worker_cron'] = "36 * * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -512,7 +512,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['mattermost_host'] = "https://mattermost.example.com"
 
 ### LDAP Settings
-###! Docs: https://docs.gitlab.com/omnibus/settings/ldap.html
+###! Docs: https://docs.gitlab.com/ee/administration/auth/ldap/index.html
 ###! **Be careful not to break the indentation in the ldap_servers block. It is
 ###!   in yaml format and the spaces must be retained. Using tabs will not work.**
 
@@ -829,7 +829,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_sentinels'] = [
 #   {'host' => '127.0.0.1', 'port' => 26379},
 # ]
-
+# gitlab_rails['redis_sentinels_password'] = 'sentinel-requirepass-goes-here'
 
 #### Cluster support
 ####! Cluster support is only available for selected Redis instances. `resque.yml` will not
@@ -846,46 +846,55 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html#running-with-multiple-redis-instances
 # gitlab_rails['redis_cache_instance'] = nil
 # gitlab_rails['redis_cache_sentinels'] = nil
+# gitlab_rails['redis_cache_sentinels_password'] = nil
 # gitlab_rails['redis_cache_username'] = nil
 # gitlab_rails['redis_cache_password'] = nil
 # gitlab_rails['redis_cache_cluster_nodes'] = nil
 # gitlab_rails['redis_queues_instance'] = nil
 # gitlab_rails['redis_queues_sentinels'] = nil
+# gitlab_rails['redis_queues_sentinels_password'] = nil
 # gitlab_rails['redis_queues_username'] = nil
 # gitlab_rails['redis_queues_password'] = nil
 # gitlab_rails['redis_queues_cluster_nodes'] = nil
 # gitlab_rails['redis_shared_state_instance'] = nil
 # gitlab_rails['redis_shared_state_sentinels'] = nil
+# gitlab_rails['redis_shared_state_sentinels_password'] = nil
 # gitlab_rails['redis_shared_state_username'] = nil
 # gitlab_rails['redis_shared_state_password'] = nil
 # gitlab_rails['redis_shared_state_cluster_nodes'] = nil
 # gitlab_rails['redis_trace_chunks_instance'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels'] = nil
+# gitlab_rails['redis_trace_chunks_sentinels_password'] = nil
 # gitlab_rails['redis_trace_chunks_username'] = nil
 # gitlab_rails['redis_trace_chunks_password'] = nil
 # gitlab_rails['redis_trace_chunks_cluster_nodes'] = nil
 # gitlab_rails['redis_actioncable_instance'] = nil
 # gitlab_rails['redis_actioncable_sentinels'] = nil
+# gitlab_rails['redis_actioncable_sentinels_password'] = nil
 # gitlab_rails['redis_actioncable_username'] = nil
 # gitlab_rails['redis_actioncable_password'] = nil
 # gitlab_rails['redis_actioncable_cluster_nodes'] = nil
 # gitlab_rails['redis_rate_limiting_instance'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
+# gitlab_rails['redis_rate_limiting_sentinels_password'] = nil
 # gitlab_rails['redis_rate_limiting_username'] = nil
 # gitlab_rails['redis_rate_limiting_password'] = nil
 # gitlab_rails['redis_rate_limiting_cluster_nodes'] = nil
 # gitlab_rails['redis_sessions_instance'] = nil
 # gitlab_rails['redis_sessions_sentinels'] = nil
+# gitlab_rails['redis_sessions_sentinels_password'] = nil
 # gitlab_rails['redis_sessions_username'] = nil
 # gitlab_rails['redis_sessions_password'] = nil
 # gitlab_rails['redis_sessions_cluster_nodes'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_instance'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_sentinels_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_username'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_cluster_nodes'] = nil
 # gitlab_rails['redis_repository_cache_instance'] = nil
 # gitlab_rails['redis_repository_cache_sentinels'] = nil
+# gitlab_rails['redis_repository_cache_sentinels_password'] = nil
 # gitlab_rails['redis_repository_cache_username'] = nil
 # gitlab_rails['redis_repository_cache_password'] = nil
 # gitlab_rails['redis_repository_cache_cluster_nodes'] = nil
@@ -1123,6 +1132,7 @@ puma['port'] = __PORT_PUMA__
 # puma['ssl_certificate_key'] = nil
 # puma['ssl_client_certificate'] = nil
 # puma['ssl_cipher_filter'] = nil
+# puma['ssl_key_password_command'] = nil
 # puma['ssl_verify_mode'] = 'none'
 
 # puma['pidfile'] = '/opt/gitlab/var/puma/puma.pid'
@@ -2483,7 +2493,6 @@ nginx['listen_https'] = false
 # deployments, see https://docs.gitlab.com/ee/administration/gitaly/index.html .
 # gitaly['enable'] = true
 # gitaly['dir'] = "/var/opt/gitlab/gitaly"
-# gitaly['log_directory'] = "/var/log/gitlab/gitaly"
 # gitaly['log_group'] = nil
 # gitaly['bin_path'] = "/opt/gitlab/embedded/bin/gitaly"
 # gitaly['env_directory'] = "/opt/gitlab/etc/gitaly/env"
@@ -2514,6 +2523,7 @@ nginx['listen_https'] = false
 #   },
 #   graceful_restart_timeout: '1m', # Grace time for a gitaly process to finish ongoing requests
 #   logging: {
+#     dir: "/var/log/gitlab/gitaly",
 #     level: 'warn',
 #     format: 'json',
 #     sentry_dsn: 'https://<key>:<secret>@sentry.io/<project>',
@@ -2748,6 +2758,13 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ##! Note: We do not recommend changing these values unless absolutely necessary
 # package['systemd_after'] = 'multi-user.target'
 # package['systemd_wanted_by'] = 'multi-user.target'
+
+##! Settings to control secret generation and storage
+##! Note: We do not recommend changing these values unless absolutely necessary
+##! Set to false to only parse secrets from `gitlab-secrets.json` file but not generate them.
+# package['generate_default_secrets'] = true
+##! Set to false to prevent creating `gitlab-secrets.json` file
+# package['generate_secrets_json_file'] = true
 ################################################################################
 ################################################################################
 ##                  Configuration Settings for GitLab EE only                 ##
@@ -2849,6 +2866,9 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 
 ##! Uncomment to change default port
 # sentinel['port'] = 26379
+
+##! Uncomment to require a Sentinel password. This may be different from the Redis master password.
+# sentinel['password'] = 'sentinel-password-goes-here'
 
 #### Support to run sentinels in a Docker or NAT environment
 #####! Docs: https://redis.io/topics/sentinel#sentinel-docker-nat-and-possible-issues
