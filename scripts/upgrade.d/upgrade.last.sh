@@ -19,6 +19,10 @@ gitlab_arm_buster_source_sha256="4a2e40b602797121780676197570093814d035281034ff3
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
+# Evaluating indirect/reference variables https://mywiki.wooledge.org/BashFAQ/006#Indirection 
+# ref=gitlab_${architecture}_${gitlab_debian_version}_source_sha256
+# gitlab_source_sha256=${!ref}
+
 if [ "$architecture" = "x86-64" ]; then
 	if [ "$gitlab_debian_version" = "bookworm" ]
 	then
