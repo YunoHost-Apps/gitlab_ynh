@@ -19,18 +19,6 @@ upgrade_type=$(ynh_check_app_version_changed)
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 
-if [ -n $(ynh_app_setting_get --app=$app --key=puma_port) ]
-then
-	ynh_app_setting_set --app=$app --key=port_puma --value=$(ynh_app_setting_get --app=$app --key=puma_port)
-	ynh_app_setting_delete --app=$app --key=puma_port
-fi
-
-if [ -n $(ynh_app_setting_get --app=$app --key=sidekiq_port) ]
-then
-	ynh_app_setting_set --app=$app --key=port_sidekiq --value=$(ynh_app_setting_get --app=$app --key=sidekiq_port)
-	ynh_app_setting_delete --app=$app --key=sidekiq_port
-fi
-
 if [ -n $(ynh_app_setting_get --app=$app --key=web_port) ]
 then
 	ynh_app_setting_set --app=$app --key=port --value=$(ynh_app_setting_get --app=$app --key=web_port)
