@@ -26,24 +26,6 @@ Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bu
 
 ![Capture d’écran de GitLab](./doc/screenshots/GitLab_running_11.0_(2018-07).png)
 
-## Avertissements / informations importantes
-
-### Configuration
-
-Comment configurer GitLab :
-
-- Avec le panneau d'administration de GitLab.
-- En éditant le fichier de configuration `/etc/gitlab/gitlab-persistent.rb` et en éxécutant la commande `sudo gitlab-ctl reconfigure` pour réactualiser la configuration.
-
-### Support multi-utilisateurs
-
-* L'authentification LDAP et HTTP est-elle prise en charge ? **Oui**
-* L'application peut-elle être utilisée par plusieurs utilisateurs ? **Oui**
-
-### Limitations
-
-* L'application GitLab n'est pas compatible avec les architectures 32-bit.
-
 ## Documentations et ressources
 
 * Site officiel de l’app : <https://gitlab.com>
