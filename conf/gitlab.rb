@@ -1170,6 +1170,7 @@ puma['port'] = __PUMA_PORT__
 ##! can be used to ensure certain queues are able to handle additional workload.
 ##! https://docs.gitlab.com/ee/administration/operations/extra_sidekiq_processes.html
 
+# sidekiq['enable'] = true
 # sidekiq['log_directory'] = "/var/log/gitlab/sidekiq"
 # sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
@@ -1437,6 +1438,7 @@ sidekiq['listen_port'] = __SIDEKIQ_PORT__
 # redis['username'] = "gitlab-redis"
 # redis['group'] = "gitlab-redis"
 # redis['maxclients'] = "10000"
+# redis['open_files_ulimit'] = nil # Maximum number of open files allowed for the redis process (defaults to ope
 # redis['maxmemory'] = "0"
 # redis['maxmemory_policy'] = "noeviction"
 # redis['maxmemory_samples'] = "5"
