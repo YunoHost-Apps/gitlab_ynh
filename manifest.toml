@@ -43,7 +43,7 @@ ram.runtime = "2000M"
 
     [install.init_main_permission]
     help.en = "If your GitLab instance is public, anyone can see your public repositories."
-    help.fr = "Si votre instance GitLab est publique, tout le monde pourra voir vos dépôts publics."
+    help.fr = "Si votre instance GitLab est définie sur visiteurs, tout le monde pourra voir vos dépôts publics."
     type = "group"
     default = "visitors"
 
