@@ -2004,8 +2004,8 @@ nginx['listen_https'] = false
 # gitlab_kas['enable'] = true
 
 ##! Agent configuration for GitLab KAS
-# gitlab_kas['agent_configuration_poll_period'] = 20
-# gitlab_kas['agent_gitops_poll_period'] = 20
+# gitlab_kas['agent_configuration_poll_period'] = 300
+# gitlab_kas['agent_gitops_poll_period'] = 300
 # gitlab_kas['agent_gitops_project_info_cache_ttl'] = 300
 # gitlab_kas['agent_gitops_project_info_cache_error_ttl'] = 60
 # gitlab_kas['agent_info_cache_ttl'] = 300
@@ -2400,93 +2400,6 @@ nginx['listen_https'] = false
 # prometheus_monitoring['enable'] = true
 
 ################################################################################
-## Grafana Dashboards
-##! Docs: https://docs.gitlab.com/ee/administration/monitoring/prometheus/#prometheus-as-a-grafana-data-source
-################################################################################
-
-# grafana['enable'] = false
-# grafana['enable_deprecated_service'] = false
-# grafana['log_directory'] = '/var/log/gitlab/grafana'
-# grafana['log_group'] = nil
-# grafana['home'] = '/var/opt/gitlab/grafana'
-# grafana['admin_password'] = 'admin'
-# grafana['allow_user_sign_up'] = false
-# grafana['basic_auth_enabled'] = false
-# grafana['disable_login_form'] = true
-# grafana['gitlab_application_id'] = 'GITLAB_APPLICATION_ID'
-# grafana['gitlab_secret'] = 'GITLAB_SECRET'
-# grafana['env_directory'] = '/opt/gitlab/etc/grafana/env'
-# grafana['allowed_groups'] = []
-# grafana['gitlab_auth_sign_up'] = true
-# grafana['env'] = {
-#   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
-# }
-# grafana['metrics_enabled'] = false
-# grafana['metrics_basic_auth_username'] = 'grafana_metrics' # default: nil
-# grafana['metrics_basic_auth_password'] = 'please_set_a_unique_password' # default: nil
-# grafana['alerting_enabled'] = false
-
-### SMTP Configuration
-#
-# See: http://docs.grafana.org/administration/configuration/#smtp
-#
-# grafana['smtp'] = {
-#   'enabled' => true,
-#   'host' => 'localhost:25',
-#   'user' => nil,
-#   'password' => nil,
-#   'cert_file' => nil,
-#   'key_file' => nil,
-#   'skip_verify' => false,
-#   'from_address' => 'admin@grafana.localhost',
-#   'from_name' => 'Grafana',
-#   'ehlo_identity' => 'dashboard.example.com',
-#   'startTLS_policy' => nil
-# }
-
-# Grafana usage reporting defaults to gitlab_rails['usage_ping_enabled']
-# grafana['reporting_enabled'] = true
-
-### Dashboards
-#
-# See: http://docs.grafana.org/administration/provisioning/#dashboards
-#
-# NOTE: Setting this will override the default.
-#
-# grafana['dashboards'] = [
-#   {
-#     'name' => 'GitLab Omnibus',
-#     'orgId' => 1,
-#     'folder' => 'GitLab Omnibus',
-#     'type' => 'file',
-#     'disableDeletion' => true,
-#     'updateIntervalSeconds' => 600,
-#     'options' => {
-#       'path' => '/opt/gitlab/embedded/service/grafana-dashboards',
-#     }
-#   }
-# ]
-
-### Datasources
-#
-# See: http://docs.grafana.org/administration/provisioning/#example-datasource-config-file
-#
-# NOTE: Setting this will override the default.
-#
-# grafana['datasources'] = [
-#   {
-#     'name' => 'GitLab Omnibus',
-#     'type' => 'prometheus',
-#     'access' => 'proxy',
-#     'url' => 'http://localhost:9090'
-#   }
-# ]
-
-##! Advanced settings. Should be changed only if absolutely needed.
-# grafana['http_addr'] = 'localhost'
-# grafana['http_port'] = 3000
-
-################################################################################
 ## Gitaly
 ##! Docs: https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html
 ################################################################################
@@ -2742,6 +2655,7 @@ nginx['listen_https'] = false
 # letsencrypt['auto_renew_minute'] = nil # Should be a number or cron expression, if specified.
 # letsencrypt['auto_renew_day_of_month'] = "*/4"
 # letsencrypt['auto_renew_log_directory'] = '/var/log/gitlab/lets-encrypt'
+# letsencrypt['alt_names'] = []
 
 ##! Turn off automatic init system detection. To skip init detection in
 ##! non-docker containers. Recommended not to change.
