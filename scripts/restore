@@ -11,53 +11,12 @@ source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# MANAGE SCRIPT FAILURE
-#=================================================
-
-ynh_clean_setup () {
-	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
-	
-	ynh_clean_check_starting
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading settings..." --weight=1
-
-app=$YNH_APP_INSTANCE_NAME
-
-domain=$(ynh_app_setting_get --app=$app --key=domain)
-path_url=$(ynh_app_setting_get --app=$app --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-config_path=$(ynh_app_setting_get --app=$app --key=config_path)
-puma_port=$(ynh_app_setting_get --app="$app" --key=puma_port)
-architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
-
-#=================================================
-# CHECK IF THE APP CAN BE RESTORED
-#=================================================
-ynh_script_progression --message="Validating restoration parameters..." --weight=1
-
-test ! -d $final_path || ynh_die --message="There is already a directory: $final_path "
-
-#=================================================
 # STANDARD RESTORATION STEPS
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
 
 ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
-
-#=================================================
-# REINSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Reinstalling dependencies..." --weight=5
-
-# Define and install dependencies
-ynh_install_app_dependencies $pkg_dependencies
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -75,7 +34,7 @@ fi
 if [ $swap_needed -gt 0 ]; then
 	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 	if ! ynh_add_swap --size=$swap_needed; then
-		ynh_print_warn --message="Please add $swap_needed Mo to swap to make Gitlab work properly"
+		ynh_print_warn --message="Please add $swap_needed Mo to swap to make GitLab work properly"
 	fi
 fi
 
@@ -83,6 +42,9 @@ fi
 # RESTORE CONF FILES
 #=================================================
 ynh_script_progression --message="Restoring configuration files of GitLab..." --weight=1
+
+config_path=/etc/$app
+chmod 755 $install_dir
 
 ynh_restore_file --origin_path="$config_path/gitlab-secrets.json"
 ynh_restore_file --origin_path="$config_path/gitlab.rb"
@@ -142,7 +104,7 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 #=================================================
 ynh_script_progression --message="Waiting for GitLab..." --weight=14
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$puma_port" --timeout=300
+ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$port_puma" --timeout=300
 
 #=================================================
 # CHECK THE RESTORED DATA

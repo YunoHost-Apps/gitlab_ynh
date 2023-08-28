@@ -1010,7 +1010,7 @@ puma['max_threads'] = __PUMA_MAX_THREADS__
 
 ### Advanced settings
 # puma['listen'] = '127.0.0.1'
-puma['port'] = __PUMA_PORT__
+puma['port'] = __PORT_PUMA__
 # puma['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
 # puma['somaxconn'] = 1024
 
@@ -1066,7 +1066,7 @@ puma['port'] = __PUMA_PORT__
 # sidekiq['metrics_enabled'] = true
 # sidekiq['exporter_log_enabled'] = false
 # sidekiq['listen_address'] = "localhost"
-sidekiq['listen_port'] = __SIDEKIQ_PORT__
+sidekiq['listen_port'] = __PORT_SIDEKIQ__
 
 ################################################################################
 ## gitlab-shell

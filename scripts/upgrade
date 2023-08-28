@@ -10,27 +10,6 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# LOAD SETTINGS
-#=================================================
-
-app=$YNH_APP_INSTANCE_NAME
-
-# Retrieve app settings
-domain=$(ynh_app_setting_get --app="$app" --key=domain)
-path_url=$(ynh_app_setting_get --app="$app" --key=path)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-config_path=$(ynh_app_setting_get --app=$app --key=config_path)
-port=$(ynh_app_setting_get --app="$app" --key=web_port)
-puma_port=$(ynh_app_setting_get --app="$app" --key=puma_port)
-sidekiq_port=$(ynh_app_setting_get --app="$app" --key=sidekiq_port)
-architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
-puma_worker_processes=$(ynh_app_setting_get --app="$app" --key=puma_workers)
-puma_min_threads=$(ynh_app_setting_get --app="$app" --key=puma_min_threads)
-puma_max_threads=$(ynh_app_setting_get --app="$app" --key=puma_max_threads)
-client_max_body_size=$(ynh_app_setting_get --app="$app" --key=client_max_body_size)
-overwrite_nginx=$(ynh_app_setting_get --app="$app" --key=overwrite_nginx)
-
-#=================================================
 # CHECK VERSION
 #=================================================
 
@@ -40,17 +19,14 @@ upgrade_type=$(ynh_check_app_version_changed)
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 
-# If final_path doesn't exist, create it
-if [ -z "$final_path" ]; then
-	final_path=/opt/$app
-	ynh_app_setting_set --app=$app --key=final_path --value=$final_path
+if [ -n $(ynh_app_setting_get --app=$app --key=web_port) ]
+then
+	ynh_app_setting_set --app=$app --key=port --value=$(ynh_app_setting_get --app=$app --key=web_port)
+	ynh_app_setting_delete --app=$app --key=web_port
 fi
 
-# If config_path doesn't exist, create it
-if [ -z "$config_path" ]; then
-	config_path=/etc/$app
-	ynh_app_setting_set --app=$app --key=config_path --value=$config_path
-fi
+config_path=/etc/$app
+chmod 755 $install_dir
 
 if [ -z "$puma_max_threads" ] || [ -z "$puma_min_threads" ]; then
 	# If the server has less than 2GB of RAM
@@ -75,7 +51,7 @@ if [ -z "$architecture" ]; then
 	elif [ -n "$(uname -m | grep x86_64)" ]; then
 		architecture="x86-64"
 	elif [ -n "$(uname -m | grep 86)" ]; then
-		ynh_die "Gitlab is not compatible with x86 architecture"
+		ynh_die "GitLab is not compatible with x86 architecture"
 	elif [ -n "$(uname -m | grep arm)" ]; then
 		architecture="arm"
 	else
@@ -91,82 +67,13 @@ if [ -z "$client_max_body_size" ]; then
 	ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
 fi
 
-# If overwrite_nginx doesn't exist, create it
-if [ -z "$overwrite_nginx" ]; then
-	overwrite_nginx=1
-	ynh_app_setting_set --app=$app --key=overwrite_nginx --value=$overwrite_nginx
-fi
-
-# If domain doesn't exist, retrieve it
-if [ -z "$domain" ]; then
-	domain=$(grep "external_url" "/etc/gitlab/gitlab.rb" | cut -d'/' -f3) # retrieve $domain from conf file
-	if [ ${domain: -1} == "'" ]; then # if the last char of $domain is ' remove it
-		domain=${domain:0:-1}
-	fi
-	ynh_app_setting_set --app=$app --key=domain --value=$domain
-fi
-
-# If path_url doesn't exist, retrieve it
-if [ -z "$path_url" ]; then
-	path_url=$(grep "location" "/etc/nginx/conf.d/${domain}.d/gitlab.conf" | cut -d' ' -f2)
-	path_url=$(ynh_normalize_url_path $path_url)
-	ynh_app_setting_set --app=$app --key=path --value=path_url
-fi
-
-# If port doesn't exist, retrieve it
-if [ -z "$port" ]; then
-	port=$(grep -F "nginx['listen_port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
-	ynh_app_setting_set --app=$app --key=web_port --value=$port
-fi
-
-# If port doesn't exist, retrieve it
-if [ -z "$puma_port" ]; then
-	if [ -z "$(ynh_app_setting_get --app="$app" --key=unicorn_port)" ]; then
-		puma_port=$(grep -F "unicorn['port']" "/etc/gitlab/gitlab.rb" | cut -d' ' -f3)
-	else
-		puma_port=$(ynh_app_setting_get --app="$app" --key=unicorn_port)
-	fi
-	ynh_app_setting_set --app=$app --key=puma_port --value=$puma_port
-	ynh_app_setting_delete --app=$app --key=unicorn_port
-fi
-
-if [ -z "$sidekiq_port" ]; then
-	sidekiq_port=$(ynh_find_port $(($puma_port + 1)))
-	ynh_app_setting_set --app=$app --key=sidekiq_port --value=$sidekiq_port
-fi
-
 # if this source file exist, remove it
 if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
 	ynh_secure_remove --file="/etc/apt/sources.list.d/gitlab-ce.list"
 fi
 
 #=================================================
-# BACKUP BEFORE UPGRADE THEN ACTIVE TRAP
-#=================================================
-ynh_script_progression --message="Backing up the app before upgrading (may take a while)..." --weight=10
-
-# Backup the current version of the app
-ynh_backup_before_upgrade
-ynh_clean_setup () {
-	ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
-	
-	ynh_clean_check_starting
-
-	# restore it if the upgrade fails
-	ynh_restore_upgradebackup
-}
-# Exit if an error occurs during the execution of the script
-ynh_abort_if_errors
-
-#=================================================
 # STANDARD UPGRADE STEPS
-#=================================================
-# INSTALL DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Installing dependencies..." --weight=5
-
-ynh_install_app_dependencies $pkg_dependencies
-
 #=================================================
 # DEFINE THE NUMBER OF WORKERS USED
 #=================================================
@@ -181,7 +88,7 @@ else
 	puma_worker_processes=$(( $(nproc) > 2 ? $(($(nproc) - 1)) : 2 ))
 fi
 
-ynh_app_setting_set --app=$app --key=puma_workers --value=$puma_worker_processes
+ynh_app_setting_set --app=$app --key=puma_worker_processes --value=$puma_worker_processes
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -199,7 +106,7 @@ fi
 if [ $swap_needed -gt 0 ]; then
 	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 	if ! ynh_add_swap --size=$swap_needed; then
-		ynh_print_warn --message="Please add $swap_needed Mo to swap to make Gitlab work properly"
+		ynh_print_warn --message="Please add $swap_needed Mo to swap to make GitLab work properly"
 	fi
 fi
 
@@ -222,7 +129,7 @@ done
 mkdir -p $config_path
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
-generated_external_url="https://$domain${path_url%/}"
+generated_external_url="https://$domain${path%/}"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
@@ -409,13 +316,12 @@ if [ "$upgrade_type" == "UPGRADE_APP" ]
 then
 	ynh_script_progression --message="Restarting GitLab..." --weight=15
 
-	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$puma_port" --timeout=300
+	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$port_puma" --timeout=300
 fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
 
 ynh_systemd_action --action=reload --service_name=nginx
 

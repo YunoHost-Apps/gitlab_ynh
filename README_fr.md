@@ -18,31 +18,13 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 
 Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD
 
-**Version incluse :** 16.2.4~ynh1
+**Version incluse :** 16.3.0~ynh1
 
 **Démo :** https://gitlab.com/explore
 
 ## Captures d’écran
 
 ![Capture d’écran de GitLab](./doc/screenshots/GitLab_running_11.0_(2018-07).png)
-
-## Avertissements / informations importantes
-
-### Configuration
-
-Comment configurer GitLab :
-
-- Avec le panneau d'administration de GitLab.
-- En éditant le fichier de configuration `/etc/gitlab/gitlab-persistent.rb` et en éxécutant la commande `sudo gitlab-ctl reconfigure` pour réactualiser la configuration.
-
-### Support multi-utilisateurs
-
-* L'authentification LDAP et HTTP est-elle prise en charge ? **Oui**
-* L'application peut-elle être utilisée par plusieurs utilisateurs ? **Oui**
-
-### Limitations
-
-* L'application GitLab n'est pas compatible avec les architectures 32-bit.
 
 ## Documentations et ressources
 

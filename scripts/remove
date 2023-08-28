@@ -9,22 +9,6 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-#=================================================
-# LOAD SETTINGS
-#=================================================
-ynh_script_progression --message="Loading installation settings..." --weight=2
-
-app=$YNH_APP_INSTANCE_NAME
-
-port=$(ynh_app_setting_get --app="$app" --key=web_port)
-portPuma=$(ynh_app_setting_get --app="$app" --key=puma_port)
-final_path=$(ynh_app_setting_get --app=$app --key=final_path)
-config_path=$(ynh_app_setting_get --app=$app --key=config_path)
-
-# Used by ynh_remove_nginx_config
-domain=$(ynh_app_setting_get --app="$app" --key=domain)
-
-#=================================================
 # STANDARD REMOVE
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
@@ -52,20 +36,11 @@ ynh_script_progression --message="Removing GitLab" --weight=4
 dpkg --remove gitlab-ce
 
 #=================================================
-# REMOVE DEPENDENCIES
-#=================================================
-ynh_script_progression --message="Removing dependencies" --weight=3
-
-# Remove metapackage and its dependencies
-ynh_remove_app_dependencies
-
-#=================================================
 # REMOVE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Removing app main directory" --weight=1
 
 # Remove the app directory securely
-ynh_secure_remove --file="$final_path"
+config_path=/etc/$app
 ynh_secure_remove --file="$config_path"
 
 #=================================================
@@ -75,21 +50,6 @@ ynh_script_progression --message="Removing NGINX web server configuration" --wei
 
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
-
-#=================================================
-# CLOSE A PORT
-#=================================================
-
-# These ports are no longer open but were in previous versions
-if yunohost firewall list | grep -q "\- $port$"; then
-	ynh_script_progression --message="Closing port $port" --weight=1
-	ynh_exec_warn_less yunohost firewall disallow TCP $port
-fi
-
-if yunohost firewall list | grep -q "\- $portPuma$"; then
-	ynh_script_progression --message="Closing port $portPuma" --weight=1
-	ynh_exec_warn_less yunohost firewall disallow TCP $portPuma
-fi
 
 #=================================================
 # SPECIFIC REMOVE
@@ -103,7 +63,6 @@ ynh_secure_remove --file="/var/opt/$app"
 ynh_secure_remove --file="/var/log/$app"
 
 # Remove swap
-
 ynh_del_swap
 
 #=================================================

@@ -1,0 +1,82 @@
+packaging_format = 2
+
+id = "gitlab"
+name = "GitLab"
+description.en = "Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features"
+description.fr = "Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD"
+
+version = "16.3.0~ynh1"
+
+maintainers = ["kay0u"]
+
+[upstream]
+license = "MIT"
+website = "https://gitlab.com"
+demo = "https://gitlab.com/explore"
+admindoc = "https://docs.gitlab.com/"
+code = "https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab"
+cpe = "cpe:2.3:a:gitlab:gitlab"
+
+[integration]
+yunohost = ">= 11.2.3"
+architectures = ["amd64", "armhf", "arm64"]
+multi_instance = false
+ldap = true
+sso = false
+disk = "500M"
+ram.build = "3000M"
+ram.runtime = "2000M"
+
+[install]
+    [install.domain]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "domain"
+
+    [install.path]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "path"
+    default = "/gitlab"
+
+    [install.admin]
+    # this is a generic question - ask strings are automatically handled by Yunohost's core
+    type = "user"
+
+    [install.init_main_permission]
+    help.en = "If your GitLab instance is set to visitors, anyone can see your public repositories."
+    help.fr = "Si votre instance GitLab est définie sur visiteurs, tout le monde pourra voir vos dépôts publics."
+    type = "group"
+    default = "visitors"
+
+    [install.use_web_account]
+    ask.en = "Authorize account creation from GitLab web interface"
+    ask.fr = "Autoriser la création de compte depuis l'interface web de GitLab ?"
+    type = "boolean"
+    default = false
+
+[resources]
+#    [resources.sources]
+#        [resources.sources.main]
+#        extract = false
+#        rename = "gitlab-ce-15.10.0.deb"
+#        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_15.10.0-ce.0_amd64.deb/download.deb"
+#        amd64.sha256 = "c8f5aca04549d3f9ba636ca67e76e9bf2b5a6a249a4a16d79365d17856a53d4d"
+#        armhf.url = "https://packages.gitlab.com/gitlab/raspberry-pi2/packages/raspbian/bullseye/gitlab-ce_15.10.0-ce.0_armhf.deb/download.deb"
+#        armhf.sha256 = "a7a195bf8a74e6ca688de2debe23c0cd5482d989377dcaf7042df484731e10cc"
+#        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_15.10.0-ce.0_arm64.deb/download.deb"
+#        arm64.sha256 = "63d29c92eb956631a478735a6c692bbb315c898b2041b2f545c12302b230c97f"
+
+    [resources.system_user]
+
+    [resources.install_dir]
+    dir = "/opt/__APP__"
+
+    [resources.permissions]
+    main.url = "/"
+
+    [resources.ports]
+    main.default = 8080
+    puma.default = 8081
+    sidekiq.default = 8082
+
+    [resources.apt]
+    packages = "openssh-server"
