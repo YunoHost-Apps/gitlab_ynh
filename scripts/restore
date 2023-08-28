@@ -34,7 +34,7 @@ fi
 if [ $swap_needed -gt 0 ]; then
 	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
 	if ! ynh_add_swap --size=$swap_needed; then
-		ynh_print_warn --message="Please add $swap_needed Mo to swap to make Gitlab work properly"
+		ynh_print_warn --message="Please add $swap_needed Mo to swap to make GitLab work properly"
 	fi
 fi
 
