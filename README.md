@@ -18,31 +18,13 @@ If you don't have YunoHost, please consult [the guide](https://yunohost.org/#/in
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Shipped version:** 16.2.4~ynh1
+**Shipped version:** 16.3.0~ynh1
 
 **Demo:** https://gitlab.com/explore
 
 ## Screenshots
 
 ![Screenshot of GitLab](./doc/screenshots/GitLab_running_11.0_(2018-07).png)
-
-## Disclaimers / important information
-
-### Configuration
-
-How to configure GitLab: 
-
-- With the GitLab admin panel.
-- By editing the configuration file `/etc/gitlab/gitlab-persistent.rb` (use `sudo gitlab-ctl reconfigure` after any modification of this file).
-
-### Multi-users support
-
-* Are LDAP and HTTP auth supported? **Yes**
-* Can the app be used by multiple users? **Yes**
-
-### Limitations
-
-* GitLab is not compatible with 32-bit architectures.
 
 ## Documentation and resources
 
