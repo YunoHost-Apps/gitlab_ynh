@@ -898,7 +898,14 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_repository_cache_username'] = nil
 # gitlab_rails['redis_repository_cache_password'] = nil
 # gitlab_rails['redis_repository_cache_cluster_nodes'] = nil
+# gitlab_rails['redis_workhorse_instance'] = nil
+# gitlab_rails['redis_workhorse_sentinels'] = nil
+# gitlab_rails['redis_workhorse_sentinels_password'] = nil
+# gitlab_rails['redis_workhorse_username'] = nil
+# gitlab_rails['redis_workhorse_password'] = nil
+# gitlab_rails['redis_workhorse_cluster_nodes'] = nil
 
+# gitlab_rails['redis_workhorse_sentinel_master'] = nil
 
 # gitlab_rails['redis_yml_override'] = nil
 
@@ -949,6 +956,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['validation_enabled'] = false
 # registry['autoredirect'] = false
 # registry['compatibility_schema1_enabled'] = false
+# registry['database'] = nil
 
 ### Registry backend storage
 ###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-storage-for-the-container-registry
@@ -963,6 +971,29 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   'redirect' => {
 #     'disable' => false
 #   }
+# }
+
+### Registry database
+###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html?tab=Linux+package+%28Omnibus%29#configure-a-metadata-database-for-the-container-registry
+# registry['database'] = { 
+#   'enabled' => true,
+#   'host' => 'localhost',
+#   'port' => 5432,
+#   'user' => 'postgres',
+#   'password' => 'postgres',
+#   'dbname' => 'registry',
+#   'sslmode' => 'verify-full',
+#   'sslcert' => '/path/to/client.crt',
+#   'sslkey' => '/path/to/client.key',
+#   'sslrootcert' => '/path/to/root.crt',
+#   'connecttimeout' => '5s',
+#   'draintimeout' => '2m',
+#   'preparedstatements' => false,
+#   'pool' => {
+#       'maxidle' => 25,
+#       'maxopen' => 25,
+#       'maxlifetime' => '5m'
+#   } 
 # }
 
 ### Registry notifications endpoints
@@ -2327,14 +2358,16 @@ nginx['listen_https'] = false
 # postgres_exporter['home'] = '/var/opt/gitlab/postgres-exporter'
 # postgres_exporter['log_directory'] = '/var/log/gitlab/postgres-exporter'
 # postgres_exporter['log_group'] = nil
-# postgres_exporter['flags'] = {}
+# postgres_exporter['flags'] = {
+#  'collector.stat_user_tables' => false,
+#  'collector.postmaster' => true
+# }
 # postgres_exporter['listen_address'] = 'localhost:9187'
 # postgres_exporter['env_directory'] = '/opt/gitlab/etc/postgres-exporter/env'
 # postgres_exporter['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
 # }
 # postgres_exporter['sslmode'] = nil
-# postgres_exporter['per_table_stats'] = false
 
 ##! Service name used to register Postgres Exporter as a Consul service
 # postgres_exporter['consul_service_name'] = 'postgres-exporter'
