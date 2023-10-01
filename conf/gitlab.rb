@@ -3210,7 +3210,8 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # consul['configuration'] = {
 #   'client_addr' => nil,
 #   'datacenter' => 'gitlab_consul',
-#   'enable_script_checks' => true,
+#   'enable_script_checks' => false,
+#   'enable_local_script_checks' => true,
 #   'server' => false
 # }
 # consul['services'] = []
