@@ -148,21 +148,49 @@ then
 	source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
 	last_version=$gitlab_version
 
-	source_current_major_version () {
+	source_next_version () {
+		# We start with the upgrade.$current_major_version.first.sh
 		if [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.first.sh" ]; then
 			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.first.sh
-		elif [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh" ]; then
+			if dpkg --compare-versions "$gitlab_version" "gt" "$current_version"; then
+				return
+			fi
+		fi
+
+		# Then upgrade to all minor versions
+		for minor_verion in $(ls $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version* | grep -v -E ".first.sh$|.last.sh$" | sed -e "s@$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.@@" -e "s/.sh$//" | sort)
+		do
+			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.$minor_verion.sh
+			if dpkg --compare-versions "$gitlab_version" "gt" "$current_version"
+			then
+				return
+			fi
+		done
+
+		# Then end with upgrade.$current_major_version.last.sh
+		if [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh" ]; then
 			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh
-		# Finish with the last migration if the file doesn't exist
+			if dpkg --compare-versions "$gitlab_version" "gt" "$current_version"
+			then
+				return
+			fi
 		else
 			source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
+			if dpkg --compare-versions "$gitlab_version" "gt" "$current_version"
+			then
+				return
+			fi
+		fi
+		# Increment the major version to upgrade to the next version
+		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
+			current_major_version=$(($current_major_version + 1))
+			source_next_version
 		fi
 	}
 
-	# To update GitLab from major version A to B, we have to go to the last minor version
-	# of the major version A and then go to the first minor version of the major version B
-	# to finally go to the current minor version of the major version B
-	# A.last -> B.first -> B.last
+	# To upgrade GitLab from a major version A to a major version B, 
+	# we need to follow a specific path described here https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
+	# A.last -> B.first -> -> B.X -> B.Y -> B.last
 
 	# While the current version is not the last version, do an upgrade
 	while [ "$last_version" != "$current_version" ]
@@ -219,22 +247,9 @@ then
 
 		current_major_version=${current_version%%.*}
 
-		source_current_major_version
+		source_next_version
 
-		# if the version stored in the upgrade.$current_major_version.first.sh file is less than or equal
-		# to the current version, and if the version stored in the upgrade.$current_major_version.last.sh file
-		# increment the major version to upgrade to the next version
-		if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
-			if [ -e "$YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh" ]; then
-				source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh
-			else
-				source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
-			fi
-			if dpkg --compare-versions "$gitlab_version" "le" "$current_version"; then
-				current_major_version=$(($current_major_version + 1))
-				source_current_major_version
-			fi
-		fi
+		ynh_print_info --message="Upgrade from ${current_version} to ${gitlab_version}"
 
 		ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
 
