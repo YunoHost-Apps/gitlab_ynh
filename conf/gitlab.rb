@@ -461,7 +461,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # }
 
 ### CI Secure Files
-# gitlab_rails['ci_secure_files_enabled'] = false
+# gitlab_rails['ci_secure_files_enabled'] = true
 # gitlab_rails['ci_secure_files_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/ci_secure_files"
 # gitlab_rails['ci_secure_files_object_store_enabled'] = false
 # gitlab_rails['ci_secure_files_object_store_remote_directory'] = "ci-secure-files"
@@ -646,7 +646,7 @@ EOS
 # gitlab_rails['backup_path'] = "/var/opt/gitlab/backups"
 # gitlab_rails['backup_gitaly_backup_path'] = "/opt/gitlab/embedded/bin/gitaly-backup"
 
-###! Docs: https://docs.gitlab.com/ee/raketasks/backup_restore.html#backup-archive-permissions
+###! Docs: https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html#backup-archive-permissions
 # gitlab_rails['backup_archive_permissions'] = 0644
 
 # gitlab_rails['backup_pg_schema'] = 'public'
@@ -684,7 +684,7 @@ EOS
 # gitlab_rails['backup_storage_class'] = 'STANDARD'
 
 ###! Skip parts of the backup. Comma separated.
-###! Docs: https://docs.gitlab.com/ee/raketasks/backup_restore.html#excluding-specific-directories-from-the-backup
+###! Docs: https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html#excluding-specific-directories-from-the-backup
 #gitlab_rails['env'] = {
 #    "SKIP" => "db,uploads,repositories,builds,artifacts,lfs,registry,pages"
 #}
@@ -816,6 +816,10 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_password'] = nil
 # gitlab_rails['redis_database'] = 0
 # gitlab_rails['redis_enable_client'] = true
+# gitlab_rails['redis_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_tls_client_cert_file'] = nil
+# gitlab_rails['redis_tls_client_key_file'] = nil
 
 #### Redis local UNIX socket (will be disabled if TCP method is used)
 # gitlab_rails['redis_socket'] = "/var/opt/gitlab/redis/redis.socket"
@@ -850,60 +854,100 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_cache_username'] = nil
 # gitlab_rails['redis_cache_password'] = nil
 # gitlab_rails['redis_cache_cluster_nodes'] = nil
+# gitlab_rails['redis_cache_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_cache_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_cache_tls_client_cert_file'] = nil
+# gitlab_rails['redis_cache_tls_client_key_file'] = nil
 # gitlab_rails['redis_queues_instance'] = nil
 # gitlab_rails['redis_queues_sentinels'] = nil
 # gitlab_rails['redis_queues_sentinels_password'] = nil
 # gitlab_rails['redis_queues_username'] = nil
 # gitlab_rails['redis_queues_password'] = nil
 # gitlab_rails['redis_queues_cluster_nodes'] = nil
+# gitlab_rails['redis_queues_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_queues_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_queues_tls_client_cert_file'] = nil
+# gitlab_rails['redis_queues_tls_client_key_file'] = nil
 # gitlab_rails['redis_shared_state_instance'] = nil
 # gitlab_rails['redis_shared_state_sentinels'] = nil
 # gitlab_rails['redis_shared_state_sentinels_password'] = nil
 # gitlab_rails['redis_shared_state_username'] = nil
 # gitlab_rails['redis_shared_state_password'] = nil
 # gitlab_rails['redis_shared_state_cluster_nodes'] = nil
+# gitlab_rails['redis_shared_state_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_shared_state_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_shared_state_tls_client_cert_file'] = nil
+# gitlab_rails['redis_shared_state_tls_client_key_file'] = nil
 # gitlab_rails['redis_trace_chunks_instance'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels_password'] = nil
 # gitlab_rails['redis_trace_chunks_username'] = nil
 # gitlab_rails['redis_trace_chunks_password'] = nil
 # gitlab_rails['redis_trace_chunks_cluster_nodes'] = nil
+# gitlab_rails['redis_trace_chunks_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_trace_chunks_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_trace_chunks_tls_client_cert_file'] = nil
+# gitlab_rails['redis_trace_chunks_tls_client_key_file'] = nil
 # gitlab_rails['redis_actioncable_instance'] = nil
 # gitlab_rails['redis_actioncable_sentinels'] = nil
 # gitlab_rails['redis_actioncable_sentinels_password'] = nil
 # gitlab_rails['redis_actioncable_username'] = nil
 # gitlab_rails['redis_actioncable_password'] = nil
 # gitlab_rails['redis_actioncable_cluster_nodes'] = nil
+# gitlab_rails['redis_actioncable_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_actioncable_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_actioncable_tls_client_cert_file'] = nil
+# gitlab_rails['redis_actioncable_tls_client_key_file'] = nil
 # gitlab_rails['redis_rate_limiting_instance'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels_password'] = nil
 # gitlab_rails['redis_rate_limiting_username'] = nil
 # gitlab_rails['redis_rate_limiting_password'] = nil
 # gitlab_rails['redis_rate_limiting_cluster_nodes'] = nil
+# gitlab_rails['redis_rate_limiting_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_rate_limiting_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_rate_limiting_tls_client_cert_file'] = nil
+# gitlab_rails['redis_rate_limiting_tls_client_key_file'] = nil
 # gitlab_rails['redis_sessions_instance'] = nil
 # gitlab_rails['redis_sessions_sentinels'] = nil
 # gitlab_rails['redis_sessions_sentinels_password'] = nil
 # gitlab_rails['redis_sessions_username'] = nil
 # gitlab_rails['redis_sessions_password'] = nil
 # gitlab_rails['redis_sessions_cluster_nodes'] = nil
+# gitlab_rails['redis_sessions_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_sessions_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_sessions_tls_client_cert_file'] = nil
+# gitlab_rails['redis_sessions_tls_client_key_file'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_instance'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_username'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_cluster_nodes'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_cluster_rate_limiting_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_cluster_rate_limiting_tls_client_cert_file'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_tls_client_key_file'] = nil
 # gitlab_rails['redis_repository_cache_instance'] = nil
 # gitlab_rails['redis_repository_cache_sentinels'] = nil
 # gitlab_rails['redis_repository_cache_sentinels_password'] = nil
 # gitlab_rails['redis_repository_cache_username'] = nil
 # gitlab_rails['redis_repository_cache_password'] = nil
 # gitlab_rails['redis_repository_cache_cluster_nodes'] = nil
+# gitlab_rails['redis_repository_cache_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_repository_cache_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_repository_cache_tls_client_cert_file'] = nil
+# gitlab_rails['redis_repository_cache_tls_client_key_file'] = nil
 # gitlab_rails['redis_workhorse_instance'] = nil
 # gitlab_rails['redis_workhorse_sentinels'] = nil
 # gitlab_rails['redis_workhorse_sentinels_password'] = nil
 # gitlab_rails['redis_workhorse_username'] = nil
 # gitlab_rails['redis_workhorse_password'] = nil
 # gitlab_rails['redis_workhorse_cluster_nodes'] = nil
+# gitlab_rails['redis_workhorse_tls_ca_cert_dir'] = '/opt/gitlab/embedded/ssl/certs/'
+# gitlab_rails['redis_workhorse_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_rails['redis_workhorse_tls_client_cert_file'] = nil
+# gitlab_rails['redis_workhorse_tls_client_key_file'] = nil
 
 # gitlab_rails['redis_workhorse_sentinel_master'] = nil
 
@@ -975,7 +1019,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Registry database
 ###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html?tab=Linux+package+%28Omnibus%29#configure-a-metadata-database-for-the-container-registry
-# registry['database'] = { 
+# registry['database'] = {
 #   'enabled' => true,
 #   'host' => 'localhost',
 #   'port' => 5432,
@@ -993,7 +1037,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #       'maxidle' => 25,
 #       'maxopen' => 25,
 #       'maxlifetime' => '5m'
-#   } 
+#   }
 # }
 
 ### Registry notifications endpoints
@@ -2077,8 +2121,15 @@ nginx['listen_https'] = false
 ##! Environment variables for GitLab KAS
 # gitlab_kas['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
-#   # In a multi-node setup, this address MUST be reachable from other KAS instances. In a single-node setup, it can be on localhost for simplicity
+#   # In a multi-node setup, this address MUST be reachable from other KAS instances. In a single-node setup,
+#   # it can be on localhost for simplicity.
+#   # Use OWN_PRIVATE_API_CIDR + OWN_PRIVATE_API_PORT (optional) + OWN_PRIVATE_API_SCHEME (optional) if you cannot
+#   # specify a correct address for each KAS instance in OWN_PRIVATE_API_URL.
 #   'OWN_PRIVATE_API_URL' => 'grpc://localhost:8155'
+#   # 'OWN_PRIVATE_API_CIDR' => '10.0.0.0/8', # IPv4 example
+#   # 'OWN_PRIVATE_API_CIDR' => '2001:db8:8a2e:370::7334/64', # IPv6 example
+#   # 'OWN_PRIVATE_API_PORT' => '8155', # if not set, port from private_api_listen_address is used
+#   # 'OWN_PRIVATE_API_SCHEME' => 'grpc', # use grpcs when using TLS on private API endpoint
 # }
 
 ##! Error Reporting and Logging with Sentry
@@ -2737,6 +2788,8 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['elastic_index_bulk_cron'] = "*/1 * * * *"
 # gitlab_rails['analytics_devops_adoption_create_all_snapshots_worker_cron'] = "0 4 * * 0"
 # gitlab_rails['ci_runners_stale_group_runners_prune_worker_cron'] = "30 * * * *"
+# gitlab_rails['click_house_ci_finished_builds_sync_worker_cron'] = "*/3 * * * *"
+# gitlab_rails['click_house_ci_finished_builds_sync_worker_args'] = [1]
 
 ################################################################################
 ## Kerberos (EE Only)
