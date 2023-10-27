@@ -1190,9 +1190,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # puma['enable'] = true
 # puma['ha'] = false
 # puma['worker_timeout'] = 60
-puma['worker_processes'] = __PUMA_WORKER_PROCESSES__
-puma['min_threads'] = __PUMA_MIN_THREADS__
-puma['max_threads'] = __PUMA_MAX_THREADS__
+# puma['worker_processes'] = 2
+# puma['min_threads'] = 4
+# puma['max_threads'] = 4
 
 ### Advanced settings
 # puma['listen'] = '127.0.0.1'

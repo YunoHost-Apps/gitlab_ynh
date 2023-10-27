@@ -28,20 +28,19 @@ fi
 config_path=/etc/$app
 chmod 755 $install_dir
 
-if [ -z "$puma_max_threads" ] || [ -z "$puma_min_threads" ]; then
-	# If the server has less than 2GB of RAM
-	if [ $(ynh_get_ram --total --ignore_swap) -lt 2000 ]; then
-		puma_min_threads=1
-		puma_max_threads=1
-	else
-		puma_min_threads=2
-		puma_max_threads=4
-	fi
+if [ -n $(ynh_app_setting_get --app=$app --key=puma_worker_processes) ]
+then
+	ynh_app_setting_delete --app=$app --key=puma_worker_processes
+fi
 
-	ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
-	ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
+if [ -n $(ynh_app_setting_get --app=$app --key=puma_max_threads) ]
+then
+	ynh_app_setting_delete --app=$app --key=puma_max_threads
+fi
 
-	ynh_app_setting_delete --app=$app --key=unicorn_worker_processes
+if [ -n $(ynh_app_setting_get --app=$app --key=puma_min_threads) ]
+then
+	ynh_app_setting_delete --app=$app --key=puma_min_threads
 fi
 
 # If architecture doesn't exist, create it
@@ -74,22 +73,6 @@ fi
 
 #=================================================
 # STANDARD UPGRADE STEPS
-#=================================================
-# DEFINE THE NUMBER OF WORKERS USED
-#=================================================
-
-total_memory=$(ynh_get_ram --total)
-
-if [ $total_memory -lt 4096 ]; then
-	#https://docs.gitlab.com/omnibus/settings/puma.html#running-in-memory-constrained-environments
-	puma_worker_processes=0
-else
-	#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
-	puma_worker_processes=$(( $(nproc) > 2 ? $(($(nproc) - 1)) : 2 ))
-fi
-
-ynh_app_setting_set --app=$app --key=puma_worker_processes --value=$puma_worker_processes
-
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
