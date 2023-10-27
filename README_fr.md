@@ -18,7 +18,7 @@ Si vous n’avez pas YunoHost, regardez [ici](https://yunohost.org/#/install) po
 
 Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD
 
-**Version incluse :** 16.4.1~ynh1
+**Version incluse :** 16.5.0~ynh1
 
 **Démo :** https://gitlab.com/explore
 
@@ -31,6 +31,7 @@ Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bu
 * Site officiel de l’app : <https://gitlab.com>
 * Documentation officielle de l’admin : <https://docs.gitlab.com/>
 * Dépôt de code officiel de l’app : <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+* YunoHost Store: <https://apps.yunohost.org/app/gitlab>
 * Signaler un bug : <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 
 ## Informations pour les développeurs
