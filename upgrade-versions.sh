@@ -128,9 +128,6 @@ EOS"
     sed -i "s/# gitlab_rails\['gitlab_shell_ssh_port'\] = 22/gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__/" $conf_file
 
     # Change puma settings
-    sed -i "s/# puma\['worker_processes'\] = .*/puma['worker_processes'] = __PUMA_WORKER_PROCESSES__/" $conf_file
-    sed -i "s/# puma\['min_threads'\] = .*/puma['min_threads'] = __PUMA_MIN_THREADS__/" $conf_file
-    sed -i "s/# puma\['max_threads'\] = .*/puma['max_threads'] = __PUMA_MAX_THREADS__/" $conf_file
     sed -i "s/# puma\['port'\] = .*/puma['port'] = __PORT_PUMA__/" $conf_file
 
     # Change sidekiq settings

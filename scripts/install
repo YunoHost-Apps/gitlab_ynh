@@ -45,43 +45,16 @@ ynh_app_setting_set --app=$app --key=overwrite_nginx --value="1"
 #=================================================
 # STANDARD MODIFICATIONS
 #=================================================
-# DEFINE THE NUMBER OF WORKERS USED
-#=================================================
-
-total_memory=$(ynh_get_ram --total)
-
-if [ $total_memory -lt 4096 ]; then
-	#https://docs.gitlab.com/omnibus/settings/puma.html#running-in-memory-constrained-environments
-	puma_worker_processes=0
-else
-	#https://docs.gitlab.com/ce/install/requirements.html#puma-workers
-	puma_worker_processes=$(( $(nproc) > 2 ? $(($(nproc) - 1)) : 2 ))
-fi
-
-# If the server has less than 2GB of RAM
-if [ $(ynh_get_ram --total --ignore_swap) -lt 2048 ]; then
-	puma_min_threads=1
-	puma_max_threads=1
-else
-	puma_min_threads=2
-	puma_max_threads=4
-fi
-
-ynh_app_setting_set --app=$app --key=puma_worker_processes --value=$puma_worker_processes
-ynh_app_setting_set --app=$app --key=puma_max_threads --value=$puma_max_threads
-ynh_app_setting_set --app=$app --key=puma_min_threads --value=$puma_min_threads
-
-#=================================================
 # ADD SWAP IF NEEDED
 #=================================================
 
-total_swap=$(ynh_get_ram --total --only_swap)
+total_ram=$(ynh_get_ram --total)
 swap_needed=0
 
 # https://docs.gitlab.com/ce/install/requirements.html#memory
 # Need at least 2Go of swap
-if [ $total_swap -lt 2048 ]; then
-	swap_needed=$((2048 - total_swap))
+if [ $total_ram -lt 4096 ]; then
+	swap_needed=2048
 fi
 
 if [ $swap_needed -gt 0 ]; then
