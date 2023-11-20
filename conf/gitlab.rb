@@ -805,6 +805,13 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['databases']['ci']['db_database'] = 'gitlabhq_production'
 # gitlab_rails['databases']['ci']['database_tasks'] = false
 
+### GitLab ClickHouse connection settings
+###! EXPERIMENTAL
+# gitlab_rails['clickhouse_databases']['main']['database'] = 'dbname'
+# gitlab_rails['clickhouse_databases']['main']['url'] = 'https://example.com/path'
+# gitlab_rails['clickhouse_databases']['main']['username'] = 'gitlab'
+# gitlab_rails['clickhouse_databases']['main']['password'] = 'password'
+
 ### GitLab Redis settings
 ###! Connect to your own Redis instance
 ###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html
@@ -2142,6 +2149,21 @@ nginx['listen_https'] = false
 # gitlab_kas['log_group'] = nil
 # gitlab_kas['env_directory'] = '/opt/gitlab/etc/gitlab-kas/env'
 
+##! Redis settings for GitLab KAS
+# gitlab_kas['redis_socket'] = ''
+# gitlab_kas['redis_host'] = '127.0.0.1'
+# gitlab_kas['redis_port'] = '6379'
+# gitlab_kas['redis_password'] = nil
+
+# gitlab_kas['redis_sentinels'] = {}
+# gitlab_kas['redis_sentinels_master_name'] = nil
+# gitlab_kas['redis_sentinels_password'] = ''
+
+# gitlab_kas['redis_ssl'] = false
+# gitlab_kas['redis_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
+# gitlab_kas['redis_tls_client_cert_file'] = nil
+# gitlab_kas['redis_tls_client_key_file'] = nil
+
 ################################################################################
 ## GitLab Suggested Reviewers (EE Only)
 ##! Docs: https://docs.gitlab.com/ee/user/project/merge_requests/reviews/#suggested-reviewers
@@ -3044,6 +3066,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # pgbouncer['listen_addr'] = '0.0.0.0'
 # pgbouncer['listen_port'] = '6432'
 # pgbouncer['pool_mode'] = 'transaction'
+# pgbouncer['max_prepared_statements'] = 0
 # pgbouncer['server_reset_query'] = 'DISCARD ALL'
 # pgbouncer['application_name_add_host'] = '1'
 # pgbouncer['max_client_conn'] = '2048'
@@ -3060,6 +3083,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # pgbouncer['admin_users'] = %w(gitlab-psql postgres pgbouncer)
 # pgbouncer['stats_users'] = %w(gitlab-psql postgres pgbouncer)
 # pgbouncer['ignore_startup_parameters'] = 'extra_float_digits'
+# pgbouncer['track_extra_parameters'] = %w(IntervalStyle)
 # pgbouncer['databases'] = {
 #   DATABASE_NAME: {
 #     host: HOSTNAME,
@@ -3076,6 +3100,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # pgbouncer['unix_socket_group'] = nil
 # pgbouncer['auth_type'] = 'md5'
 # pgbouncer['auth_hba_file'] = nil
+# pgbouncer['auth_dbname'] = nil
 # pgbouncer['auth_query'] = 'SELECT username, password FROM public.pg_shadow_lookup($1)'
 # pgbouncer['users'] = {
 #   USERNAME: {
@@ -3106,10 +3131,12 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # pgbouncer['autodb_idle_timeout'] = 3600
 # pgbouncer['suspend_timeout'] = 10
 # pgbouncer['idle_transaction_timeout'] = 0
+# pgbouncer['cancel_wait_timeout'] = 10
 # pgbouncer['pkt_buf'] = 4096
 # pgbouncer['listen_backlog'] = 128
 # pgbouncer['sbuf_loopcnt'] = 5
 # pgbouncer['max_packet_size'] = 2147483647
+# pgbouncer['so_reuseport'] = 0
 # pgbouncer['tcp_defer_accept'] = 0
 # pgbouncer['tcp_socket_buffer'] = 0
 # pgbouncer['tcp_keepalive'] = 1
@@ -3117,6 +3144,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # pgbouncer['tcp_keepidle'] = 0
 # pgbouncer['tcp_keepintvl'] = 0
 # pgbouncer['disable_pqexec'] = 0
+# default['pgbouncer']['peers'] = {}
 
 ## Pgbouncer client TLS options
 # pgbouncer['client_tls_sslmode'] = 'disable'
@@ -3242,7 +3270,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # patroni['tls_verify'] = true
 
 ################################################################################
-# Consul (EEP only)
+# Consul (EE only)
 ################################################################################
 # consul['enable'] = false
 # consul['dir'] = '/var/opt/gitlab/consul'
@@ -3360,7 +3388,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 #### encoded with base64
 # gitlab_rails['service_desk_email_auth_token'] = nil
 
-################################################################################
+#################################################################################
 ## Spamcheck (EE only)
 #################################################################################
 
@@ -3382,5 +3410,12 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 #   'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/cers'
 # }
 # spamcheck['classifier']['log_directory'] = "/var/log/gitlab/spam-classifier"
+
+#################################################################################
+## (Go-)Crond
+#################################################################################
+# crond['log_directory'] = '/var/log/gitlab/crond'
+# crond['cron_d'] = '/var/opt/gitlab/crond'
+# crond['flags'] = {}
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
