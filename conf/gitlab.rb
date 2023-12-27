@@ -2067,8 +2067,8 @@ nginx['listen_https'] = false
 ################################################################################
 
 ##! Define to enable GitLab Pages
-# pages_external_url "http://pages.example.com/"
-# gitlab_pages['enable'] = false
+pages_external_url "https://__PAGES_URL__/"
+gitlab_pages['enable'] = __PAGES_ENABLE__
 
 ##! Configure to expose GitLab Pages on external IP address, serving the HTTP
 # gitlab_pages['external_http'] = []
@@ -2114,7 +2114,7 @@ nginx['listen_https'] = false
 # gitlab_pages['sentry_environment'] = 'production'
 
 ##! Listen for requests forwarded by reverse proxy
-# gitlab_pages['listen_proxy'] = "localhost:8090"
+gitlab_pages['listen_proxy'] = "localhost:__PORT_PAGES__"
 
 # gitlab_pages['redirect_http'] = true
 # gitlab_pages['use_http2'] = true
@@ -2245,8 +2245,8 @@ nginx['listen_https'] = false
 #   'GODEBUG' => "tlsmlkem=0",
 # }
 
-##! Experimental - Enable namespace in path
-# gitlab_pages['namespace_in_path'] = false
+# Experimental - Enable namespace in path
+gitlab_pages['namespace_in_path'] = true
 
 ##! Configure GitLab Pages client cert and client key which will be used as mutual TLS with GitLab API
 # gitlab_pages['client_cert'] = "/path/to/client.crt"
@@ -2264,8 +2264,13 @@ nginx['listen_https'] = false
 ##! `nginx['some_setting']` WILL NOT be automatically replicated as
 ##! `pages_nginx['some_setting']` and should be set separately.
 
-##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
-# pages_nginx['enable'] = true
+# Below you can find settings that are exclusive to "GitLab Pages NGINX"
+pages_nginx['enable'] = true
+
+pages_nginx['listen_https'] = false
+pages_nginx['listen_http'] = true
+pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
+pages_nginx['listen_addresses'] = ['127.0.0.1']
 
 # gitlab_rails['pages_path'] = "/var/opt/gitlab/gitlab-rails/shared/pages"
 
