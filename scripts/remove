@@ -48,6 +48,8 @@ ynh_script_progression "Removing NGINX web server configuration"
 # Remove the dedicated NGINX config
 ynh_config_remove_nginx
 
+yunohost app remove redirect
+
 #=================================================
 # REMOVE GITLAB FILES
 #=================================================
