@@ -1168,6 +1168,28 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ##! Semantic metadata used when registering GitLab Workhorse as a Consul service
 # gitlab_workhorse['consul_service_meta'] = {}
 
+##! Redis settings specific for GitLab Workhorse
+##! To be used when Workhorse is supposed to use a different Redis instance than
+##! other components. The settings specified here should match
+##! `gitlab_rails['redis_workhorse_*']` settings, if specified. If not specified,
+##! they are inferred from the below values. `gitlab_rails['redis_workhorse_*']`
+##! settings tell the Rails app which Redis has channels to publish messages to,
+##! and `gitlab_workhorse['redis_*']` tells Workhorse which Redis has channels to
+##! subscribe to. Hence, the requirement of the settings to match.
+# gitlab_workhorse['redis_socket'] = "/var/opt/gitlab/redis/redis.socket"
+# gitlab_workhorse['redis_host'] = "127.0.0.1"
+# gitlab_workhorse['redis_port'] = nil
+# gitlab_workhorse['redis_database'] = nil
+# gitlab_workhorse['redis_username'] = nil
+# gitlab_workhorse['redis_password'] = nil
+# gitlab_workhorse['redis_ssl'] = false
+# gitlab_workhorse['redis_cluster_nodes'] = []
+# gitlab_workhorse['redis_sentinels'] = []
+# gitlab_workhorse['redis_sentinels_password'] = nil
+# gitlab_workhorse['redis_sentinel_master'] = nil
+# gitlab_workhorse['redis_sentinel_master_ip'] = nil
+# gitlab_workhorse['redis_sentinel_master_port'] = nil
+
 ################################################################################
 ## GitLab User Settings
 ##! Modify default git user.
@@ -1311,7 +1333,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 ### Git trace log file.
 ###! If set, git commands receive GIT_TRACE* environment variables
 ###! Docs: https://git-scm.com/book/es/v2/Git-Internals-Environment-Variables#Debugging
-###! An absolute path starting with / – the trace output will be appended to
+###! An absolute path starting with / - the trace output will be appended to
 ###! that file. It needs to exist so we can check permissions and avoid
 ###! throwing warnings to the users.
 # gitlab_shell['git_trace_log_file'] = "/var/log/gitlab/gitlab-shell/gitlab-shell-git-trace.log"
@@ -1947,6 +1969,7 @@ nginx['listen_https'] = false
 # gitlab_pages['internal_gitlab_server'] = nil # Defaults to gitlab_server, can be changed to internal load balancer
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 # gitlab_pages['auth_scope'] = nil # Defaults to api, can be changed to read_api to increase security
+# gitlab_pages['auth_timeout'] = "5s" # GitLab application client timeout for authentication
 # gitlab_pages['auth_cookie_session_timeout'] = "10m" # Authentication cookie session timeout (truncated to seconds). A zero value means the cookie will be deleted after the browser session ends
 
 ##! GitLab Pages Server Shutdown Timeout
@@ -2045,6 +2068,9 @@ nginx['listen_https'] = false
 # gitlab_pages['env'] = {
 #   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
 # }
+
+# Experimental - Enable namespace in path
+# gitlab_pages['namespace_in_path'] = false
 
 ################################################################################
 ## GitLab Pages NGINX
@@ -2516,6 +2542,7 @@ nginx['listen_https'] = false
 # gitaly['dir'] = "/var/opt/gitlab/gitaly"
 # gitaly['log_group'] = nil
 # gitaly['bin_path'] = "/opt/gitlab/embedded/bin/gitaly"
+# gitaly['use_wrapper'] = true
 # gitaly['env_directory'] = "/opt/gitlab/etc/gitaly/env"
 # gitaly['env'] = {
 #  'PATH' => "/opt/gitlab/bin:/opt/gitlab/embedded/bin:/bin:/usr/bin",
@@ -2785,7 +2812,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ##! Note: We do not recommend changing these values unless absolutely necessary
 ##! Set to false to only parse secrets from `gitlab-secrets.json` file but not generate them.
 # package['generate_default_secrets'] = true
-##! Set to false to prevent creating `gitlab-secrets.json` file
+##! Set to false to prevent creating the default gitlab-secrets.json` file
 # package['generate_secrets_json_file'] = true
 ################################################################################
 ################################################################################
@@ -3052,7 +3079,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 
 ################################################################################
 # Pgbouncer (EE only)
-# See [GitLab PgBouncer documentation](http://docs.gitlab.com/omnibus/settings/database.html#enabling-pgbouncer-ee-only)
+# See [GitLab PgBouncer documentation](https://docs.gitlab.com/ee/administration/postgresql/pgbouncer.html)
 # See the [PgBouncer page](https://pgbouncer.github.io/config.html) for details
 ################################################################################
 # pgbouncer['enable'] = false
@@ -3273,6 +3300,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # Consul (EE only)
 ################################################################################
 # consul['enable'] = false
+# consul['binary_path'] = '/opt/gitlab/embedded/bin/consul'
 # consul['dir'] = '/var/opt/gitlab/consul'
 # consul['username'] = 'gitlab-consul'
 # consul['group'] = 'gitlab-consul'
