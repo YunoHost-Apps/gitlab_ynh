@@ -801,6 +801,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Gitlab decomposed database settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/database.html
+# gitlab_rails['databases']['main']['db_database'] = 'gitlabhq_production'
+# gitlab_rails['databases']['main']['database_tasks'] = true
 # gitlab_rails['databases']['ci']['enable'] = true
 # gitlab_rails['databases']['ci']['db_database'] = 'gitlabhq_production'
 # gitlab_rails['databases']['ci']['database_tasks'] = false
@@ -1189,6 +1191,10 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['redis_sentinel_master'] = nil
 # gitlab_workhorse['redis_sentinel_master_ip'] = nil
 # gitlab_workhorse['redis_sentinel_master_port'] = nil
+
+
+##! Command to generate extra configuration
+# gitlab_workhorse['extra_config_command'] = nil
 
 ################################################################################
 ## GitLab User Settings
@@ -2181,7 +2187,7 @@ nginx['listen_https'] = false
 # gitlab_kas['redis_port'] = '6379'
 # gitlab_kas['redis_password'] = nil
 
-# gitlab_kas['redis_sentinels'] = {}
+# gitlab_kas['redis_sentinels'] = []
 # gitlab_kas['redis_sentinels_master_name'] = nil
 # gitlab_kas['redis_sentinels_password'] = ''
 
@@ -2189,6 +2195,9 @@ nginx['listen_https'] = false
 # gitlab_kas['redis_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
 # gitlab_kas['redis_tls_client_cert_file'] = nil
 # gitlab_kas['redis_tls_client_key_file'] = nil
+
+##! Command to generate extra configuration
+# gitlab_kas['extra_config_command'] = nil
 
 ################################################################################
 ## GitLab Suggested Reviewers (EE Only)
@@ -2527,6 +2536,9 @@ nginx['listen_https'] = false
 # gitlab_exporter['consul_service_name'] = 'gitlab-exporter'
 ##! Semantic metadata used when registering GitLab Exporter as a Consul service
 # gitlab_exporter['consul_service_meta'] = {}
+
+##! Command to generate extra configuration
+# gitlab_exporter['extra_config_command'] = nil
 
 # To completely disable prometheus, and all of it's exporters, set to false
 # prometheus_monitoring['enable'] = true
@@ -3063,6 +3075,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ## GitLab Geo Log Cursor Daemon (EE only)
 ################################################################################
 
+# geo_logcursor['enable'] = false
 # geo_logcursor['log_directory'] = '/var/log/gitlab/geo-logcursor'
 # geo_logcursor['log_group'] = nil
 
