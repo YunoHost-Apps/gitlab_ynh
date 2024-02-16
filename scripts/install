@@ -135,7 +135,7 @@ echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"na
 newuser.admin = true
 newuser.confirmed_at = Time.now
 newuser.confirmation_token = nil
-newuser.save
+newuser.save!
 ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
 #=================================================
