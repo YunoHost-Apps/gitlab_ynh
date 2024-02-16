@@ -202,11 +202,17 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['loose_foreign_keys_cleanup_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['ci_runner_versions_reconciliation_worker_cron'] = "@daily"
 # gitlab_rails['ci_runners_stale_machines_cleanup_worker_cron'] = "36 * * * *"
+# gitlab_rails['ci_catalog_resources_process_sync_events_worker_cron'] = "*/1 * * * *"
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
 ###! request (default: 10)
 # gitlab_rails['webhook_timeout'] = 10
+
+### HTTP client settings
+###! This is for setting up the mutual TLS client cert and password for the certificate file.
+# gitlab_rails['http_client']['tls_client_cert_file'] = nil
+# gitlab_rails['http_client']['tls_client_cert_password'] = nil
 
 ### GraphQL Settings
 ###! Tells the rails application how long it has to complete a GraphQL request.
@@ -799,6 +805,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['db_application_name'] = nil
 # gitlab_rails['db_database_tasks'] = true
 
+##! Command to generate extra database configuration
+# gitlab_rails['db_extra_config_command'] = nil
+
 ### Gitlab decomposed database settings
 ###! Docs: https://docs.gitlab.com/omnibus/settings/database.html
 # gitlab_rails['databases']['main']['db_database'] = 'gitlabhq_production'
@@ -1042,6 +1051,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   'connecttimeout' => '5s',
 #   'draintimeout' => '2m',
 #   'preparedstatements' => false,
+#   'primary' => 'primary.record.fqdn',
 #   'pool' => {
 #       'maxidle' => 25,
 #       'maxopen' => 25,
@@ -1285,6 +1295,7 @@ puma['port'] = __PORT_PUMA__
 # sidekiq['log_format'] = "json"
 # sidekiq['shutdown_timeout'] = 4
 # sidekiq['interval'] = nil
+# sidekiq['concurrency'] = nil
 # sidekiq['max_concurrency'] = 20
 # sidekiq['min_concurrency'] = nil
 
@@ -2824,7 +2835,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ##! Note: We do not recommend changing these values unless absolutely necessary
 ##! Set to false to only parse secrets from `gitlab-secrets.json` file but not generate them.
 # package['generate_default_secrets'] = true
-##! Set to false to prevent creating the default gitlab-secrets.json` file
+##! Set to false to prevent creating the default `gitlab-secrets.json` file
 # package['generate_secrets_json_file'] = true
 ################################################################################
 ################################################################################
