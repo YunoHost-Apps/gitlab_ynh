@@ -60,7 +60,7 @@ ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --de
 
 tempdir="$(mktemp -d)"
 
-ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+ynh_setup_source --dest_dir=$tempdir --source_id=$architecture --full_replace=1
 
 if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
 then # This command will fail in lxc env

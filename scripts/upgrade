@@ -238,7 +238,7 @@ then
 
 		tempdir="$(mktemp -d)"
 
-		ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+		ynh_setup_source --dest_dir=$tempdir --source_id=$architecture --full_replace=1
 
 		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename; then # This command will fail in lxc env
 			package_check_action # defined in upgrade.d/upgrade.X.sh
