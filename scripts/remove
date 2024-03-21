@@ -51,6 +51,8 @@ ynh_script_progression --message="Removing NGINX web server configuration" --wei
 # Remove the dedicated NGINX config
 ynh_remove_nginx_config
 
+yunohost app remove redirect
+
 #=================================================
 # SPECIFIC REMOVE
 #=================================================
