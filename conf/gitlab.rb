@@ -538,6 +538,8 @@ gitlab_rails['ldap_enabled'] = true
 #     verify_certificates: true
 #     smartcard_auth: false
 #     active_directory: true
+#     smartcard_ad_cert_field: 'altSecurityIdentities'
+#     smartcard_ad_cert_format: null # 'issuer_and_serial_number', 'issuer_and_subject' , 'principal_name'
 #     allow_username_or_email_login: false
 #     lowercase_usernames: false
 #     block_auto_created_users: false
@@ -559,6 +561,8 @@ gitlab_rails['ldap_enabled'] = true
 #     verify_certificates: true
 #     smartcard_auth: false
 #     active_directory: true
+#     smartcard_ad_cert_field: 'altSecurityIdentities'
+#     smartcard_ad_cert_format: null # 'issuer_and_serial_number', 'issuer_and_subject' , 'principal_name'
 #     allow_username_or_email_login: false
 #     lowercase_usernames: false
 #     block_auto_created_users: false
@@ -1059,6 +1063,25 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   }
 # }
 
+### Registry garbage collection
+###! Docs: https://gitlab.com/gitlab-org/container-registry/-/blob/master/docs/configuration.md?ref_type=heads#gc
+# registry['gc'] = { 
+#   'disabled' => false,
+#   'maxbackoff' => '24h',
+#   'noidlebackoff' => false,
+#   'transactiontimeout' => '10s',
+#   'reviewafter' => '24h',
+#   'manifests' => {
+#       'disabled' => false,
+#       'interval' => '5s'
+#   },
+#   'blobs' => {
+#       'disabled' => false,
+#       'interval' => '5s',
+#       'storagetimeout' => '5s'
+#   }
+# }
+
 ### Registry notifications endpoints
 # registry['notifications'] = [
 #   {
@@ -1202,9 +1225,11 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['redis_sentinel_master_ip'] = nil
 # gitlab_workhorse['redis_sentinel_master_port'] = nil
 
-
 ##! Command to generate extra configuration
 # gitlab_workhorse['extra_config_command'] = nil
+
+##! Metadata configuration section
+# gitlab_workhorse['metadata_zip_reader_limit_bytes'] = nil
 
 ################################################################################
 ## GitLab User Settings
@@ -1243,7 +1268,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # puma['listen'] = '127.0.0.1'
 puma['port'] = __PORT_PUMA__
 # puma['socket'] = '/var/opt/gitlab/gitlab-rails/sockets/gitlab.socket'
-# puma['somaxconn'] = 1024
+# puma['somaxconn'] = 2048
 
 ### SSL settings
 # puma['ssl_listen'] = nil
@@ -2623,6 +2648,10 @@ nginx['listen_https'] = false
 #       { key: 'http.http://example.com.proxy', value: 'http://example.proxy.com' },
 #     ],
 #   },
+#   gitlab: {
+#     url: 'http://localhost:9999',
+#     relative_url_root: '/gitlab-ee',
+#   },
 #   hooks: {
 #     custom_hooks_dir: '/var/opt/gitlab/gitaly/custom_hooks',
 #   },
@@ -2837,6 +2866,11 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # package['generate_default_secrets'] = true
 ##! Set to false to prevent creating the default `gitlab-secrets.json` file
 # package['generate_secrets_json_file'] = true
+
+##! Settings to control SELinux policy
+##! Experimental. Set to 1.0 to switch from legacy multiple policy modules to
+##! newer single `gitlab` SELinux policy module.
+# package['selinux_policy_version'] = nil
 ################################################################################
 ################################################################################
 ##                  Configuration Settings for GitLab EE only                 ##
