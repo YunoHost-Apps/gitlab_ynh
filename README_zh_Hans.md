@@ -18,7 +18,7 @@
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**分发版本：** 16.10.3~ynh1
+**分发版本：** 16.11.1~ynh1
 
 **演示：** <https://gitlab.com/explore>
 

@@ -1561,7 +1561,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 
 ### Version settings
 # Set this if you have disabled the bundled PostgreSQL but still want to use the backup rake tasks
-# postgresql['version'] = 10
+# postgresql['version'] = 14
 
 
 ##! Automatically restart PostgreSQL service when version changes.
@@ -2192,6 +2192,7 @@ nginx['listen_https'] = false
 
 ##! Log configuration for GitLab KAS
 # gitlab_kas['log_level'] = 'info'
+# gitlab_kas['grpc_log_level'] = 'error'
 
 ##! Environment variables for GitLab KAS
 # gitlab_kas['env'] = {
@@ -2205,6 +2206,9 @@ nginx['listen_https'] = false
 #   # 'OWN_PRIVATE_API_CIDR' => '2001:db8:8a2e:370::7334/64', # IPv6 example
 #   # 'OWN_PRIVATE_API_PORT' => '8155', # if not set, port from private_api_listen_address is used
 #   # 'OWN_PRIVATE_API_SCHEME' => 'grpc', # use grpcs when using TLS on private API endpoint
+#   # OWN_PRIVATE_API_HOST is used to verify the TLS cert hostname.
+#   # Set KAS' host name if you want to use TLS for KAS->KAS communication.
+#   # 'OWN_PRIVATE_API_HOST' => '<server-name-from-cert>',
 # }
 
 ##! Error Reporting and Logging with Sentry

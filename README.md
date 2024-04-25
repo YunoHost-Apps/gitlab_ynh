@@ -18,7 +18,7 @@ It shall NOT be edited by hand.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Shipped version:** 16.10.3~ynh1
+**Shipped version:** 16.11.1~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
