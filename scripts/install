@@ -128,15 +128,14 @@ ynh_add_nginx_config client_max_body_size
 #=================================================
 ynh_script_progression --message="Creating an administrator user..." --weight=13
 
-mailadmin=$(ynh_user_get_info --username=$admin --key=mail)
+mailAdmin=$(ynh_user_get_info --username=$admin --key=mail)
+fullnameAdmin=$(ynh_user_get_info --username=$admin --key=fullname)
 rdmPass=$(ynh_string_random --length=30)
 
-echo "newuser = User.new({ \"email\"=>'$mailadmin', \"username\"=>'$admin', \"name\"=>'$admin', \"password\"=>'$rdmPass'})
-newuser.admin = true
-newuser.confirmed_at = Time.now
-newuser.confirmation_token = nil
-newuser.save!
-ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
+gitlab-rails runner "newuser = User.new(username: \"$admin\", email: \"$mailAdmin\", name: \"$fullnameAdmin\", password: \"$rdmPass\", admin: true, skip_confirmation: true);\
+        newuser.assign_personal_namespace(Organizations::Organization.default_organization);\
+        newuser.save!;\
+        ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account);"
 
 #=================================================
 # RECONFIGURE TO TAKE INTO ACCOUNT CHANGES

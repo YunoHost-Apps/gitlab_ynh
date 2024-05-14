@@ -3,7 +3,7 @@
 请勿手动编辑。
 -->
 
-# YunoHost 的 GitLab
+# YunoHost 上的 GitLab
 
 [![集成程度](https://dash.yunohost.org/integration/gitlab.svg)](https://dash.yunohost.org/appci/app/gitlab) ![工作状态](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![维护状态](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
 
@@ -18,7 +18,7 @@
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**分发版本：** 16.11.1~ynh1
+**分发版本：** 16.11.2~ynh1
 
 **演示：** <https://gitlab.com/explore>
 
