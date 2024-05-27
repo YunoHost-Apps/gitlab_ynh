@@ -5,4 +5,4 @@ test_format = 1.0
     # Commits to test upgrade from
     # -------------------------------
 
-    test_upgrade_from.7b4758b323155c5b31287250dbe696cdf295a52c.name = "Upgrade from 16.1.1"
+    test_upgrade_from.3be74724da5be7f00da62de399f61a21bef37657.name = "Upgrade from 16.9.0"
