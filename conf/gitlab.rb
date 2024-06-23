@@ -149,6 +149,14 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ##! `10` for Light Red
 # gitlab_rails['gitlab_default_theme'] = 2
 
+### Custom html header tags
+###! See https://docs.gitlab.com/ee/administration/custom_html_header_tags.html for more
+# In some cases some custom header tags are needed
+# e.g., to add the EU cookie consent
+# Tip: you must add the externals source to the content_security_policy as
+#      well, typically the script_src and style_src.
+# gitlab_rails['custom_html_header_tags'] = nil
+
 ### Default project feature settings
 # gitlab_rails['gitlab_default_projects_features_issues'] = true
 # gitlab_rails['gitlab_default_projects_features_merge_requests'] = true
@@ -846,6 +854,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #### Redis local UNIX socket (will be disabled if TCP method is used)
 # gitlab_rails['redis_socket'] = "/var/opt/gitlab/redis/redis.socket"
 
+#### Session cookie settings
+# gitlab_rails['session_store_session_cookie_token_prefix'] = ''
+
 #### Sentinel support
 ####! To have Sentinel working, you must enable Redis TCP connection support
 ####! above and define a few Sentinel hosts below (to get a reliable setup
@@ -856,6 +867,10 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   {'host' => '127.0.0.1', 'port' => 26379},
 # ]
 # gitlab_rails['redis_sentinels_password'] = 'sentinel-requirepass-goes-here'
+
+# gitlab_rails']['redis_sentinel_master'] = nil
+# gitlab_rails']['redis_sentinel_master_ip'] = nil
+# gitlab_rails']['redis_sentinel_master_port'] = nil
 
 #### Cluster support
 ####! Cluster support is only available for selected Redis instances. `resque.yml` will not
@@ -1088,7 +1103,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #     'name' => 'test_endpoint',
 #     'url' => 'https://gitlab.example.com/notify2',
 #     'timeout' => '500ms',
-#     'threshold' => 5,
+#     'threshold' => 5, # DEPRECATED: use maxretries instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243
+#     'maxretries' => 5,
 #     'backoff' => '1s',
 #     'headers' => {
 #       "Authorization" => ["AUTHORIZATION_EXAMPLE_TOKEN"]
@@ -1098,6 +1114,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ### Default registry notifications
 # registry['default_notifications_timeout'] = "500ms"
 # registry['default_notifications_threshold'] = 5
+# registry['default_notifications_maxretries'] = 5
 # registry['default_notifications_backoff'] = "1s"
 # registry['default_notifications_headers'] = {}
 
@@ -2111,6 +2128,12 @@ nginx['listen_https'] = false
 
 # Experimental - Enable namespace in path
 # gitlab_pages['namespace_in_path'] = false
+
+##! Configure GitLab Pages client cert and client key which will be used as mutual TLS with GitLab API
+# gitlab_pages['client_cert'] = "/path/to/client.crt"
+# gitlab_pages['client_key'] = "/path/to/client.key"
+##! Configure root CA certs used to sign client certs which will be used with GitLab API
+# gitlab_pages['client_ca_certs'] = "/path/to/ca.crt"
 
 ################################################################################
 ## GitLab Pages NGINX
