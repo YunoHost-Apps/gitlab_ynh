@@ -60,7 +60,6 @@ ynh_remove_nginx_config
 ynh_secure_remove --file="/var/opt/$app"
 
 # Remove the log files
-ynh_secure_remove --file="/var/log/$app"
 
 # Remove swap
 ynh_del_swap
