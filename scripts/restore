@@ -87,7 +87,7 @@ gitlab-ctl stop sidekiq
 ynh_exec_warn_less gitlab-backup restore force=yes BACKUP=$last_backup
 
 # https://docs.gitlab.com/ce/raketasks/backup_restore.html#container-registry-push-failures-after-restoring-from-a-backup
-if ynh_user_exists --username="registry" && [ -d "/var/opt/gitlab/gitlab-rails/shared/registry/docker" ]; then
+if ynh_system_user_exists --username="registry" && [ -d "/var/opt/gitlab/gitlab-rails/shared/registry/docker" ]; then
 	chown -R registry:registry /var/opt/gitlab/gitlab-rails/shared/registry/docker
 fi
 
