@@ -5,7 +5,7 @@ No se debe editar a mano.
 
 # GitLab para Yunohost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/gitlab.svg)](https://dash.yunohost.org/appci/app/gitlab) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+[![Nivel de integración](https://dash.yunohost.org/integration/gitlab.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/) ![Estado funcional](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Estado En Mantención](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
 
 [![Instalar GitLab con Yunhost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
