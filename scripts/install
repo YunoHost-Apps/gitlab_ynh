@@ -110,7 +110,7 @@ ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 chmod 755 $install_dir
 
 # https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
-ynh_exec_warn_less EXTERNAL_URL="$generated_external_url" dpkg -i $tempdir/$gitlab_filename
+EXTERNAL_URL="$generated_external_url" ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
 
 ynh_secure_remove --file="$tempdir"
 
