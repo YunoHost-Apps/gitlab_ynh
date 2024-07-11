@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gitlab_version="17.1.1"
+gitlab_version="17.1.2"
 
 # Upgrade path: https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
 # sha256sum found here: https://packages.gitlab.com/gitlab
