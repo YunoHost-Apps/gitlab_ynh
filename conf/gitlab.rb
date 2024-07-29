@@ -211,6 +211,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['ci_runner_versions_reconciliation_worker_cron'] = "@daily"
 # gitlab_rails['ci_runners_stale_machines_cleanup_worker_cron'] = "36 * * * *"
 # gitlab_rails['ci_catalog_resources_process_sync_events_worker_cron'] = "*/1 * * * *"
+# gitlab_rails['ci_click_house_finished_pipelines_sync_worker_cron'] = "*/4 * * * *"
+# gitlab_rails['ci_click_house_finished_pipelines_sync_worker_args'] = [1]
 
 ### Webhook Settings
 ###! Number of seconds to wait for HTTP response after sending webhook HTTP POST
@@ -850,6 +852,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
 # gitlab_rails['redis_tls_client_cert_file'] = nil
 # gitlab_rails['redis_tls_client_key_file'] = nil
+# gitlab_rails['redis_connect_timeout'] = nil
+# gitlab_rails['redis_read_timeout'] = nil
+# gitlab_rails['redis_write_timeout'] = nil
 
 #### Redis local UNIX socket (will be disabled if TCP method is used)
 # gitlab_rails['redis_socket'] = "/var/opt/gitlab/redis/redis.socket"
@@ -1080,7 +1085,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Registry garbage collection
 ###! Docs: https://gitlab.com/gitlab-org/container-registry/-/blob/master/docs/configuration.md?ref_type=heads#gc
-# registry['gc'] = { 
+# registry['gc'] = {
 #   'disabled' => false,
 #   'maxbackoff' => '24h',
 #   'noidlebackoff' => false,
@@ -1398,6 +1403,8 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 ##! **We do not recommend changing this directory.**
 # gitlab_shell['dir'] = "/var/opt/gitlab/gitlab-shell"
 
+# gitlab_shell['lfs_pure_ssh_protocol'] = false
+
 ################################################################################
 ## gitlab-sshd
 ################################################################################
@@ -1422,6 +1429,9 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # gitlab_sshd['ciphers'] = nil
 # gitlab_sshd['kex_algorithms'] = nil
 # gitlab_sshd['macs'] = nil
+##! A list of the to be accepted public key algorithms.
+##! For example: %w(ssh-ed25519 ecdsa-sha2-nistp256 rsa-sha2-256 rsa-sha2-512)
+# gitlab_sshd['public_key_algorithms'] = nil
 # gitlab_sshd['login_grace_time'] = 60
 # gitlab_sshd['host_keys_dir'] = '/var/opt/gitlab/gitlab-sshd'
 # gitlab_sshd['host_keys_glob'] = 'ssh_host_*_key'
@@ -1836,7 +1846,7 @@ nginx['listen_https'] = false
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
 ##! These paths have proxy_request_buffering disabled
-# nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
+# nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/ssh-receive-pack$|\\.git/ssh-upload-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
 
 ### Nginx status
 # nginx['status'] = {
@@ -3528,5 +3538,14 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # crond['log_directory'] = '/var/log/gitlab/crond'
 # crond['cron_d'] = '/var/opt/gitlab/crond'
 # crond['flags'] = {}
+
+####
+# gitlab-backup-cli settings
+####
+# gitlab_backup_cli['enable'] = false
+# gitlab_backup_cli['user'] = 'gitlab-backup'
+# gitlab_backup_cli['group'] = 'gitlab-backup'
+# gitlab_backup_cli['dir'] = '/var/opt/gitlab/backups'
+# gitlab_backup_cli['additional_groups'] = %w[git gitlab-psql registry]
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
