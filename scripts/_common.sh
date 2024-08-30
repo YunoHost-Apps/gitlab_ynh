@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# EXPERIMENTAL HELPERS
-#=================================================
-
 # Add swap
 #
 # usage: ynh_add_swap --size=SWAP in Mb
@@ -26,7 +22,7 @@ ynh_add_swap () {
 	# Swap on SD card only if it's is specified
 	if ynh_is_main_device_a_sd_card && [ "$SD_CARD_CAN_SWAP" == "0" ]
 	then
-		ynh_print_warn --message="The main mountpoint of your system '/' is on an SD card, swap will not be added to prevent some damage of this one, but that can cause troubles for the app $app. If you still want activate the swap, you can relaunch the command preceded by 'SD_CARD_CAN_SWAP=1'"
+		ynh_print_warn "The main mountpoint of your system '/' is on an SD card, swap will not be added to prevent some damage of this one, but that can cause troubles for the app $app. If you still want activate the swap, you can relaunch the command preceded by 'SD_CARD_CAN_SWAP=1'"
 		return
 	fi
 

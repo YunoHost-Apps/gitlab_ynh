@@ -1,14 +1,8 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC STARTING
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source /usr/share/yunohost/helpers
 
-ynh_abort_if_errors
+#REMOVEME? ynh_abort_if_errors
 
 #=================================================
 # RETRIEVE ARGUMENTS
@@ -28,11 +22,9 @@ set__use_web_account() {
         echo "ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
 
         # Update the config of the app
-        ynh_app_setting_set --app=$app --key=use_web_account --value=$use_web_account
+        ynh_app_setting_set --key=use_web_account --value=$use_web_account
     fi
 }
 
-#=================================================
-# GENERIC FINALIZATION
 #=================================================
 ynh_app_config_run $1

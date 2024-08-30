@@ -1,46 +1,33 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
-
-#=================================================
-# CHECK VERSION
-#=================================================
-
-upgrade_type=$(ynh_check_app_version_changed)
 
 #=================================================
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 
-if [ -n $(ynh_app_setting_get --app=$app --key=web_port) ]
+if [ -n $(ynh_app_setting_get --key=web_port) ]
 then
-	ynh_app_setting_set --app=$app --key=port --value=$(ynh_app_setting_get --app=$app --key=web_port)
-	ynh_app_setting_delete --app=$app --key=web_port
+	ynh_app_setting_set --key=port --value=$(ynh_app_setting_get --key=web_port)
+	ynh_app_setting_delete --key=web_port
 fi
 
 config_path=/etc/$app
-chmod 755 $install_dir
-
-if [ -n $(ynh_app_setting_get --app=$app --key=puma_worker_processes) ]
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 755 $install_dir
+if [ -n $(ynh_app_setting_get --key=puma_worker_processes) ]
 then
-	ynh_app_setting_delete --app=$app --key=puma_worker_processes
+	ynh_app_setting_delete --key=puma_worker_processes
 fi
 
-if [ -n $(ynh_app_setting_get --app=$app --key=puma_max_threads) ]
+if [ -n $(ynh_app_setting_get --key=puma_max_threads) ]
 then
-	ynh_app_setting_delete --app=$app --key=puma_max_threads
+	ynh_app_setting_delete --key=puma_max_threads
 fi
 
-if [ -n $(ynh_app_setting_get --app=$app --key=puma_min_threads) ]
+if [ -n $(ynh_app_setting_get --key=puma_min_threads) ]
 then
-	ynh_app_setting_delete --app=$app --key=puma_min_threads
+	ynh_app_setting_delete --key=puma_min_threads
 fi
 
 # If architecture doesn't exist, create it
@@ -54,25 +41,23 @@ if [ -z "$architecture" ]; then
 	elif [ -n "$(uname -m | grep arm)" ]; then
 		architecture="arm"
 	else
-		ynh_die --message="Unable to detect your achitecture, please open a bug describing \
+		ynh_die "Unable to detect your achitecture, please open a bug describing \
 			your hardware and the result of the command \"uname -m\"." 1
 	fi
-	ynh_app_setting_set --app=$app --key=architecture --value=$architecture
+	ynh_app_setting_set --key=architecture --value=$architecture
 fi
 
 # If client_max_body_size doesn't exist, create it
 if [ -z "$client_max_body_size" ]; then
 	client_max_body_size="250m"
-	ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
+	ynh_app_setting_set --key=client_max_body_size --value=$client_max_body_size
 fi
 
 # if this source file exist, remove it
 if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
-	ynh_secure_remove --file="/etc/apt/sources.list.d/gitlab-ce.list"
+	ynh_safe_rm "/etc/apt/sources.list.d/gitlab-ce.list"
 fi
 
-#=================================================
-# STANDARD UPGRADE STEPS
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
@@ -87,9 +72,9 @@ if [ $total_ram -lt 4096 ]; then
 fi
 
 if [ $swap_needed -gt 0 ]; then
-	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+	ynh_script_progression "Adding $swap_needed Mo to swap..."
 	if ! ynh_add_swap --size=$swap_needed; then
-		ynh_print_warn --message="Please add $swap_needed Mo to swap to make GitLab work properly"
+		ynh_print_warn "Please add $swap_needed Mo to swap to make GitLab work properly"
 	fi
 fi
 
@@ -101,7 +86,7 @@ modify_kernel_parameters="true"
 
 for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
 do
-	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+	if ! sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
 		modify_kernel_parameters="false"
 		break
 	fi
@@ -118,9 +103,10 @@ generated_external_url="https://$domain${path%/}"
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
+# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
+if ynh_app_upstream_version_changed
 then
-	ynh_script_progression --message="Setting up source files..." --weight=50
+	ynh_script_progression "Setting up source files..."
 
 	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
 	touch $config_path/skip-auto-backup
@@ -171,7 +157,8 @@ then
 		fi
 	}
 
-	# To upgrade GitLab from a major version A to a major version B, 
+	# To upgrade GitLab from a major version A to a major version B,
+
 	# we need to follow a specific path described here https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
 	# A.last -> B.first -> -> B.X -> B.Y -> B.last
 
@@ -193,7 +180,7 @@ then
 			counter=$((counter + 1))
 			if [ $counter -gt 1200 ]
 			then
-				ynh_print_warn --message="Timeout: a background migration runs for at least 20min !"
+				ynh_print_warn "Timeout: a background migration runs for at least 20min !"
 				break
 			fi
 
@@ -206,7 +193,7 @@ then
 			then
 				checkBatchedBackgroundMigration=0
 			fi
-			ynh_print_info --message="Wait for the migration in the background to finish"
+			ynh_print_info "Wait for the migration in the background to finish"
 			sleep 1
 		done
 
@@ -214,20 +201,20 @@ then
 
 		source_next_version
 
-		ynh_print_info --message="Upgrade from ${current_version} to ${gitlab_version}"
+		ynh_print_info "Upgrade from ${current_version} to ${gitlab_version}"
 
-		ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
+		ynh_config_add --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
 
 		tempdir="$(mktemp -d)"
 
 		ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
-		if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename; then # This command will fail in lxc env
+		if ! ynh_hide_warnings dpkg -i $tempdir/$gitlab_filename; then # This command will fail in lxc env
 			package_check_action # defined in upgrade.d/upgrade.X.sh
-			ynh_exec_warn_less dpkg --configure gitlab-ce
+			ynh_hide_warnings dpkg --configure gitlab-ce
 		fi
 
-		ynh_exec_warn_less ynh_secure_remove --file="$tempdir"
+		ynh_safe_rm "$tempdir"
 
 		current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
 
@@ -237,16 +224,16 @@ then
 				source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.$current_major_version.last.sh
 			fi
 			if dpkg --compare-versions "$gitlab_version" "ge" "$current_version"; then
-				ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" --destination="$config_path/gitlab.rb"
+				ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" --destination="$config_path/gitlab.rb"
 
 				touch "$config_path/gitlab-persistent.rb"
-				chown root:root "$config_path/gitlab-persistent.rb"
-				chmod 640 "$config_path/gitlab-persistent.rb"
+				#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown root:root "$config_path/gitlab-persistent.rb"
+				#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 640 "$config_path/gitlab-persistent.rb"
 
 				# During large migrations, the logs are too big to be sent to paste.yunohost.org
 				# Send the reconfigure logs in a file, and if the process succeeds, just delete it.
 				gitlab-ctl reconfigure > "/tmp/gitlab_upgrade_$current_version.log"
-				ynh_secure_remove --file="/tmp/gitlab_upgrade_$current_version.log"
+				ynh_safe_rm "/tmp/gitlab_upgrade_$current_version.log"
 			fi
 		fi
 	done
@@ -255,15 +242,15 @@ fi
 #=================================================
 # RECONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Reconfigure GitLab..." --weight=13
+ynh_script_progression "Reconfigure GitLab..."
 
-ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
+ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 touch "$config_path/gitlab-persistent.rb"
-chown root:root "$config_path/gitlab-persistent.rb"
-chmod 640 "$config_path/gitlab-persistent.rb"
+#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown root:root "$config_path/gitlab-persistent.rb"
+#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 640 "$config_path/gitlab-persistent.rb"
 
-ynh_exec_warn_less gitlab-ctl reconfigure
+ynh_hide_warnings gitlab-ctl reconfigure
 
 # Allow ssh for git
 usermod -a -G "ssh.app" "git"
@@ -275,13 +262,11 @@ usermod -a -G "ssh.app" "git"
 # Overwrite the nginx configuration only if it's allowed
 if [ $overwrite_nginx -eq 1 ]
 then
-	ynh_script_progression --message="Configuring NGINX web server..." --weight=2
+	ynh_script_progression "Configuring NGINX web server..."
 	# Create a dedicated nginx config
-	ynh_add_nginx_config client_max_body_size
+	ynh_config_add_nginx client_max_body_size
 fi
 
-#=================================================
-# GENERIC FINALIZATION
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
@@ -292,21 +277,22 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 # WAITING GITLAB
 #=================================================
 
-if [ "$upgrade_type" == "UPGRADE_APP" ]
+# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
+if ynh_app_upstream_version_changed
 then
-	ynh_script_progression --message="Restarting GitLab..." --weight=15
+	ynh_script_progression "Restarting GitLab..."
 
-	ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$port_puma" --timeout=300
+	ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
 fi
 
 #=================================================
 # RELOAD NGINX
 #=================================================
 
-ynh_systemd_action --action=reload --service_name=nginx
+ynh_systemctl --action=reload --service=nginx
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Upgrade of GitLab completed" --last
+ynh_script_progression "Upgrade of GitLab completed"

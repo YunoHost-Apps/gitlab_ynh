@@ -1,11 +1,5 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
@@ -16,22 +10,22 @@ source /usr/share/yunohost/helpers
 
 if yunohost service status "gitlab-runsvdir" >/dev/null 2>&1
 then
-	ynh_script_progression --message="Removing $app service" --weight=1
+	ynh_script_progression "Removing $app service"
 	yunohost service remove "gitlab-runsvdir"
 fi
 
 #=================================================
 # STOP GITLAB
 #=================================================
-ynh_script_progression --message="Stopping GitLab" --weight=8
+ynh_script_progression "Stopping GitLab"
 
-# I use gitlab-ctl and not ynh_systemd_action or systemctl to stop the service to avoid this error: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/common_installation_problems/README.md#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run during the reinstall of the app
+# I use gitlab-ctl and not ynh_systemctl or systemctl to stop the service to avoid this error: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/common_installation_problems/README.md#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run during the reinstall of the app
 gitlab-ctl stop
 
 #=================================================
 # REMOVE GITLAB
 #=================================================
-ynh_script_progression --message="Removing GitLab" --weight=4
+ynh_script_progression "Removing GitLab"
 
 dpkg --remove gitlab-ce
 
@@ -41,15 +35,15 @@ dpkg --remove gitlab-ce
 
 # Remove the app directory securely
 config_path=/etc/$app
-ynh_secure_remove --file="$config_path"
+ynh_safe_rm "$config_path"
 
 #=================================================
 # REMOVE NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Removing NGINX web server configuration" --weight=1
+ynh_script_progression "Removing NGINX web server configuration"
 
 # Remove the dedicated NGINX config
-ynh_remove_nginx_config
+ynh_config_remove_nginx
 
 #=================================================
 # SPECIFIC REMOVE
@@ -57,7 +51,7 @@ ynh_remove_nginx_config
 # REMOVE GITLAB FILES
 #=================================================
 
-ynh_secure_remove --file="/var/opt/$app"
+ynh_safe_rm "/var/opt/$app"
 
 # Remove swap
 ynh_del_swap
@@ -66,4 +60,4 @@ ynh_del_swap
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Removal of GitLab completed" --last
+ynh_script_progression "Removal of GitLab completed"

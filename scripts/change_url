@@ -1,24 +1,16 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC STARTING
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STANDARD MODIFICATIONS
-#=================================================
 # MODIFY URL IN NGINX CONF
 #=================================================
-ynh_script_progression --message="Updating NGINX web server configuration..." --weight=1
+ynh_script_progression "Updating NGINX web server configuration..."
 
 #doc in: https://docs.gitlab.com/omnibus/settings/configuration.html#configure-the-external-url-for-gitlab
 
-ynh_change_url_nginx_config
+ynh_config_change_url_nginx
 
 #=================================================
 # SPECIFIC MODIFICATIONS
@@ -30,7 +22,7 @@ modify_kernel_parameters="true"
 
 for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
 do
-	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+	if ! sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
 		modify_kernel_parameters="false"
 		break
 	fi
@@ -39,7 +31,7 @@ done
 #=================================================
 # CONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Configure GitLab..." --weight=28
+ynh_script_progression "Configure GitLab..."
 
 config_path=/etc/$app
 mkdir -p $config_path
@@ -49,23 +41,23 @@ path="$new_path"
 
 generated_external_url="https://$domain${path%/}"
 
-ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
+ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 #=================================================
 # RECONFIGURE GITLAB
 #=================================================
 
-ynh_exec_warn_less gitlab-ctl reconfigure
+ynh_hide_warnings gitlab-ctl reconfigure
 
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for GitLab..." --weight=15
+ynh_script_progression "Waiting for GitLab..."
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$port_puma" --timeout=300
+ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Change of URL completed for GitLab" --last
+ynh_script_progression "Change of URL completed for GitLab"
