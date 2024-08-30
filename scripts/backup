@@ -1,25 +1,16 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 #Keep this path for calling _common.sh inside the execution's context of backup and restore scripts
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
-#=================================================
-# DECLARE DATA AND CONF FILES TO BACKUP
-#=================================================
-ynh_print_info --message="Declaring files to be backed up..."
+ynh_print_info "Declaring files to be backed up..."
 
 #=================================================
 # BACKUP THE NGINX CONFIGURATION
 #=================================================
 
-ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # BACKUP GITLAB DATABASE
@@ -30,19 +21,19 @@ ynh_backup --src_path="/etc/nginx/conf.d/$domain.d/$app.conf"
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
 gitlab-backup create BACKUP=last
 
-ynh_backup --src_path="/var/opt/$app/backups/last_gitlab_backup.tar"
+ynh_backup "/var/opt/$app/backups/last_gitlab_backup.tar"
 
 #=================================================
 # BACKUP CONF FILES
 #=================================================
 
 config_path=/etc/$app
-ynh_backup --src_path="$config_path/gitlab-secrets.json"
-ynh_backup --src_path="$config_path/gitlab.rb"
-ynh_backup --src_path="$config_path/gitlab-persistent.rb"
+ynh_backup "$config_path/gitlab-secrets.json"
+ynh_backup "$config_path/gitlab.rb"
+ynh_backup "$config_path/gitlab-persistent.rb"
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_print_info --message="Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
+ynh_print_info "Backup script completed for $app. (YunoHost will then actually copy those files to the archive)."
