@@ -80,6 +80,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ## gitlab.yml configuration
 ##! Docs: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md
 ################################################################################
+# gitlab_rails['enable'] = true # do not disable unless explicitly told to do so in docs
+
 # gitlab_rails['gitlab_ssh_host'] = 'ssh.host_example.com'
 # gitlab_rails['gitlab_ssh_user'] = ''
 # gitlab_rails['time_zone'] = 'UTC'
@@ -1389,8 +1391,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # gitlab_shell['auth_file'] = "/var/opt/gitlab/.ssh/authorized_keys"
 
 ### Migration to Go feature flags
-###! Docs: https://gitlab.com/gitlab-org/gitlab-shell#migration-to-go-feature-flags
-# gitlab_shell['migration'] = { enabled: true, features: [] }
+# gitlab_shell['migration'] = { enabled: true, features: [] } # DEPRECATED: see https://gitlab.com/groups/gitlab-org/-/epics/14845.
 
 ### Git trace log file.
 ###! If set, git commands receive GIT_TRACE* environment variables
@@ -1469,6 +1470,8 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['log_truncate_on_rotation'] = nil
 # postgresql['log_rotation_age'] = nil
 # postgresql['log_rotation_size'] = nil
+# postgresql['log_connections'] = "off"
+# postgresql['log_disconnections'] = "off"
 ##! 'username' affects the system and PostgreSQL user accounts created during installation and cannot be changed
 ##! on an existing installation. See https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/3606 for more details.
 # postgresql['username'] = "gitlab-psql"
