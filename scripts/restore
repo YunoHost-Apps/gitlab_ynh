@@ -5,8 +5,6 @@ source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STANDARD RESTORATION STEPS
-#=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
 
@@ -38,7 +36,7 @@ fi
 ynh_script_progression "Restoring configuration files of GitLab..."
 
 config_path=/etc/$app
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 755 $install_dir
+chmod 755 $install_dir
 ynh_restore "$config_path/gitlab-secrets.json"
 ynh_restore "$config_path/gitlab.rb"
 ynh_restore "$config_path/gitlab-persistent.rb"
@@ -61,8 +59,6 @@ then # This command will fail in lxc env
 	ynh_hide_warnings dpkg --configure gitlab-ce
 fi
 
-#=================================================
-# SPECIFIC RESTORATION
 #=================================================
 # RESTORE GITLAB DATABASE
 #=================================================
