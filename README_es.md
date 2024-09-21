@@ -18,7 +18,7 @@ No se debe editar a mano.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Versión actual:** 17.3.1~ynh1
+**Versión actual:** 17.4.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
@@ -36,7 +36,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 ## Información para desarrolladores
 
-Por favor enviar sus correcciones a la [`branch testing`](https://github.com/YunoHost-Apps/gitlab_ynh/tree/testing
+Por favor enviar sus correcciones a la [rama `testing`](https://github.com/YunoHost-Apps/gitlab_ynh/tree/testing).
 
 Para probar la rama `testing`, sigue asÍ:
 

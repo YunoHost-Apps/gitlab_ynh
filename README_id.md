@@ -18,7 +18,7 @@ Ini TIDAK boleh diedit dengan tangan.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Versi terkirim:** 17.3.1~ynh1
+**Versi terkirim:** 17.4.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
