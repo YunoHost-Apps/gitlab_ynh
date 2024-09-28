@@ -73,6 +73,14 @@ ram.runtime = "2000M"
     [resources.permissions]
     main.url = "/"
 
+    # Fix #264
+    ide.url = "/-/ide/"
+    ide.auth_header = false
+    ide.protect_against_basic_auth_spoofing = false
+    ide.show_tile = false
+    ide.protected= true
+    ide.allowed = ["visitors", "all_users"]
+
     [resources.ports]
     main.default = 8080
     puma.default = 8081
