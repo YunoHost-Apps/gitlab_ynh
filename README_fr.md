@@ -18,7 +18,7 @@ Il NE doit PAS être modifié à la main.
 
 Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD
 
-**Version incluse :** 17.4.2~ynh1
+**Version incluse :** 17.5.1~ynh1
 
 **Démo :** <https://gitlab.com/explore>
 
