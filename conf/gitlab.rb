@@ -247,6 +247,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 #  'enabled' => false,
 #  'report_only' => false,
 #  # Each directive is a String (e.g. "'self'").
+#  # This section only needs to be set if you need custom CSP directives
+#  # See https://docs.gitlab.com/omnibus/settings/configuration.html#set-a-content-security-policy
 #  'directives' => {
 #    'base_uri' => nil,
 #    'child_src' => nil,
@@ -1134,12 +1136,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['sentry_environment'] = 'production'
 
 ################################################################################
-## CI_JOB_JWT
-################################################################################
-##! RSA private key used to sign CI_JOB_JWT
-# gitlab_rails['ci_jwt_signing_key'] = nil # Will be generated if not set.
-
-################################################################################
 ## GitLab Workhorse
 ##! Docs: https://gitlab.com/gitlab-org/gitlab/-/blob/master/workhorse/README.md
 ################################################################################
@@ -1405,6 +1401,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # gitlab_shell['dir'] = "/var/opt/gitlab/gitlab-shell"
 
 # gitlab_shell['lfs_pure_ssh_protocol'] = false
+# gitlab_shell['pat'] = { enabled: true, allowed_scopes: [] }
 
 ################################################################################
 ## gitlab-sshd
@@ -2711,6 +2708,7 @@ nginx['listen_https'] = false
 #       memory_bytes: 12884901888,
 #       cpu_shares: 128,
 #       cpu_quota_us: 200000
+#       max_cgroups_per_repo: 2
 #     },
 #   },
 #   concurrency: [
