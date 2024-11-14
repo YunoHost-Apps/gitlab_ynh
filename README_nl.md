@@ -18,7 +18,7 @@ Hij mag NIET handmatig aangepast worden.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Geleverde versie:** 17.5.1~ynh1
+**Geleverde versie:** 17.5.2~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
