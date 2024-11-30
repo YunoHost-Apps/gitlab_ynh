@@ -5,7 +5,9 @@ EZ editatu eskuz.
 
 # GitLab YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/gitlab.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+[![Integrazio maila](https://apps.yunohost.org/badge/integration/gitlab)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+![Funtzionamendu egoera](https://apps.yunohost.org/badge/state/gitlab)
+![Mantentze egoera](https://apps.yunohost.org/badge/maintained/gitlab)
 
 [![Instalatu GitLab YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
@@ -18,7 +20,7 @@ EZ editatu eskuz.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Paketatutako bertsioa:** 17.5.1~ynh1
+**Paketatutako bertsioa:** 17.6.1~ynh1
 
 **Demoa:** <https://gitlab.com/explore>
 

@@ -41,6 +41,7 @@ ynh_script_progression --message="Storing installation settings..." --weight=2
 ynh_app_setting_set --app=$app --key=architecture --value=$architecture
 ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
 ynh_app_setting_set --app=$app --key=overwrite_nginx --value="1"
+ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
 #=================================================
 # STANDARD MODIFICATIONS

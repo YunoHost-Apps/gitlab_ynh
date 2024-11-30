@@ -5,7 +5,7 @@ name = "GitLab"
 description.en = "Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features"
 description.fr = "Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD"
 
-version = "17.5.1~ynh1"
+version = "17.6.1~ynh1"
 
 maintainers = ["kay0u"]
 
@@ -72,14 +72,9 @@ ram.runtime = "2000M"
 
     [resources.permissions]
     main.url = "/"
-
-    # Fix #264
-    ide.url = "/-/ide/"
-    ide.auth_header = false
-    ide.protect_against_basic_auth_spoofing = false
-    ide.show_tile = false
-    ide.protected= true
-    ide.allowed = ["visitors", "all_users"]
+    # Fix #264 and #267
+    main.auth_header = false
+    main.protect_against_basic_auth_spoofing = false
 
     [resources.ports]
     main.default = 8080

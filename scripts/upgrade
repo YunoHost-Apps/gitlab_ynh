@@ -71,6 +71,8 @@ if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
 	ynh_secure_remove --file="/etc/apt/sources.list.d/gitlab-ce.list"
 fi
 
+ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
+
 #=================================================
 # STANDARD UPGRADE STEPS
 #=================================================

@@ -5,7 +5,9 @@ It shall NOT be edited by hand.
 
 # GitLab for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/gitlab.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/) ![Working status](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+[![Integration level](https://apps.yunohost.org/badge/integration/gitlab)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+![Working status](https://apps.yunohost.org/badge/state/gitlab)
+![Maintenance status](https://apps.yunohost.org/badge/maintained/gitlab)
 
 [![Install GitLab with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
@@ -18,7 +20,7 @@ It shall NOT be edited by hand.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Shipped version:** 17.5.1~ynh1
+**Shipped version:** 17.6.1~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
