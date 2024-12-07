@@ -32,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Officiele website van de app: <https://gitlab.com>
 - Officiele beheerdersdocumentatie: <https://docs.gitlab.com/>
-- Upstream app codedepot: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Upstream app codedepot: <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost-store: <https://apps.yunohost.org/app/gitlab>
 - Meld een bug: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

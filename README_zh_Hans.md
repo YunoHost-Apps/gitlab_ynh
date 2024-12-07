@@ -32,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - 官方应用网站： <https://gitlab.com>
 - 官方管理文档： <https://docs.gitlab.com/>
-- 上游应用代码库： <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- 上游应用代码库： <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost 商店： <https://apps.yunohost.org/app/gitlab>
 - 报告 bug： <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

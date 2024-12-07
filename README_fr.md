@@ -32,7 +32,7 @@ Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bu
 
 - Site officiel de l’app : <https://gitlab.com>
 - Documentation officielle de l’admin : <https://docs.gitlab.com/>
-- Dépôt de code officiel de l’app : <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Dépôt de code officiel de l’app : <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost Store : <https://apps.yunohost.org/app/gitlab>
 - Signaler un bug : <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

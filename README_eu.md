@@ -32,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Aplikazioaren webgune ofiziala: <https://gitlab.com>
 - Administratzaileen dokumentazio ofiziala: <https://docs.gitlab.com/>
-- Jatorrizko aplikazioaren kode-gordailua: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Jatorrizko aplikazioaren kode-gordailua: <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost Denda: <https://apps.yunohost.org/app/gitlab>
 - Eman errore baten berri: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

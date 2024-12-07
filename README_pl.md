@@ -32,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Oficjalna strona aplikacji: <https://gitlab.com>
 - Oficjalna dokumentacja dla administratora: <https://docs.gitlab.com/>
-- Repozytorium z kodem źródłowym: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Repozytorium z kodem źródłowym: <https://gitlab.com/gitlab-org/gitlab>
 - Sklep YunoHost: <https://apps.yunohost.org/app/gitlab>
 - Zgłaszanie błędów: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 
