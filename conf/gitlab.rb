@@ -2211,6 +2211,9 @@ nginx['listen_https'] = false
 
 ##! Shared secret used for authentication between different KAS instances in a multi-node setup
 # gitlab_kas['private_api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
+#
+##! Secret used for WebSocket Token signing and verification. Must be shared in multi-node setup
+# gitlab_kas['websocket_token_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 72 bytes long.
 
 ##! Listen configuration for GitLab KAS
 # gitlab_kas['listen_address'] = 'localhost:8150'
