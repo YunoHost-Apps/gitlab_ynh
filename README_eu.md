@@ -5,7 +5,9 @@ EZ editatu eskuz.
 
 # GitLab YunoHost-erako
 
-[![Integrazio maila](https://dash.yunohost.org/integration/gitlab.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/) ![Funtzionamendu egoera](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Mantentze egoera](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+[![Integrazio maila](https://apps.yunohost.org/badge/integration/gitlab)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+![Funtzionamendu egoera](https://apps.yunohost.org/badge/state/gitlab)
+![Mantentze egoera](https://apps.yunohost.org/badge/maintained/gitlab)
 
 [![Instalatu GitLab YunoHost-ekin](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
@@ -18,7 +20,7 @@ EZ editatu eskuz.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Paketatutako bertsioa:** 17.3.1~ynh1
+**Paketatutako bertsioa:** 17.7.0~ynh1
 
 **Demoa:** <https://gitlab.com/explore>
 
@@ -30,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Aplikazioaren webgune ofiziala: <https://gitlab.com>
 - Administratzaileen dokumentazio ofiziala: <https://docs.gitlab.com/>
-- Jatorrizko aplikazioaren kode-gordailua: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Jatorrizko aplikazioaren kode-gordailua: <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost Denda: <https://apps.yunohost.org/app/gitlab>
 - Eman errore baten berri: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

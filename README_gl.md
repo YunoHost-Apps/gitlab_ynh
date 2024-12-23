@@ -5,7 +5,9 @@ NON debe editarse manualmente.
 
 # GitLab para YunoHost
 
-[![Nivel de integración](https://dash.yunohost.org/integration/gitlab.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/) ![Estado de funcionamento](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Estado de mantemento](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+[![Nivel de integración](https://apps.yunohost.org/badge/integration/gitlab)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+![Estado de funcionamento](https://apps.yunohost.org/badge/state/gitlab)
+![Estado de mantemento](https://apps.yunohost.org/badge/maintained/gitlab)
 
 [![Instalar GitLab con YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
@@ -18,7 +20,7 @@ NON debe editarse manualmente.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Versión proporcionada:** 17.3.1~ynh1
+**Versión proporcionada:** 17.7.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
@@ -30,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Web oficial da app: <https://gitlab.com>
 - Documentación oficial para admin: <https://docs.gitlab.com/>
-- Repositorio de orixe do código: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Repositorio de orixe do código: <https://gitlab.com/gitlab-org/gitlab>
 - Tenda YunoHost: <https://apps.yunohost.org/app/gitlab>
 - Informar dun problema: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

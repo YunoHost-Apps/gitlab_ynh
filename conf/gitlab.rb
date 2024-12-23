@@ -51,8 +51,21 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ## Roles for multi-instance GitLab
 ##! The default is to have no roles enabled, which results in GitLab running as an all-in-one instance.
 ##! Options:
-##!   redis_sentinel_role redis_master_role redis_replica_role geo_primary_role geo_secondary_role
-##!   postgres_role consul_role application_role monitoring_role
+##!   application_role
+##!   redis_sentinel_role
+##!   redis_master_role
+##!   redis_replica_role
+##!   monitoring_role
+##!   geo_primary_role
+##!   geo_secondary_role
+##!   postgres_role
+##!   patroni_role
+##!   consul_role
+##!   pgbouncer_role
+##!   pages_role
+##!   sidekiq_role
+##!   spamcheck_role
+##!   gitaly_role
 ##! For more details on each role, see:
 ##! https://docs.gitlab.com/omnibus/roles/index.html#roles
 ##!
@@ -80,6 +93,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ## gitlab.yml configuration
 ##! Docs: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md
 ################################################################################
+# gitlab_rails['enable'] = true # do not disable unless explicitly told to do so in docs
+
 # gitlab_rails['gitlab_ssh_host'] = 'ssh.host_example.com'
 # gitlab_rails['gitlab_ssh_user'] = ''
 # gitlab_rails['time_zone'] = 'UTC'
@@ -245,6 +260,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 #  'enabled' => false,
 #  'report_only' => false,
 #  # Each directive is a String (e.g. "'self'").
+#  # This section only needs to be set if you need custom CSP directives
+#  # See https://docs.gitlab.com/omnibus/settings/configuration.html#set-a-content-security-policy
 #  'directives' => {
 #    'base_uri' => nil,
 #    'child_src' => nil,
@@ -1132,12 +1149,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['sentry_environment'] = 'production'
 
 ################################################################################
-## CI_JOB_JWT
-################################################################################
-##! RSA private key used to sign CI_JOB_JWT
-# gitlab_rails['ci_jwt_signing_key'] = nil # Will be generated if not set.
-
-################################################################################
 ## GitLab Workhorse
 ##! Docs: https://gitlab.com/gitlab-org/gitlab/-/blob/master/workhorse/README.md
 ################################################################################
@@ -1389,8 +1400,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # gitlab_shell['auth_file'] = "/var/opt/gitlab/.ssh/authorized_keys"
 
 ### Migration to Go feature flags
-###! Docs: https://gitlab.com/gitlab-org/gitlab-shell#migration-to-go-feature-flags
-# gitlab_shell['migration'] = { enabled: true, features: [] }
+# gitlab_shell['migration'] = { enabled: true, features: [] } # DEPRECATED: see https://gitlab.com/groups/gitlab-org/-/epics/14845.
 
 ### Git trace log file.
 ###! If set, git commands receive GIT_TRACE* environment variables
@@ -1404,6 +1414,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # gitlab_shell['dir'] = "/var/opt/gitlab/gitlab-shell"
 
 # gitlab_shell['lfs_pure_ssh_protocol'] = false
+# gitlab_shell['pat'] = { enabled: true, allowed_scopes: [] }
 
 ################################################################################
 ## gitlab-sshd
@@ -1469,6 +1480,8 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['log_truncate_on_rotation'] = nil
 # postgresql['log_rotation_age'] = nil
 # postgresql['log_rotation_size'] = nil
+# postgresql['log_connections'] = "off"
+# postgresql['log_disconnections'] = "off"
 ##! 'username' affects the system and PostgreSQL user accounts created during installation and cannot be changed
 ##! on an existing installation. See https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/3606 for more details.
 # postgresql['username'] = "gitlab-psql"
@@ -2198,6 +2211,9 @@ nginx['listen_https'] = false
 
 ##! Shared secret used for authentication between different KAS instances in a multi-node setup
 # gitlab_kas['private_api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
+#
+##! Secret used for WebSocket Token signing and verification. Must be shared in multi-node setup
+# gitlab_kas['websocket_token_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 72 bytes long.
 
 ##! Listen configuration for GitLab KAS
 # gitlab_kas['listen_address'] = 'localhost:8150'
@@ -2708,6 +2724,7 @@ nginx['listen_https'] = false
 #       memory_bytes: 12884901888,
 #       cpu_shares: 128,
 #       cpu_quota_us: 200000
+#       max_cgroups_per_repo: 2
 #     },
 #   },
 #   concurrency: [

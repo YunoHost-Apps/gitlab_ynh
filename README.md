@@ -5,7 +5,9 @@ It shall NOT be edited by hand.
 
 # GitLab for YunoHost
 
-[![Integration level](https://dash.yunohost.org/integration/gitlab.svg)](https://ci-apps.yunohost.org/ci/apps/gitlab/) ![Working status](https://ci-apps.yunohost.org/ci/badges/gitlab.status.svg) ![Maintenance status](https://ci-apps.yunohost.org/ci/badges/gitlab.maintain.svg)
+[![Integration level](https://apps.yunohost.org/badge/integration/gitlab)](https://ci-apps.yunohost.org/ci/apps/gitlab/)
+![Working status](https://apps.yunohost.org/badge/state/gitlab)
+![Maintenance status](https://apps.yunohost.org/badge/maintained/gitlab)
 
 [![Install GitLab with YunoHost](https://install-app.yunohost.org/install-with-yunohost.svg)](https://install-app.yunohost.org/?app=gitlab)
 
@@ -18,7 +20,7 @@ It shall NOT be edited by hand.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Shipped version:** 17.3.1~ynh1
+**Shipped version:** 17.7.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
@@ -30,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Official app website: <https://gitlab.com>
 - Official admin documentation: <https://docs.gitlab.com/>
-- Upstream app code repository: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Upstream app code repository: <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost Store: <https://apps.yunohost.org/app/gitlab>
 - Report a bug: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 
