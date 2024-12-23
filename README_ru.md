@@ -20,7 +20,7 @@
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Поставляемая версия:** 17.6.1~ynh1
+**Поставляемая версия:** 17.7.0~ynh1
 
 **Демо-версия:** <https://gitlab.com/explore>
 

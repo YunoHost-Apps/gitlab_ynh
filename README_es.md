@@ -20,7 +20,7 @@ No se debe editar a mano.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Versión actual:** 17.6.1~ynh1
+**Versión actual:** 17.7.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
