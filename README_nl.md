@@ -20,7 +20,7 @@ Hij mag NIET handmatig aangepast worden.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Geleverde versie:** 17.6.1~ynh1
+**Geleverde versie:** 17.7.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
@@ -32,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Officiele website van de app: <https://gitlab.com>
 - Officiele beheerdersdocumentatie: <https://docs.gitlab.com/>
-- Upstream app codedepot: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Upstream app codedepot: <https://gitlab.com/gitlab-org/gitlab>
 - YunoHost-store: <https://apps.yunohost.org/app/gitlab>
 - Meld een bug: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

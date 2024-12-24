@@ -20,7 +20,7 @@ Ini TIDAK boleh diedit dengan tangan.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Versi terkirim:** 17.6.1~ynh1
+**Versi terkirim:** 17.7.0~ynh1
 
 **Demo:** <https://gitlab.com/explore>
 
@@ -32,7 +32,7 @@ Git-repository manager providing wiki, issue-tracking and CI/CD pipeline feature
 
 - Website aplikasi resmi: <https://gitlab.com>
 - Dokumentasi admin resmi: <https://docs.gitlab.com/>
-- Depot kode aplikasi hulu: <https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab>
+- Depot kode aplikasi hulu: <https://gitlab.com/gitlab-org/gitlab>
 - Gudang YunoHost: <https://apps.yunohost.org/app/gitlab>
 - Laporkan bug: <https://github.com/YunoHost-Apps/gitlab_ynh/issues>
 

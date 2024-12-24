@@ -5,7 +5,7 @@ name = "GitLab"
 description.en = "Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features"
 description.fr = "Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD"
 
-version = "17.6.1~ynh1"
+version = "17.7.0~ynh1"
 
 maintainers = ["kay0u"]
 
@@ -14,7 +14,7 @@ license = "MIT"
 website = "https://gitlab.com"
 demo = "https://gitlab.com/explore"
 admindoc = "https://docs.gitlab.com/"
-code = "https://gitlab.com/gitlab-org/omnibus-gitlab - https://gitlab.com/gitlab-org/gitlab"
+code = "https://gitlab.com/gitlab-org/gitlab"
 cpe = "cpe:2.3:a:gitlab:gitlab"
 
 [integration]
@@ -74,7 +74,6 @@ ram.runtime = "2000M"
     main.url = "/"
     # Fix #264 and #267
     main.auth_header = false
-    main.protect_against_basic_auth_spoofing = false
 
     [resources.ports]
     main.default = 8080
