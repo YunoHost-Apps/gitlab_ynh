@@ -74,7 +74,6 @@ ram.runtime = "2000M"
     main.url = "/"
     # Fix #264 and #267
     main.auth_header = false
-    main.protect_against_basic_auth_spoofing = false
 
     [resources.ports]
     main.default = 8080
