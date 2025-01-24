@@ -8,7 +8,7 @@
 # Example: ./upgrade-versions.sh scripts/upgrade.d/upgrade.last.sh 13.3.1
 
 file=$(basename $1)
-debian_versions=("buster" "bullseye" "bookworm")
+debian_versions=("bullseye" "bookworm")
 version=$2
 current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 gitlab_directory="$( cd "$( dirname "$current_dir/$1" )/../../" >/dev/null 2>&1 && pwd )"
