@@ -188,7 +188,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Download location
 ###! When a user clicks e.g. 'Download zip' on a project, a temporary zip file
 ###! is created in the following directory.
-###! Should not be the same path, or a sub directory of any of the `git_data_dirs`
+###! Should not be the same path, or a sub directory of any of the `gitaly['configuration'].storage` paths.
 # gitlab_rails['gitlab_repository_downloads_path'] = 'tmp/repositories'
 
 ### Gravatar Settings
@@ -726,16 +726,6 @@ EOS
 #    "SKIP" => "db,uploads,repositories,builds,artifacts,lfs,registry,pages"
 #}
 
-### For setting up different data storing directory
-###! Docs: https://docs.gitlab.com/omnibus/settings/configuration.html#store-git-data-in-an-alternative-directory
-###! **If you want to use a single non-default directory to store git data use a
-###!   path that doesn't contain symlinks.**
-# git_data_dirs({
-#   "default" => {
-#     "path" => "/mnt/nfs-01/git-data"
-#    }
-# })
-
 ### Gitaly settings
 # gitlab_rails['gitaly_token'] = 'secret token'
 
@@ -1043,6 +1033,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['uid'] = nil
 # registry['gid'] = nil
 # registry['dir'] = "/var/opt/gitlab/registry"
+# registry['shell'] = "/usr/sbin/nologin"
 # registry['registry_http_addr'] = "127.0.0.1:5000"
 # registry['debug_addr'] = "localhost:5001"
 # registry['log_directory'] = "/var/log/gitlab/registry"
@@ -2652,6 +2643,8 @@ nginx['listen_https'] = false
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
 #  'WRAPPER_JSON_LOGGING' => true
 # }
+# gitaly['gitlab_secret'] = <secret>
+
 
 # gitaly['open_files_ulimit'] = 15000 # Maximum number of open files allowed for the gitaly process
 ##! Service name used to register Gitaly as a Consul service
@@ -2940,6 +2933,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['geo_prune_event_log_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_repository_verification_primary_batch_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_repository_verification_secondary_scheduler_worker_cron'] = "*/5 * * * *"
+# gitlab_rails['geo_metrics_update_worker_cron'] = "*/1 * * * *"
 # gitlab_rails['ldap_sync_worker_cron'] = "30 1 * * *"
 # gitlab_rails['ldap_group_sync_worker_cron'] = "0 * * * *"
 # gitlab_rails['historical_data_worker_cron'] = "0 12 * * *"
