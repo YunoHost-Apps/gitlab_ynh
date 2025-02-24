@@ -125,19 +125,24 @@ EOS"
     sed -i "/^# EOS/r "<(echo "$ldap_conf") $conf_file
 
     # Change ssh port
-    sed -i "s/# gitlab_rails\['gitlab_shell_ssh_port'\] = 22/gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__/" $conf_file
+    sed -i "s/^# gitlab_rails\['gitlab_shell_ssh_port'\] = 22/gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__/" $conf_file
 
     # Change puma settings
-    sed -i "s/# puma\['port'\] = .*/puma['port'] = __PORT_PUMA__/" $conf_file
+    sed -i "s/^# puma\['port'\] = .*/puma['port'] = __PORT_PUMA__/" $conf_file
 
     # Change sidekiq settings
-    sed -i "s/# sidekiq\['listen_port'\] = .*/sidekiq['listen_port'] = __PORT_SIDEKIQ__/" $conf_file
+    sed -i "s/^# sidekiq\['listen_port'\] = .*/sidekiq['listen_port'] = __PORT_SIDEKIQ__/" $conf_file
 
     # Change nginx settings
-    sed -i "s/# nginx\['client_max_body_size'\] = .*/nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'/" $conf_file
-    sed -i "s/# nginx\['listen_port'\] = .*/nginx['listen_port'] = __PORT__/" $conf_file
-    sed -i "s/# nginx\['listen_https'\] = .*/nginx['listen_https'] = false/" $conf_file
+    sed -i "s/^# nginx\['client_max_body_size'\] = .*/nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'/" $conf_file
+    sed -i "s/^# nginx\['listen_port'\] = .*/nginx['listen_port'] = __PORT__/" $conf_file
+    sed -i "s/^# nginx\['listen_https'\] = .*/nginx['listen_https'] = false/" $conf_file
 
     # Change modify kernel parameters settings
-    sed -i "s/# package\['modify_kernel_parameters'\] = .*/package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__/" $conf_file
+    sed -i "s/^# package\['modify_kernel_parameters'\] = .*/package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__/" $conf_file
+
+    # Change the gitlab page settings
+    sed -i "s/^# pages_external_url \".*\"/pages_external_url \"__PAGES_URL__\"/" $conf_file
+    sed -i "s/^# gitlab_pages\['enable'\] = .*/gitlab_pages\['enable'\] = __PAGES_ENABLE__/" $conf_file
+    sed -i "s/^# gitlab_pages\['namespace_in_path'\] = .*/gitlab_pages\['namespace_in_path'\] = true/" $conf_file
 fi
