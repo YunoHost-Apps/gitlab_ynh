@@ -20,7 +20,7 @@ EZ editatu eskuz.
 
 Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features
 
-**Paketatutako bertsioa:** 17.9.0~ynh1
+**Paketatutako bertsioa:** 17.10.0~ynh1
 
 **Demoa:** <https://gitlab.com/explore>
 

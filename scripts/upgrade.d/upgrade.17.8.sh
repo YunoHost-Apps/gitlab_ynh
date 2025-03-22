@@ -1,21 +1,21 @@
 #!/bin/bash
 
-gitlab_version="17.8.2"
+gitlab_version="17.8.5"
 
 # Upgrade path: https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="$(lsb_release -sc)"
 
-gitlab_x86_64_bookworm_source_sha256="50eaff16d7bcfc059c36ecb51704027987f49acc6936714863c52590edbd2e80"
-gitlab_x86_64_bullseye_source_sha256="60c9ba9c814cefd373e15712051f971a281c0102a30895d5c9303aea82b2b928"
+gitlab_x86_64_bookworm_source_sha256="a1c1de6e2f1e52402197d5723121123c7a6a43fd303e47f5ce2762211b09b280"
+gitlab_x86_64_bullseye_source_sha256="e9ca9d2e9fbb9f08f4f25643b9bed796fea9ddcc696e0fd2ac931b40b9d9f5d0"
 gitlab_x86_64_buster_source_sha256=""
 
-gitlab_arm64_bookworm_source_sha256="b5874401fd5e4c7f41226632da4553b4e8ffd9d4ec7484a379246b9ae235281f"
-gitlab_arm64_bullseye_source_sha256="7afa1ff7dcfe0c1e6d50f9433176c9e9dc49ef17872a031b3ba6a615db6bff87"
+gitlab_arm64_bookworm_source_sha256="28c9524bfd5cc9d598b7212fb6a25d2c995b2f9abeb0fee9fa87f990d8954d6a"
+gitlab_arm64_bullseye_source_sha256="fa83cf038cfc2040282a8c636424b1321105f2daaa739c30be0b08fbdb1bbc40"
 gitlab_arm64_buster_source_sha256=""
 
-gitlab_arm_bookworm_source_sha256="1f8067393fe109b4c33700a120d3abaf2b02395021656681045232ba53f69086"
-gitlab_arm_bullseye_source_sha256="40d8738dd97e8e764a2a69bcb684dbc224979f6128d4a4f180b521fa5676bee1"
+gitlab_arm_bookworm_source_sha256="a8254c7d40112d16e9b9248e47f1fa734a261ae56c353657c560015fff6b3a37"
+gitlab_arm_bullseye_source_sha256="9bda955944daa608633aef7bd81a7a433493d6dc9f36c134b9d024a69dd0c708"
 gitlab_arm_buster_source_sha256=""
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
