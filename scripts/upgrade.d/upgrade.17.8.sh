@@ -1,19 +1,22 @@
 #!/bin/bash
 
-gitlab_version="17.11.1"
+gitlab_version="17.8.5"
 
 # Upgrade path: https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
 # sha256sum found here: https://packages.gitlab.com/gitlab
 gitlab_debian_version="$(lsb_release -sc)"
 
-gitlab_x86_64_bookworm_source_sha256="1275046f187cf4246e345c454b80fc922bf5556789ff22aab9f5d7cffbc28dd6"
-gitlab_x86_64_bullseye_source_sha256="39450806dcd9e7d936ee8a4afccd057a382e4a8409d498bee5c8dc9cff6fe51a"
+gitlab_x86_64_bookworm_source_sha256="a1c1de6e2f1e52402197d5723121123c7a6a43fd303e47f5ce2762211b09b280"
+gitlab_x86_64_bullseye_source_sha256="e9ca9d2e9fbb9f08f4f25643b9bed796fea9ddcc696e0fd2ac931b40b9d9f5d0"
+gitlab_x86_64_buster_source_sha256=""
 
-gitlab_arm64_bookworm_source_sha256="59297fe30f25db7e9ee9108b8620a579c911506d018b70f83de534e2fca0271d"
-gitlab_arm64_bullseye_source_sha256="c70415a871f4e4c6b61930de655d92163152f6c2063a77b5a6afb727e5772606"
+gitlab_arm64_bookworm_source_sha256="28c9524bfd5cc9d598b7212fb6a25d2c995b2f9abeb0fee9fa87f990d8954d6a"
+gitlab_arm64_bullseye_source_sha256="fa83cf038cfc2040282a8c636424b1321105f2daaa739c30be0b08fbdb1bbc40"
+gitlab_arm64_buster_source_sha256=""
 
-gitlab_arm_bookworm_source_sha256="4e7736587411d2e9b32685f5a11c7cb688bee9234d61f1b849c0254b243ebdee"
-gitlab_arm_bullseye_source_sha256="0b49e3571c123e9047b79b41d05c2b8fe0b4289e96a9257d911225edd38f0b65"
+gitlab_arm_bookworm_source_sha256="a8254c7d40112d16e9b9248e47f1fa734a261ae56c353657c560015fff6b3a37"
+gitlab_arm_bullseye_source_sha256="9bda955944daa608633aef7bd81a7a433493d6dc9f36c134b9d024a69dd0c708"
+gitlab_arm_buster_source_sha256=""
 
 architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 
@@ -28,6 +31,9 @@ if [ "$architecture" = "x86-64" ]; then
 	elif [ "$gitlab_debian_version" = "bullseye" ]
 	then
 		gitlab_source_sha256=$gitlab_x86_64_bullseye_source_sha256
+	elif [ "$gitlab_debian_version" = "buster" ]
+	then
+		gitlab_source_sha256=$gitlab_x86_64_buster_source_sha256
 	fi
 elif [ "$architecture" = "arm64" ]; then
 	if [ "$gitlab_debian_version" = "bookworm" ]
@@ -36,6 +42,9 @@ elif [ "$architecture" = "arm64" ]; then
 	elif [ "$gitlab_debian_version" = "bullseye" ]
 	then
 		gitlab_source_sha256=$gitlab_arm64_bullseye_source_sha256
+	elif [ "$gitlab_debian_version" = "buster" ]
+	then
+		gitlab_source_sha256=$gitlab_arm64_buster_source_sha256
 	fi
 elif [ "$architecture" = "arm" ]; then
 	if [ "$gitlab_debian_version" = "bookworm" ]
@@ -48,6 +57,9 @@ elif [ "$architecture" = "arm" ]; then
 	elif [ "$gitlab_debian_version" = "bullseye" ]
 	then
 		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
+	elif [ "$gitlab_debian_version" = "buster" ]
+	then
+		gitlab_source_sha256=$gitlab_arm_buster_source_sha256
 	fi
 fi
 
