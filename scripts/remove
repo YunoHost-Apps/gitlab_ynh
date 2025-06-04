@@ -3,7 +3,6 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-# STANDARD REMOVE
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
@@ -45,8 +44,6 @@ ynh_script_progression "Removing NGINX web server configuration"
 # Remove the dedicated NGINX config
 ynh_config_remove_nginx
 
-#=================================================
-# SPECIFIC REMOVE
 #=================================================
 # REMOVE GITLAB FILES
 #=================================================

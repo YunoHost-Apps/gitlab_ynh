@@ -14,11 +14,11 @@ config_path=/etc/$app
 if [ -n "$(uname -m | grep arm64)" ] || [ -n "$(uname -m | grep aarch64)" ]; then
 	architecture="arm64"
 elif [ -n "$(uname -m | grep x86_64)" ]; then
-	architecture="x86-64"
+	architecture="amd64"
 elif [ -n "$(uname -m | grep 86)" ]; then
-	ynh_die "Gitlab is not compatible with x86 architecture"
+	ynh_die "GitLab is not compatible with x86 architecture"
 elif [ -n "$(uname -m | grep arm)" ]; then
-	architecture="arm"
+	architecture="armhf"
 else
 	ynh_die "Unable to detect your achitecture, please open a bug describing \
         your hardware and the result of the command \"uname -m\"." 1
@@ -100,7 +100,7 @@ tempdir="$(mktemp -d)"
 
 ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 755 $install_dir
+chmod 755 $install_dir
 # https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
 EXTERNAL_URL="$generated_external_url" ynh_hide_warnings dpkg -i $tempdir/$gitlab_filename
 

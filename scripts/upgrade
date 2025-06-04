@@ -14,7 +14,7 @@ then
 fi
 
 config_path=/etc/$app
-#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 755 $install_dir
+chmod 755 $install_dir
 if [ -n $(ynh_app_setting_get --key=puma_worker_processes) ]
 then
 	ynh_app_setting_delete --key=puma_worker_processes
@@ -35,11 +35,11 @@ if [ -z "$architecture" ]; then
 	if [ -n "$(uname -m | grep arm64)" ] || [ -n "$(uname -m | grep aarch64)" ]; then
 		architecture="arm64"
 	elif [ -n "$(uname -m | grep x86_64)" ]; then
-		architecture="x86-64"
+		architecture="amd64"
 	elif [ -n "$(uname -m | grep 86)" ]; then
 		ynh_die "GitLab is not compatible with x86 architecture"
 	elif [ -n "$(uname -m | grep arm)" ]; then
-		architecture="arm"
+		architecture="armhf"
 	else
 		ynh_die "Unable to detect your achitecture, please open a bug describing \
 			your hardware and the result of the command \"uname -m\"." 1
@@ -94,7 +94,7 @@ do
 	fi
 done
 
-# For gitlab rb
+# For GitLab rb
 
 mkdir -p $config_path
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
@@ -104,11 +104,7 @@ generated_external_url="https://$domain${path%/}"
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-
-# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
-if ynh_app_upstream_version_changed
-then
-	ynh_script_progression "Setting up source files..."
+ynh_script_progression "Setting up source files..."
 
 	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
 	touch $config_path/skip-auto-backup
@@ -229,8 +225,8 @@ then
 				ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" --destination="$config_path/gitlab.rb"
 
 				touch "$config_path/gitlab-persistent.rb"
-				#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown root:root "$config_path/gitlab-persistent.rb"
-				#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 640 "$config_path/gitlab-persistent.rb"
+				chown root:root "$config_path/gitlab-persistent.rb"
+				chmod 640 "$config_path/gitlab-persistent.rb"
 
 				# During large migrations, the logs are too big to be sent to paste.yunohost.org
 				# Send the reconfigure logs in a file, and if the process succeeds, just delete it.
@@ -239,7 +235,6 @@ then
 			fi
 		fi
 	done
-fi
 
 #=================================================
 # RECONFIGURE GITLAB
@@ -249,8 +244,8 @@ ynh_script_progression "Reconfigure GitLab..."
 ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 touch "$config_path/gitlab-persistent.rb"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown root:root "$config_path/gitlab-persistent.rb"
-#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 640 "$config_path/gitlab-persistent.rb"
+chown root:root "$config_path/gitlab-persistent.rb"
+chmod 640 "$config_path/gitlab-persistent.rb"
 
 ynh_hide_warnings gitlab-ctl reconfigure
 
