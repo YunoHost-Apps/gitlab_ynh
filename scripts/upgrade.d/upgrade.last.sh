@@ -21,13 +21,13 @@ architecture=$(ynh_app_setting_get --app="$app" --key=architecture)
 # ref=gitlab_${architecture}_${gitlab_debian_version}_source_sha256
 # gitlab_source_sha256=${!ref}
 
-if [ "$architecture" = "x86-64" ]; then
+if [ "$architecture" = "amd64" ]; then
 	if [ "$gitlab_debian_version" = "bookworm" ]
 	then
-		gitlab_source_sha256=$gitlab_x86_64_bookworm_source_sha256
+		gitlab_source_sha256=$gitlab_amd64_bookworm_source_sha256
 	elif [ "$gitlab_debian_version" = "bullseye" ]
 	then
-		gitlab_source_sha256=$gitlab_x86_64_bullseye_source_sha256
+		gitlab_source_sha256=$gitlab_amd64_bullseye_source_sha256
 	fi
 elif [ "$architecture" = "arm64" ]; then
 	if [ "$gitlab_debian_version" = "bookworm" ]
@@ -40,14 +40,14 @@ elif [ "$architecture" = "arm64" ]; then
 elif [ "$architecture" = "arm" ]; then
 	if [ "$gitlab_debian_version" = "bookworm" ]
 	then
-		gitlab_source_sha256=$gitlab_arm_bookworm_source_sha256
+		gitlab_source_sha256=$gitlab_armhf_bookworm_source_sha256
 		if [ -z "$gitlab_arm_bookworm_source_sha256" ]
 		then
-			gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
+			gitlab_source_sha256=$gitlab_armhf_bullseye_source_sha256
 		fi
 	elif [ "$gitlab_debian_version" = "bullseye" ]
 	then
-		gitlab_source_sha256=$gitlab_arm_bullseye_source_sha256
+		gitlab_source_sha256=$gitlab_armhf_bullseye_source_sha256
 	fi
 fi
 
