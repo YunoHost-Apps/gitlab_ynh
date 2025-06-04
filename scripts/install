@@ -1,18 +1,12 @@
 #!/bin/bash
 
-#=================================================
-# GENERIC START
-#=================================================
-# IMPORT GENERIC HELPERS
-#=================================================
-
 source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
 # CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
 #=================================================
-ynh_script_progression --message="Validating installation parameters..." --weight=1
+ynh_script_progression "Validating installation parameters..."
 
 config_path=/etc/$app
 
@@ -26,7 +20,7 @@ elif [ -n "$(uname -m | grep 86)" ]; then
 elif [ -n "$(uname -m | grep arm)" ]; then
 	architecture="arm"
 else
-	ynh_die --message="Unable to detect your achitecture, please open a bug describing \
+	ynh_die "Unable to detect your achitecture, please open a bug describing \
         your hardware and the result of the command \"uname -m\"." 1
 fi
 
@@ -36,15 +30,13 @@ client_max_body_size="250m"
 #=================================================
 # STORE SETTINGS FROM MANIFEST
 #=================================================
-ynh_script_progression --message="Storing installation settings..." --weight=2
+ynh_script_progression "Storing installation settings..."
 
-ynh_app_setting_set --app=$app --key=architecture --value=$architecture
-ynh_app_setting_set --app=$app --key=client_max_body_size --value=$client_max_body_size
-ynh_app_setting_set --app=$app --key=overwrite_nginx --value="1"
+ynh_app_setting_set --key=architecture --value=$architecture
+ynh_app_setting_set --key=client_max_body_size --value=$client_max_body_size
+ynh_app_setting_set --key=overwrite_nginx --value="1"
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
-#=================================================
-# STANDARD MODIFICATIONS
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
@@ -59,9 +51,9 @@ if [ $total_ram -lt 4096 ]; then
 fi
 
 if [ $swap_needed -gt 0 ]; then
-	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+	ynh_script_progression "Adding $swap_needed Mo to swap..."
 	if ! ynh_add_swap --size=$swap_needed; then
-		ynh_print_warn --message="Please add $swap_needed Mo to swap to make GitLab work properly"
+		ynh_print_warn "Please add $swap_needed Mo to swap to make GitLab work properly"
 	fi
 fi
 
@@ -73,7 +65,7 @@ modify_kernel_parameters="true"
 
 for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
 do
-	if ! ynh_exec_fully_quiet sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+	if ! sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
 		modify_kernel_parameters="false"
 		break
 	fi
@@ -82,53 +74,52 @@ done
 #=================================================
 # PRECONFIGURE GITLAB
 #=================================================
-ynh_script_progression --message="Preconfigure GitLab..." --weight=1
+ynh_script_progression "Preconfigure GitLab..."
 
 mkdir -p $config_path
 
 touch "$config_path/gitlab-persistent.rb"
-chown root:root "$config_path/gitlab-persistent.rb"
-chmod 640 "$config_path/gitlab-persistent.rb"
+#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chown root:root "$config_path/gitlab-persistent.rb"
+#REMOVEME? Assuming the file is setup using ynh_config_add, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 640 "$config_path/gitlab-persistent.rb"
 
 ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 generated_external_url="https://$domain${path%/}"
 
-ynh_add_config --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
+ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 #=================================================
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
-ynh_script_progression --message="Setting up source files..." --weight=50
+ynh_script_progression "Setting up source files..."
 
 source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
-ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
+ynh_config_add --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
 
 tempdir="$(mktemp -d)"
 
 ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
 
-chmod 755 $install_dir
-
+#REMOVEME? Assuming the install dir is setup using ynh_setup_source, the proper chmod/chowns are now already applied and it shouldn't be necessary to tweak perms | chmod 755 $install_dir
 # https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
-EXTERNAL_URL="$generated_external_url" ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename
+EXTERNAL_URL="$generated_external_url" ynh_hide_warnings dpkg -i $tempdir/$gitlab_filename
 
-ynh_secure_remove --file="$tempdir"
+ynh_safe_rm "$tempdir"
 
 #=================================================
 # NGINX CONFIGURATION
 #=================================================
-ynh_script_progression --message="Configuring NGINX web server..." --weight=2
+ynh_script_progression "Configuring NGINX web server..."
 
 # Create a dedicated NGINX config
-ynh_add_nginx_config client_max_body_size
+ynh_config_add_nginx client_max_body_size
 
 #=================================================
 # SPECIFIC SETUP
 #=================================================
 # ADD USER AND CONFIGURE SIGN IN SYSTEM
 #=================================================
-ynh_script_progression --message="Creating an administrator user..." --weight=13
+ynh_script_progression "Creating an administrator user..."
 
 mailAdmin=$(ynh_user_get_info --username=$admin --key=mail)
 fullnameAdmin=$(ynh_user_get_info --username=$admin --key=fullname)
@@ -142,15 +133,13 @@ gitlab-rails runner "newuser = User.new(username: \"$admin\", email: \"$mailAdmi
 #=================================================
 # RECONFIGURE TO TAKE INTO ACCOUNT CHANGES
 #=================================================
-ynh_script_progression --message="Reconfigure GitLab..." --weight=13
+ynh_script_progression "Reconfigure GitLab..."
 
-ynh_exec_warn_less gitlab-ctl reconfigure
+ynh_hide_warnings gitlab-ctl reconfigure
 
 # Allow ssh for git
 usermod -a -G "ssh.app" "git"
 
-#=================================================
-# GENERIC FINALIZATION
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
@@ -161,17 +150,17 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 # RELOAD NGINX
 #=================================================
 
-ynh_systemd_action --action=reload --service_name=nginx
+ynh_systemctl --action=reload --service=nginx
 
 #=================================================
 # RESTART GITLAB
 #=================================================
-ynh_script_progression --message="Restarting GitLab..." --weight=15
+ynh_script_progression "Restarting GitLab..."
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$port_puma" --timeout=300
+ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Installation of GitLab completed" --last
+ynh_script_progression "Installation of GitLab completed"
