@@ -210,7 +210,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['stuck_ci_jobs_worker_cron'] = "0 0 * * *"
 # gitlab_rails['expire_build_artifacts_worker_cron'] = "*/7 * * * *"
 # gitlab_rails['environments_auto_stop_cron_worker_cron'] = "24 * * * *"
-# gitlab_rails['pipeline_schedule_worker_cron'] = "19 * * * *"
+# gitlab_rails['pipeline_schedule_worker_cron'] = "3-59/10 * * * *"
 # gitlab_rails['ci_archive_traces_cron_worker_cron'] = "17 * * * *"
 # gitlab_rails['repository_check_worker_cron'] = "20 * * * *"
 # gitlab_rails['admin_email_worker_cron'] = "0 0 * * 0"
@@ -297,6 +297,11 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Monitoring settings
 ###! IP whitelist controlling access to monitoring endpoints
 # gitlab_rails['monitoring_whitelist'] = ['127.0.0.0/8', '::1/128']
+
+### Session settings
+
+# gitlab_rails['signed_cookie_salt'] = 'signed cookie'
+# gitlab_rails['authenticated_encrypted_cookie_salt'] = 'authenticated encrypted cookie'
 
 ### Shutdown settings
 ###! Defines an interval to block healthcheck,
@@ -802,7 +807,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Product Usage Data
 # This setting enables product usage data in the GitLab instance.
-# It will be read on initial installation only. Once GitLab is up and running, 
+# It will be read on initial installation only. Once GitLab is up and running,
 # this setting should be toggled from the admin pages in the UI.
 # gitlab_rails['initial_gitlab_product_usage_data'] = nil
 
@@ -1431,9 +1436,6 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 
 # gitlab_shell['auth_file'] = "/var/opt/gitlab/.ssh/authorized_keys"
 
-### Migration to Go feature flags
-# gitlab_shell['migration'] = { enabled: true, features: [] } # DEPRECATED: see https://gitlab.com/groups/gitlab-org/-/epics/14845.
-
 ### Git trace log file.
 ###! If set, git commands receive GIT_TRACE* environment variables
 ###! Docs: https://git-scm.com/book/en/v2/Git-Internals-Environment-Variables#_debugging
@@ -1494,7 +1496,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['port'] = 5432
 
 ##! Only used when Patroni is enabled. This is the port that PostgreSQL responds to other
-##! cluster members. This port is used by Patroni to advertize the PostgreSQL connection
+##! cluster members. This port is used by Patroni to advertise the PostgreSQL connection
 ##! endpoint to the cluster. By default it is the same as postgresql['port'].
 # postgresql['connect_port'] = 5432
 
@@ -2230,9 +2232,6 @@ nginx['listen_https'] = false
 
 ##! Agent configuration for GitLab KAS
 # gitlab_kas['agent_configuration_poll_period'] = 300
-# gitlab_kas['agent_gitops_poll_period'] = 300
-# gitlab_kas['agent_gitops_project_info_cache_ttl'] = 300
-# gitlab_kas['agent_gitops_project_info_cache_error_ttl'] = 60
 # gitlab_kas['agent_info_cache_ttl'] = 300
 # gitlab_kas['agent_info_cache_error_ttl'] = 60
 
@@ -2783,7 +2782,7 @@ nginx['listen_https'] = false
 #     {
 #       name: 'gitaly-1',
 #       path: '/var/opt/gitlab/git-data/repositories',
-#     },    
+#     },
 #   ],
 # }
 
