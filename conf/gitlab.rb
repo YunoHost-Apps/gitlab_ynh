@@ -262,7 +262,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Content Security Policy
 ###! Customize if you want to enable the Content-Security-Policy header, which
 ###! can help thwart JavaScript cross-site scripting (XSS) attacks.
-###! See: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
+###! See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP
 # gitlab_rails['content_security_policy'] = {
 #  'enabled' => false,
 #  'report_only' => false,
@@ -676,6 +676,11 @@ EOS
 # Configure a custom duration for ID Tokens (defaults to 120 seconds).
 #! Docs: https://docs.gitlab.com/administration/auth/oidc/?tab=Linux+package+%28Omnibus%29#configure-a-custom-duration-for-id-tokens
 # gitlab_rails['oidc_provider_openid_id_token_expire_in_seconds'] = 120
+
+
+### JWT ID Token settings
+# Configure a custom issuer url for CI JWT ID tokens
+# gitlab_rails['ci_id_tokens_issuer_url'] = https://example-oidc-configuration-bucket.s3.eu-north-1.amazonaws.com
 
 ### FortiAuthenticator authentication settings
 # gitlab_rails['forti_authenticator_enabled'] = false
@@ -2226,7 +2231,7 @@ nginx['listen_https'] = false
 # gitlab_rails['gitlab_kas_internal_url'] = 'grpc://localhost:8153'
 # gitlab_rails['gitlab_kas_external_k8s_proxy_url'] = 'https://gitlab.example.com/-/kubernetes-agent/k8s-proxy/'
 
-##! Define to enable GitLab KAS
+##! Settings for GitLab KAS
 # gitlab_kas_external_url "ws://gitlab.example.com/-/kubernetes-agent/"
 # gitlab_kas['enable'] = true
 
