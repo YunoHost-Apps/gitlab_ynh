@@ -1090,7 +1090,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['log_directory'] = "/var/log/gitlab/registry"
 # registry['env_directory'] = "/opt/gitlab/etc/registry/env"
 # registry['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 # registry['log_level'] = "info"
 # registry['log_formatter'] = "text"
@@ -1260,7 +1261,8 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['env_directory'] = "/opt/gitlab/etc/gitlab-workhorse/env"
 # gitlab_workhorse['env'] = {
 #   'PATH' => "/opt/gitlab/bin:/opt/gitlab/embedded/bin:/bin:/usr/bin",
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/".
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ##! Resource limitations for the dynamic image scaler.
@@ -1990,21 +1992,6 @@ nginx['listen_https'] = false
 # runtime_dir '/run'
 
 ################################################################################
-## Git
-##! Advanced setting for configuring git system settings for omnibus-gitlab
-##! internal git
-################################################################################
-
-##! The format of the Omnibus gitconfig is:
-##! { "section" => ["subsection = value"] }
-##! For example:
-##! { "pack" => ["threads = 1"] }
-##! For multiple options under one header use array of comma separated values,
-##! eg.:
-##! { "receive" => ["fsckObjects = true"], "alias" => ["st = status", "co = checkout"] }
-# omnibus_gitconfig['system'] = {}
-
-################################################################################
 ## GitLab Pages
 ##! Docs: https://docs.gitlab.com/ee/administration/pages/
 ################################################################################
@@ -2184,7 +2171,8 @@ nginx['listen_https'] = false
 
 # gitlab_pages['env_directory'] = "/opt/gitlab/etc/gitlab-pages/env"
 # gitlab_pages['env'] = {
-#   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "#{node['package']['install-dir']}/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ##! Experimental - Enable namespace in path
@@ -2279,6 +2267,7 @@ nginx['listen_https'] = false
 ##! Environment variables for GitLab KAS
 # gitlab_kas['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 #   # In a multi-node setup, this address MUST be reachable from other KAS instances. In a single-node setup,
 #   # it can be on localhost for simplicity.
 #   # Use OWN_PRIVATE_API_CIDR + OWN_PRIVATE_API_PORT (optional) + OWN_PRIVATE_API_SCHEME (optional) if you cannot
@@ -2344,7 +2333,8 @@ nginx['listen_https'] = false
 # mattermost['home'] = '/var/opt/gitlab/mattermost'
 # mattermost['database_name'] = 'mattermost_production'
 # mattermost['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG` => "tlsmlkem=0",
 # }
 # mattermost['service_address'] = "127.0.0.1"
 # mattermost['service_port'] = "8065"
@@ -2442,7 +2432,8 @@ nginx['listen_https'] = false
 # prometheus['external_labels'] = { }
 # prometheus['env_directory'] = '/opt/gitlab/etc/prometheus/env'
 # prometheus['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ### Custom scrape configs
@@ -2516,7 +2507,8 @@ nginx['listen_https'] = false
 # }
 # alertmanager['env_directory'] = '/opt/gitlab/etc/alertmanager/env'
 # alertmanager['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ##! Advanced settings. Should be changed only if absolutely needed.
@@ -2537,7 +2529,8 @@ nginx['listen_https'] = false
 # }
 # node_exporter['env_directory'] = '/opt/gitlab/etc/node-exporter/env'
 # node_exporter['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ##! Advanced settings. Should be changed only if absolutely needed.
@@ -2561,7 +2554,8 @@ nginx['listen_https'] = false
 # }
 # redis_exporter['env_directory'] = '/opt/gitlab/etc/redis-exporter/env'
 # redis_exporter['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ##! Advanced settings. Should be changed only if absolutely needed.
@@ -2588,7 +2582,8 @@ nginx['listen_https'] = false
 # postgres_exporter['listen_address'] = 'localhost:9187'
 # postgres_exporter['env_directory'] = '/opt/gitlab/etc/postgres-exporter/env'
 # postgres_exporter['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 # postgres_exporter['sslmode'] = nil
 
@@ -2608,7 +2603,8 @@ nginx['listen_https'] = false
 # pgbouncer_exporter['listen_address'] = 'localhost:9188'
 # pgbouncer_exporter['env_directory'] = '/opt/gitlab/etc/pgbouncer-exporter/env'
 # pgbouncer_exporter['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 
 ################################################################################
@@ -2678,6 +2674,7 @@ nginx['listen_https'] = false
 #  'ICU_DATA' => "/opt/gitlab/embedded/share/icu/current",
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
 #  'WRAPPER_JSON_LOGGING' => true
+#  'GODEBUG' => "tlsmlkem=0",
 # }
 # gitaly['gitlab_secret'] = <secret>
 
@@ -2803,6 +2800,7 @@ nginx['listen_https'] = false
 # praefect['env_directory'] = "/opt/gitlab/etc/praefect/env"
 # praefect['env'] = {
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
+#  'GODEBUG' => "tlsmlkem=0",
 #  'GITALY_PID_FILE' => "/var/opt/gitlab/praefect/praefect.pid",
 #  'WRAPPER_JSON_LOGGING' => true
 # }
@@ -3458,6 +3456,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # consul['env_directory'] = '/opt/gitlab/etc/consul/env'
 # consul['env'] = {
 #   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 # consul['monitoring_service_discovery'] = false
 # consul['node_name'] = nil
@@ -3579,7 +3578,8 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # spamcheck['log_group'] = nil
 # spamcheck['env_directory'] = "/opt/gitlab/etc/spamcheck/env"
 # spamcheck['env'] = {
-#   'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/cers'
+#   'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/certs/',
+#   'GODEBUG' => "tlsmlkem=0",
 # }
 # spamcheck['classifier']['log_directory'] = "/var/log/gitlab/spam-classifier"
 
