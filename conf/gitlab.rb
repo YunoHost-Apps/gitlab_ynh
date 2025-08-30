@@ -1102,7 +1102,6 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['validation_enabled'] = false
 # registry['autoredirect'] = false
 # registry['compatibility_schema1_enabled'] = false
-# registry['database'] = nil
 
 ### Registry backend storage
 ###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-storage-for-the-container-registry
@@ -1121,14 +1120,15 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ### Registry database
 ###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry_metadata_database.html#new-installations
+# registry['auto_migrate'] = true
 # registry['database'] = {
-#   'enabled' => true,
+#   'enabled' => false,
 #   'host' => 'localhost',
 #   'port' => 5432,
-#   'user' => 'postgres',
-#   'password' => 'postgres',
+#   'user' => 'registry',
+#   'password' => 'registry',
 #   'dbname' => 'registry',
-#   'sslmode' => 'verify-full',
+#   'sslmode' => 'prefer',
 #   'sslcert' => '/path/to/client.crt',
 #   'sslkey' => '/path/to/client.key',
 #   'sslrootcert' => '/path/to/root.crt',
@@ -1162,6 +1162,16 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   }
 # }
 
+### Registry Reporting
+###! Docs: https://gitlab.com/gitlab-org/container-registry/-/blob/master/docs/configuration.md?ref_type=heads#reporting
+# registry['reporting'] = {
+#   'sentry' => {
+#     'enabled' => true,
+#     'dsn' => 'https://<key>@sentry.io/<project>',
+#     'environment' => 'production'
+#   }
+# }
+
 ### Registry notifications endpoints
 # registry['notifications'] = [
 #   {
@@ -1182,6 +1192,30 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['default_notifications_maxretries'] = 5
 # registry['default_notifications_backoff'] = "1s"
 # registry['default_notifications_headers'] = {}
+
+### Registry Redis
+# registry['redis'] = {
+#   'loadbalancing' => {
+#     'enabled' => true,
+#     'addr' => 'localhost:16379,localhost:26379',
+#     'username' => 'registry',
+#     'password' => 'secret',
+#     'db' => 0,
+#     'dialtimeout' => '10ms',
+#     'readtimeout' => '10ms',
+#     'writetimeout' => '10ms',
+#     'tls' => {
+#       'enabled' => true,
+#       'insecure' => true
+#     },
+#     'pool' => {
+#       'size' => 10,
+#       'maxlifetime' => '1h',
+#       'idletimeout' => '300s'
+#     }
+#   }
+# }
+
 
 ################################################################################
 ## Error Reporting and Logging with Sentry
@@ -1546,6 +1580,14 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['shared_preload_libraries'] = nil
 # postgresql['dynamic_shared_memory_type'] = nil
 # postgresql['hot_standby'] = "off"
+
+### Registry Metadata Database Settings
+### automated support via the GitLab-managed PostgreSQL
+### is under development.
+# postgresql['registry']['user'] = "registry"
+# postgresql['registry']['password'] = nil
+# postgresql['registry']['dbname'] = "registry"
+# postgresql['registry']['auto_create'] = true
 
 ### SSL settings
 ###! See https://www.postgresql.org/docs/13/static/runtime-config-connection.html#GUC-SSL-CERT-FILE for more details
@@ -2025,7 +2067,7 @@ nginx['listen_https'] = false
 
 ##! Configure the maximum length of URIs accepted by GitLab Pages
 ##! By default is limited for security reasons. Set 0 for unlimited
-# gitlab_pages['max_uri_length'] = 1024
+# gitlab_pages['max_uri_length'] = 2048
 
 ##! Setting the propagate_correlation_id to true allows installations behind a reverse proxy
 ##! generate and set a correlation ID to requests sent to GitLab Pages. If a reverse proxy
@@ -2711,8 +2753,6 @@ nginx['listen_https'] = false
 #   },
 #   git: {
 #     catfile_cache_size: 100, # Number of 'git cat-file' processes kept around for re-use
-#     bin_path: '/opt/gitlab/embedded/bin/git', # A custom path for the 'git' executable
-#     use_bundled_binaries: true, # Whether to use bundled Git.
 #     signing_key: '/var/opt/gitlab/gitaly/signing_key.gpg',
 #     ## Gitaly knows to set up the required default configuration for spawned Git
 #     ## commands automatically. It should thus not be required to configure anything
