@@ -2,12 +2,12 @@
 
 # Action to do in case of failure of the package_check
 package_check_action() {
-	ynh_backup_if_checksum_is_different --file="$config_path/gitlab.rb"
+	ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"
 	cat <<EOF >> "$config_path/gitlab.rb"
 # Last chance to fix Gitlab
 package['modify_kernel_parameters'] = false
 EOF
-	ynh_store_file_checksum --file="$config_path/gitlab.rb"
+	ynh_store_file_checksum "$config_path/gitlab.rb"
 }
 
 
