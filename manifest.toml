@@ -18,27 +18,27 @@ code = "https://gitlab.com/gitlab-org/gitlab"
 cpe = "cpe:2.3:a:gitlab:gitlab"
 
 [integration]
-yunohost = ">= 12.0.0"
+yunohost = ">= 12.0.9"
+helpers_version = "2.1"
 architectures = ["amd64", "arm64"]
 multi_instance = false
+
 ldap = true
 sso = false
+
 disk = "500M"
 ram.build = "3000M"
 ram.runtime = "2000M"
 
 [install]
     [install.domain]
-    # this is a generic question - ask strings are automatically handled by Yunohost's core
     type = "domain"
 
     [install.path]
-    # this is a generic question - ask strings are automatically handled by Yunohost's core
     type = "path"
     default = "/gitlab"
 
     [install.admin]
-    # this is a generic question - ask strings are automatically handled by Yunohost's core
     type = "user"
 
     [install.init_main_permission]
