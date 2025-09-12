@@ -18,7 +18,8 @@ code = "https://gitlab.com/gitlab-org/gitlab"
 cpe = "cpe:2.3:a:gitlab:gitlab"
 
 [integration]
-yunohost = ">= 11.2.3"
+yunohost = ">=11.2.30"
+helpers_version = "2.1"
 architectures = ["amd64", "armhf", "arm64"]
 multi_instance = false
 ldap = true
