@@ -300,6 +300,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 
 ### Session settings
 
+###! Define custom active dispatch salts. These need to be in sync on all rails nodes.
+###! Required longer values on some FIPS systems.
 # gitlab_rails['signed_cookie_salt'] = 'signed cookie'
 # gitlab_rails['authenticated_encrypted_cookie_salt'] = 'authenticated encrypted cookie'
 
@@ -916,6 +918,10 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #     private_key_file: 'path/to/your/key/.pem'
 #   }
 # }
+
+#### OpenBao (GitLab Secret Manager)
+# gitlab_rails['openbao']['url'] = nil
+# gitlab_rails['openbao']['internal_url'] = nil
 
 #### Session cookie settings
 # gitlab_rails['session_store_session_cookie_token_prefix'] = ''
@@ -2349,6 +2355,13 @@ nginx['listen_https'] = false
 # gitlab_kas['redis_tls_client_cert_file'] = nil
 # gitlab_kas['redis_tls_client_key_file'] = nil
 
+##! Workspaces config for GitLab KAS. This feature is under development and is not ready for production use.
+# gitlab_kas['workspaces']['enabled'] = false
+# gitlab_kas['workspaces']['listen']['network'] = 'tcp'
+# gitlab_kas['workspaces']['listen']['address'] = 'localhost:8160'
+# gitlab_kas['workspaces']['listen']['listen_grace_period'] = '1s'
+# gitlab_kas['workspaces']['listen']['shutdown_grace_period'] = '200s'
+
 ##! Command to generate extra configuration
 # gitlab_kas['extra_config_command'] = nil
 
@@ -3007,12 +3020,9 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ## Auxiliary cron jobs applicable to GitLab EE only
 ################################################################################
 
-# gitlab_rails['geo_repository_sync_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_secondary_registry_consistency_worker'] = "* * * * *"
 # gitlab_rails['geo_secondary_usage_data_cron_worker'] = "0 0 * * 0"
 # gitlab_rails['geo_prune_event_log_worker_cron'] = "*/5 * * * *"
-# gitlab_rails['geo_repository_verification_primary_batch_worker_cron'] = "*/5 * * * *"
-# gitlab_rails['geo_repository_verification_secondary_scheduler_worker_cron'] = "*/5 * * * *"
 # gitlab_rails['geo_metrics_update_worker_cron'] = "*/1 * * * *"
 # gitlab_rails['ldap_sync_worker_cron'] = "30 1 * * *"
 # gitlab_rails['ldap_group_sync_worker_cron'] = "0 * * * *"
