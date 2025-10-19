@@ -1301,7 +1301,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['env_directory'] = "/opt/gitlab/etc/gitlab-workhorse/env"
 # gitlab_workhorse['env'] = {
 #   'PATH' => "/opt/gitlab/bin:/opt/gitlab/embedded/bin:/bin:/usr/bin",
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/".
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
 #   'GODEBUG' => "tlsmlkem=0",
 # }
 
@@ -2728,7 +2728,7 @@ nginx['listen_https'] = false
 #  'PYTHONPATH' => "/opt/gitlab/embedded/lib/python3.9/site-packages",
 #  'ICU_DATA' => "/opt/gitlab/embedded/share/icu/current",
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
-#  'WRAPPER_JSON_LOGGING' => true
+#  'WRAPPER_JSON_LOGGING' => true,
 #  'GODEBUG' => "tlsmlkem=0",
 # }
 # gitaly['gitlab_secret'] = <secret>
@@ -3505,7 +3505,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # consul['log_group'] = nil
 # consul['env_directory'] = '/opt/gitlab/etc/consul/env'
 # consul['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/"
+#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
 #   'GODEBUG' => "tlsmlkem=0",
 # }
 # consul['monitoring_service_discovery'] = false
