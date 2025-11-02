@@ -5,7 +5,7 @@ name = "GitLab"
 description.en = "Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features"
 description.fr = "Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD"
 
-version = "18.5.0~ynh1"
+version = "18.5.1~ynh1"
 
 maintainers = ["kay0u"]
 
@@ -78,26 +78,26 @@ ram.runtime = "2000M"
         [resources.sources.latest_bookworm]
             extract = false
             rename = "gitlab-ce.deb"
-            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
-            amd64.sha256 = "90ad514d0942ebfb758da738449e54ee7eb3fda9e2108ec87400f8a006afae8e"
-            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
-            arm64.sha256 = "a0762fe3e8962da5993b55177c9e383906c4e2d930716b9fd31c6d17af9feea0"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.1-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "ee054c2a40121e8180afff398ac9a2287eb57d3a4fc015f345e94e22cc8628f6"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.1-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "1171aaf8b352ea202f50f33929703cff0072caafb26fb306d2626a67bb11914c"
 
         [resources.sources.latest_bullseye]
             extract = false
             rename = "gitlab-ce.deb"
-            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
-            amd64.sha256 = "8e32ff2a402a9e5633a9d3a83fae3226731ef894e04f4ae146cbf6d08951c71e"
-            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
-            arm64.sha256 = "4581e9e647559e4f9dbac9f4e2ecf389980b2338959c21f61fa24e211bc02225"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.1-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "adec5da5cf1d5ec4ddb12b2311ae4bf130ce46bedb5c10b21e625a56559693aa"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.1-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "426c0dddee3386d915e26ad3b4cdac684b8859efdbeca08a0cb66d67e71e7037"
 
         [resources.sources.latest_trixie]
             extract = false
             rename = "gitlab-ce.deb"
-            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
-            amd64.sha256 = "186b15de189c4228d46a1fd008cd6018e2ff05b451d6e9796c57c44041bf7d04"
-            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
-            arm64.sha256 = "42f44929fcd885e1c6225b7a61a69e73ab8ae19c7ac4aa3155cfc758b58ce605"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_18.5.1-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "37d322dba0777bbbfa98e583b4688984cadad8d56b3228a2fa1e77c7ce54f8b5"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_18.5.1-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "363ec5c76955b60a7a29f814e7553bad8b243687f2bd4f31c927875213842509"
 
         # GitLab 18.2.8
         [resources.sources.v18_2_8_bullseye]
