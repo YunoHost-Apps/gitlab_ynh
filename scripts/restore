@@ -50,18 +50,18 @@ ynh_restore "$config_path/gitlab-persistent.rb"
 #=================================================
 ynh_script_progression "Reinstalling GitLab..."
 
-source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
-ynh_config_add --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
-
 tempdir="$(mktemp -d)"
 
-ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+ynh_setup_source --dest_dir=$tempdir --source_id="latest_$(lsb_release -sc)"
 
-if ! ynh_hide_warnings dpkg -i $tempdir/$gitlab_filename ;
-then # This command will fail in lxc env
-	package_check_action # defined in upgrade.d/upgrade.last.sh
+chmod 755 $install_dir
+# https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
+if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then # This command will fail in lxc env
+	package_check_action
 	ynh_hide_warnings dpkg --configure gitlab-ce
 fi
+
+ynh_safe_rm "$tempdir"
 
 #=================================================
 # RESTORE GITLAB DATABASE
