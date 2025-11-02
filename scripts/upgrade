@@ -110,9 +110,9 @@ then
 		grep -o "\[resources\.sources\.v${major_version}_[^]]*\]" "$YNH_APP_BASEDIR/manifest.toml" | \
 			sed 's/\[resources\.sources\.v//;s/\]//' | \
 			grep "^${major_version}_" | \
-			sed "s/_bookworm$//;s/_trixie$//;s/_bullseye$//" | \
+			sed 's/_[^_]*$//' | \
 			sort -Vu | \
-			sed 's/_/\./g;s/^v//'
+			sed 's/_/\./g'
 	}
 
 	# Function to find and load next version in upgrade path
