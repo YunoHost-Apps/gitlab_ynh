@@ -111,7 +111,7 @@ then
 			sed 's/\[resources\.sources\.v//;s/\]//' | \
 			grep "^${major_version}_" | \
 			sed "s/_bookworm$//;s/_trixie$//;s/_bullseye$//" | \
-			sort -u | \
+			sort -Vu | \
 			sed 's/_/\./g;s/^v//'
 	}
 
