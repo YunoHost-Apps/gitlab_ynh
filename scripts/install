@@ -4,35 +4,15 @@ source _common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# CHECK IF THE APP CAN BE INSTALLED WITH THESE ARGS
+# INITIALIZE AND STORE SETTINGS
 #=================================================
-ynh_script_progression "Validating installation parameters..."
+ynh_script_progression "Storing installation settings..."
 
 config_path=/etc/$app
-
-# Detect the system architecture
-if [ -n "$(uname -m | grep arm64)" ] || [ -n "$(uname -m | grep aarch64)" ]; then
-	architecture="arm64"
-elif [ -n "$(uname -m | grep x86_64)" ]; then
-	architecture="x86-64"
-elif [ -n "$(uname -m | grep 86)" ]; then
-	ynh_die "Gitlab is not compatible with x86 architecture"
-elif [ -n "$(uname -m | grep arm)" ]; then
-	architecture="arm"
-else
-	ynh_die "Unable to detect your achitecture, please open a bug describing \
-        your hardware and the result of the command \"uname -m\"." 1
-fi
 
 # Could be an option?
 client_max_body_size="250m"
 
-#=================================================
-# STORE SETTINGS FROM MANIFEST
-#=================================================
-ynh_script_progression "Storing installation settings..."
-
-ynh_app_setting_set --key=architecture --value=$architecture
 ynh_app_setting_set --key=client_max_body_size --value=$client_max_body_size
 ynh_app_setting_set --key=overwrite_nginx --value="1"
 
