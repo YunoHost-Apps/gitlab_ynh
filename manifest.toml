@@ -34,9 +34,9 @@ ram.runtime = "2000M"
     [install.domain]
     type = "domain"
 
-    [install.path]
-    type = "path"
-    default = "/gitlab"
+    #[install.path]
+    #type = "path"
+    #default = "/gitlab"
 
     [install.admin]
     type = "user"
@@ -58,10 +58,10 @@ ram.runtime = "2000M"
         [resources.sources.latest_bookworm]
         extract = false
         rename = "gitlab-ce.deb"
-        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.3.1-ce.0_amd64.deb/download.deb"
-        amd64.sha256 = "cf919a906e52d45ae4101e075cf7401cf0d2115a6f22f8f9c91c325f249240e4"
-        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.3.1-ce.0_arm64.deb/download.deb"
-        arm64.sha256 = "b62f76d3900c4a368f218861a964863ea214773cd8c1c2fcc699497dd99725d9"
+        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
+        amd64.sha256 = "90ad514d0942ebfb758da738449e54ee7eb3fda9e2108ec87400f8a006afae8e"
+        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
+        arm64.sha256 = "a0762fe3e8962da5993b55177c9e383906c4e2d930716b9fd31c6d17af9feea0"
 
     [resources.sources.latest_bullseye]
         extract = false
