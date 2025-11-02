@@ -7,55 +7,13 @@ source /usr/share/yunohost/helpers
 # ENSURE DOWNWARD COMPATIBILITY
 #=================================================
 
-if [ -n $(ynh_app_setting_get --key=web_port) ]
-then
-	ynh_app_setting_set --key=port --value=$(ynh_app_setting_get --key=web_port)
-	ynh_app_setting_delete --key=web_port
-fi
-
 config_path=/etc/$app
 chmod 755 $install_dir
-if [ -n $(ynh_app_setting_get --key=puma_worker_processes) ]
-then
-	ynh_app_setting_delete --key=puma_worker_processes
-fi
-
-if [ -n $(ynh_app_setting_get --key=puma_max_threads) ]
-then
-	ynh_app_setting_delete --key=puma_max_threads
-fi
-
-if [ -n $(ynh_app_setting_get --key=puma_min_threads) ]
-then
-	ynh_app_setting_delete --key=puma_min_threads
-fi
-
-# If architecture doesn't exist, create it
-if [ -z "$architecture" ]; then
-	if [ -n "$(uname -m | grep arm64)" ] || [ -n "$(uname -m | grep aarch64)" ]; then
-		architecture="arm64"
-	elif [ -n "$(uname -m | grep x86_64)" ]; then
-		architecture="x86-64"
-	elif [ -n "$(uname -m | grep 86)" ]; then
-		ynh_die "GitLab is not compatible with x86 architecture"
-	elif [ -n "$(uname -m | grep arm)" ]; then
-		architecture="arm"
-	else
-		ynh_die "Unable to detect your achitecture, please open a bug describing \
-			your hardware and the result of the command \"uname -m\"." 1
-	fi
-	ynh_app_setting_set --key=architecture --value=$architecture
-fi
 
 # If client_max_body_size doesn't exist, create it
 if [ -z "$client_max_body_size" ]; then
 	client_max_body_size="250m"
 	ynh_app_setting_set --key=client_max_body_size --value=$client_max_body_size
-fi
-
-# if this source file exist, remove it
-if [ -e "/etc/apt/sources.list.d/gitlab-ce.list" ]; then
-	ynh_safe_rm "/etc/apt/sources.list.d/gitlab-ce.list"
 fi
 
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
