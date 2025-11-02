@@ -20,7 +20,7 @@ modify_kernel_parameters="true"
 
 for value_to_check in "kernel.shmall" "kernel.shmmax" "kernel.sem" "net.core.somaxconn"
 do
-	if ! sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
+	if ! ynh_hide_warnings sysctl --write $value_to_check="$(sysctl --value $value_to_check)"; then
 		modify_kernel_parameters="false"
 		break
 	fi
