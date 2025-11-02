@@ -56,20 +56,20 @@ ram.runtime = "2000M"
 [resources]
     [resources.sources]
         [resources.sources.latest_bookworm]
-        extract = false
-        rename = "gitlab-ce.deb"
-        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
-        amd64.sha256 = "90ad514d0942ebfb758da738449e54ee7eb3fda9e2108ec87400f8a006afae8e"
-        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
-        arm64.sha256 = "a0762fe3e8962da5993b55177c9e383906c4e2d930716b9fd31c6d17af9feea0"
+            extract = false
+            rename = "gitlab-ce.deb"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "90ad514d0942ebfb758da738449e54ee7eb3fda9e2108ec87400f8a006afae8e"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "a0762fe3e8962da5993b55177c9e383906c4e2d930716b9fd31c6d17af9feea0"
 
-    [resources.sources.latest_bullseye]
-        extract = false
-        rename = "gitlab-ce.deb"
-        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
-        amd64.sha256 = "8e32ff2a402a9e5633a9d3a83fae3226731ef894e04f4ae146cbf6d08951c71e"
-        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
-        arm64.sha256 = "4581e9e647559e4f9dbac9f4e2ecf389980b2338959c21f61fa24e211bc02225"
+        [resources.sources.latest_bullseye]
+            extract = false
+            rename = "gitlab-ce.deb"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.0-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "8e32ff2a402a9e5633a9d3a83fae3226731ef894e04f4ae146cbf6d08951c71e"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.5.0-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "4581e9e647559e4f9dbac9f4e2ecf389980b2338959c21f61fa24e211bc02225"
 
     [resources.system_user]
 
