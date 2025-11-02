@@ -34,9 +34,9 @@ ram.runtime = "2000M"
     [install.domain]
     type = "domain"
 
-    #[install.path]
-    #type = "path"
-    #default = "/gitlab"
+    [install.path]
+    type = "path"
+    default = "/gitlab"
 
     [install.admin]
     type = "user"
