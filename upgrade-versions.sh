@@ -7,6 +7,19 @@
 
 set -e
 
+# Function to compare versions (returns 0 if v1 > v2, 1 otherwise)
+version_gt() {
+    local v1=$1
+    local v2=$2
+
+    # Use sort -V (version sort) to compare
+    if [ "$(printf '%s\n%s\n' "$v1" "$v2" | sort -V | tail -n1)" = "$v1" ] && [ "$v1" != "$v2" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 if [ -z "$1" ]; then
     echo "Usage: $0 <version> [--add-only]"
     echo ""
@@ -53,7 +66,10 @@ fetch_sha256() {
     local architecture=$2
     local url="https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_${architecture}.deb"
 
-    curl -s "$url" | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs
+    local sha256=$(curl -s "$url" | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
+
+    # Return empty string if not found (for optional versions like trixie on older releases)
+    echo "$sha256"
 }
 
 # Fetch all SHA256s
@@ -69,11 +85,17 @@ for debian_version in "${debian_versions[@]}"; do
         sha256_map[$key]=$(fetch_sha256 "$debian_version" "$arch")
 
         if [ -z "${sha256_map[$key]}" ]; then
-            echo "FAILED!"
-            echo "ERROR: Failed to fetch SHA256 for $arch on $debian_version"
-            exit 1
+            # Trixie is optional for older versions
+            if [ "$debian_version" = "trixie" ]; then
+                echo "NOT AVAILABLE (skipping trixie for this version)"
+            else
+                echo "FAILED!"
+                echo "ERROR: Failed to fetch SHA256 for $arch on $debian_version"
+                exit 1
+            fi
+        else
+            echo "${sha256_map[$key]}"
         fi
-        echo "${sha256_map[$key]}"
     done
 done
 
@@ -104,6 +126,46 @@ if [ "$add_only" = false ]; then
     sed -i "/\[resources\.sources\.latest_bookworm\]/,/\[resources\.sources\./ {
         s|arm64\.sha256 = \"[^\"]*\"|arm64.sha256 = \"${sha256_map[bookworm_arm64]}\"|
     }" "$manifest_file"
+
+    # 5.5. Add missing latest_* sections for any debian version that doesn't exist
+    for debian_version in "${debian_versions[@]}"; do
+        # Skip if SHA256 not available (e.g., trixie for older versions)
+        if [ -z "${sha256_map[${debian_version}_amd64]}" ]; then
+            continue
+        fi
+
+        if ! grep -q "\[resources\.sources\.latest_${debian_version}\]" "$manifest_file"; then
+            # Find where to insert - after the last latest_* section but before system_user or versioned sources
+            last_latest_line=$(grep -n "\[resources\.sources\.latest_" "$manifest_file" | tail -n1 | cut -d: -f1)
+            if [ -n "$last_latest_line" ]; then
+                # Find empty line or next section after last latest_* to get the end of that section
+                insert_line=$(tail -n +$((last_latest_line + 1)) "$manifest_file" | grep -n "^$" | head -n1 | cut -d: -f1)
+                if [ -n "$insert_line" ]; then
+                    insert_line=$((last_latest_line + insert_line))
+                else
+                    # If no empty line found, just add after 5 lines (approximate section length)
+                    insert_line=$((last_latest_line + 5))
+                fi
+
+                # Insert debian version section
+                {
+                    head -n "$insert_line" "$manifest_file"
+                    cat <<EOF
+
+        [resources.sources.latest_${debian_version}]
+            extract = false
+            rename = "gitlab-ce.deb"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "${sha256_map[${debian_version}_amd64]}"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "${sha256_map[${debian_version}_arm64]}"
+EOF
+                    tail -n +$((insert_line + 1)) "$manifest_file"
+                } > "${manifest_file}.tmp"
+                mv "${manifest_file}.tmp" "$manifest_file"
+            fi
+        fi
+    done
 
     # 6. Update latest_trixie amd64 URL
     sed -i "/\[resources\.sources\.latest_trixie\]/,/\[resources\.sources\./ {
@@ -149,44 +211,63 @@ fi
 # 14. Add new versioned sources only if --add-only is used
 if [ "$add_only" = true ]; then
     if ! grep -q "\\[resources.sources.${version_id}_bookworm\\]" "$manifest_file"; then
-        # Find line number of [resources.system_user]
-        line_num=$(grep -n "    \[resources\.system_user\]" "$manifest_file" | cut -d: -f1)
+        # Find where to insert based on version comparison
+        # Parse all existing versions and find the right position
+        insert_line=""
 
-        if [ -n "$line_num" ]; then
-            # Insert before this line
-            insert_line=$((line_num - 1))
+        # Get all existing GitLab version comments with their line numbers
+        existing_versions=$(grep -n "^\s*# GitLab [0-9]" "$manifest_file" || true)
 
+        if [ -n "$existing_versions" ]; then
+            # Find the first version that is less than our new version
+            while IFS=: read -r line_num version_line; do
+                existing_ver=$(echo "$version_line" | grep -oP "GitLab \K[0-9.]+")
+
+                # Compare versions: if new version is greater, insert before this one
+                if version_gt "$version" "$existing_ver"; then
+                    insert_line=$((line_num - 1))
+                    break
+                fi
+            done <<< "$existing_versions"
+        fi
+
+        # If no position found yet, insert before [resources.system_user]
+        if [ -z "$insert_line" ]; then
+            insert_line=$(grep -n "^\s*\[resources\.system_user\]" "$manifest_file" | cut -d: -f1)
+            if [ -n "$insert_line" ]; then
+                insert_line=$((insert_line - 1))
+            fi
+        fi
+
+        if [ -n "$insert_line" ]; then
             # Create temp file with new content
             {
                 head -n "$insert_line" "$manifest_file"
-                cat <<EOF
 
-    # GitLab $version
-        [resources.sources.${version_id}_bookworm]
-        extract = false
-        rename = "gitlab-ce.deb"
-        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_${version}-ce.0_amd64.deb/download.deb"
-        amd64.sha256 = "${sha256_map[bookworm_amd64]}"
-        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_${version}-ce.0_arm64.deb/download.deb"
-        arm64.sha256 = "${sha256_map[bookworm_arm64]}"
+                # Add comment
+                echo ""
+                echo "        # GitLab $version"
 
-        [resources.sources.${version_id}_trixie]
-        extract = false
-        rename = "gitlab-ce.deb"
-        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_${version}-ce.0_amd64.deb/download.deb"
-        amd64.sha256 = "${sha256_map[trixie_amd64]}"
-        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_${version}-ce.0_arm64.deb/download.deb"
-        arm64.sha256 = "${sha256_map[trixie_arm64]}"
+                # Add a section for each debian version that has SHA256 values
+                for debian_version in "${debian_versions[@]}"; do
+                    # Skip if SHA256 not available
+                    if [ -z "${sha256_map[${debian_version}_amd64]}" ]; then
+                        continue
+                    fi
 
-        [resources.sources.${version_id}_bullseye]
-        extract = false
-        rename = "gitlab-ce.deb"
-        amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_${version}-ce.0_amd64.deb/download.deb"
-        amd64.sha256 = "${sha256_map[bullseye_amd64]}"
-        arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_${version}-ce.0_arm64.deb/download.deb"
-        arm64.sha256 = "${sha256_map[bullseye_arm64]}"
+                    cat <<EOF
+        [resources.sources.${version_id}_${debian_version}]
+            extract = false
+            rename = "gitlab-ce.deb"
+            amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_amd64.deb/download.deb"
+            amd64.sha256 = "${sha256_map[${debian_version}_amd64]}"
+            arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_arm64.deb/download.deb"
+            arm64.sha256 = "${sha256_map[${debian_version}_arm64]}"
+
 EOF
-                tail -n +$((line_num)) "$manifest_file"
+                done
+
+                tail -n +$((insert_line + 1)) "$manifest_file"
             } > "${manifest_file}.tmp"
 
             mv "${manifest_file}.tmp" "$manifest_file"
