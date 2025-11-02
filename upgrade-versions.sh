@@ -151,7 +151,6 @@ if [ "$add_only" = false ]; then
                 {
                     head -n "$insert_line" "$manifest_file"
                     cat <<EOF
-
         [resources.sources.latest_${debian_version}]
             extract = false
             rename = "gitlab-ce.deb"
@@ -159,6 +158,7 @@ if [ "$add_only" = false ]; then
             amd64.sha256 = "${sha256_map[${debian_version}_amd64]}"
             arm64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_arm64.deb/download.deb"
             arm64.sha256 = "${sha256_map[${debian_version}_arm64]}"
+
 EOF
                     tail -n +$((insert_line + 1)) "$manifest_file"
                 } > "${manifest_file}.tmp"
@@ -210,7 +210,8 @@ fi
 
 # 14. Add new versioned sources only if --add-only is used
 if [ "$add_only" = true ]; then
-    if ! grep -q "\\[resources.sources.${version_id}_bookworm\\]" "$manifest_file"; then
+    # Check if this version already exists (any debian version)
+    if ! grep -q "\\[resources.sources.${version_id}_" "$manifest_file"; then
         # Find where to insert based on version comparison
         # Parse all existing versions and find the right position
         insert_line=""
@@ -231,11 +232,12 @@ if [ "$add_only" = true ]; then
             done <<< "$existing_versions"
         fi
 
-        # If no position found yet, insert before [resources.system_user]
+        # If no position found yet, insert after the last latest_* section
         if [ -z "$insert_line" ]; then
-            insert_line=$(grep -n "^\s*\[resources\.system_user\]" "$manifest_file" | cut -d: -f1)
-            if [ -n "$insert_line" ]; then
-                insert_line=$((insert_line - 1))
+            # Find the last latest_* section and insert right after it (6 lines: header + 5 properties)
+            last_latest_line=$(grep -n "^\s*\[resources\.sources\.latest_" "$manifest_file" | tail -n1 | cut -d: -f1)
+            if [ -n "$last_latest_line" ]; then
+                insert_line=$((last_latest_line + 6))
             fi
         fi
 
@@ -244,8 +246,13 @@ if [ "$add_only" = true ]; then
             {
                 head -n "$insert_line" "$manifest_file"
 
+                # Add an empty line before the comment if this is the first version
+                # (when inserting after latest_*, there's no empty line yet)
+                if [ -z "$existing_versions" ]; then
+                    echo ""
+                fi
+
                 # Add comment
-                echo ""
                 echo "        # GitLab $version"
 
                 # Add a section for each debian version that has SHA256 values
@@ -257,6 +264,7 @@ if [ "$add_only" = true ]; then
 
                     cat <<EOF
         [resources.sources.${version_id}_${debian_version}]
+            prefetch = false
             extract = false
             rename = "gitlab-ce.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_amd64.deb/download.deb"
