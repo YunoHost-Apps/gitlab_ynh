@@ -81,7 +81,7 @@ chmod 755 $install_dir
 # https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
 if ! EXTERNAL_URL="$generated_external_url" ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then
 	package_check_action
-	EXTERNAL_URL="$generated_external_url" ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb
+	EXTERNAL_URL="$generated_external_url" ynh_hide_warnings dpkg --configure gitlab-ce
 fi
 
 ynh_safe_rm "$tempdir"
