@@ -18,6 +18,11 @@ fi
 
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
+if ynh_app_upgrading_from_version_before 16.9.0~ynh1
+then
+    ynh_die "Upgrading from Gitlab < 16.9 is not supported anymore. You should first upgrade using: yunohost app upgrade gitlab -u https://github.com/YunoHost-Apps/gitlab_ynh/commit/07e234db66c9c2b58cf378f87746af3f968140f1"
+fi
+
 #=================================================
 # ADD SWAP IF NEEDED
 #=================================================
@@ -168,27 +173,16 @@ then
 	while [ "$last_version" != "$current_version" ]
 	do
 		# https://docs.gitlab.com/ee/update/background_migrations.html
-		if dpkg --compare-versions "$current_version" "ge" "15.1"; then
-			checkBatchedBackgroundMigration=1
-			checkBackgroundMigration=0
-		else
-			checkBatchedBackgroundMigration=0
-			checkBackgroundMigration=1
-		fi
+		checkBatchedBackgroundMigration=1
 
 		counter=0
-		while [ $checkBackgroundMigration -eq 1 ] || [ $checkBatchedBackgroundMigration -eq 1 ]
+		while [ $checkBatchedBackgroundMigration -eq 1 ]
 		do
 			counter=$((counter + 1))
 			if [ $counter -gt 1200 ]
 			then
 				ynh_print_warn "Timeout: a background migration runs for at least 20min !"
 				break
-			fi
-
-			if [ $checkBackgroundMigration -eq 1 ] && ((gitlab-rails runner -e production 'puts Gitlab::BackgroundMigration.remaining' | grep -q -w 0) || (gitlab-rails runner -e production 'puts Gitlab::Database::BackgroundMigration::BatchedMigration.queued.count' | grep -q -w 0))
-			then
-				checkBackgroundMigration=0
 			fi
 
 			if [ $checkBatchedBackgroundMigration -eq 1 ] && gitlab-psql -c "SELECT job_class_name, table_name, column_name, job_arguments FROM batched_background_migrations WHERE status NOT IN(3, 6);" | grep -q -w 0
