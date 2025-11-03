@@ -1,8 +1,6 @@
 #!/bin/bash
 
 #=================================================
-# GENERIC START
-#=================================================
 # IMPORT GENERIC HELPERS
 #=================================================
 
@@ -11,12 +9,10 @@ source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
 #=================================================
-# STANDARD RESTORATION STEPS
-#=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
 
-ynh_restore_file --origin_path="/etc/nginx/conf.d/$domain.d/$app.conf"
+ynh_restore "/etc/nginx/conf.d/$domain.d/$app.conf"
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -32,50 +28,48 @@ if [ $total_ram -lt 4096 ]; then
 fi
 
 if [ $swap_needed -gt 0 ]; then
-	ynh_script_progression --message="Adding $swap_needed Mo to swap..."
+	ynh_script_progression "Adding $swap_needed Mo to swap..."
 	if ! ynh_add_swap --size=$swap_needed; then
-		ynh_print_warn --message="Please add $swap_needed Mo to swap to make GitLab work properly"
+		ynh_print_warn "Please add $swap_needed Mo to swap to make GitLab work properly"
 	fi
 fi
 
 #=================================================
 # RESTORE CONF FILES
 #=================================================
-ynh_script_progression --message="Restoring configuration files of GitLab..." --weight=1
+ynh_script_progression "Restoring configuration files of GitLab..."
 
 config_path=/etc/$app
 chmod 755 $install_dir
-
-ynh_restore_file --origin_path="$config_path/gitlab-secrets.json"
-ynh_restore_file --origin_path="$config_path/gitlab.rb"
-ynh_restore_file --origin_path="$config_path/gitlab-persistent.rb"
+ynh_restore "$config_path/gitlab-secrets.json"
+ynh_restore "$config_path/gitlab.rb"
+ynh_restore "$config_path/gitlab-persistent.rb"
 
 #=================================================
 # RESTORE THE APP MAIN DIR
 #=================================================
-ynh_script_progression --message="Reinstalling GitLab..." --weight=50
-
-source $YNH_APP_BASEDIR/scripts/upgrade.d/upgrade.last.sh
-ynh_add_config --template="$YNH_APP_BASEDIR/conf/$architecture.src.default" --destination="$YNH_APP_BASEDIR/conf/$architecture.src"
+ynh_script_progression "Reinstalling GitLab..."
 
 tempdir="$(mktemp -d)"
 
-ynh_setup_source --dest_dir=$tempdir --source_id=$architecture
+ynh_setup_source --dest_dir=$tempdir --source_id="latest_$(lsb_release -sc)"
 
-if ! ynh_exec_warn_less dpkg -i $tempdir/$gitlab_filename ;
-then # This command will fail in lxc env
-	package_check_action # defined in upgrade.d/upgrade.last.sh
-	ynh_exec_warn_less dpkg --configure gitlab-ce
+chmod 755 $install_dir
+# https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
+if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then # This command will fail in lxc env
+	package_check_action
+	ynh_hide_warnings dpkg --configure gitlab-ce
 fi
 
-#=================================================
-# SPECIFIC RESTORATION
+ynh_safe_rm "$tempdir"
+
 #=================================================
 # RESTORE GITLAB DATABASE
 #=================================================
-ynh_script_progression --message="Restoring GitLab..." --weight=35
+ynh_script_progression "Restoring GitLab..."
 
-ynh_restore_file --origin_path="/var/opt/$app/backups/last_gitlab_backup.tar"
+ynh_restore "/var/opt/$app/backups/last_gitlab_backup.tar"
+chown git:git "/var/opt/$app/backups/last_gitlab_backup.tar"
 
 last_backup="last"
 
@@ -84,15 +78,13 @@ gitlab-ctl stop sidekiq
 
 # Use gitlab-rake to backup
 # Doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
-ynh_exec_warn_less gitlab-backup restore force=yes BACKUP=$last_backup
+ynh_hide_warnings gitlab-backup restore force=yes BACKUP=$last_backup
 
 # https://docs.gitlab.com/ce/raketasks/backup_restore.html#container-registry-push-failures-after-restoring-from-a-backup
 if ynh_system_user_exists --username="registry" && [ -d "/var/opt/gitlab/gitlab-rails/shared/registry/docker" ]; then
 	chown -R registry:registry /var/opt/gitlab/gitlab-rails/shared/registry/docker
 fi
 
-#=================================================
-# GENERIC FINALIZATION
 #=================================================
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
@@ -102,9 +94,9 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 #=================================================
 # WAITING GITLAB
 #=================================================
-ynh_script_progression --message="Waiting for GitLab..." --weight=14
+ynh_script_progression "Waiting for GitLab..."
 
-ynh_systemd_action --action=restart --service_name="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --line_match="Listening on http://127.0.0.1:$port_puma" --timeout=300
+ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
 
 #=================================================
 # CHECK THE RESTORED DATA
@@ -118,12 +110,12 @@ usermod -a -G "ssh.app" "git"
 #=================================================
 # RELOAD NGINX
 #=================================================
-ynh_script_progression --message="Reloading NGINX web server..." --weight=1
+ynh_script_progression "Reloading NGINX web server..."
 
-ynh_systemd_action --action=reload --service_name=nginx
+ynh_systemctl --action=reload --service=nginx
 
 #=================================================
 # END OF SCRIPT
 #=================================================
 
-ynh_script_progression --message="Restoration completed for GitLab" --last
+ynh_script_progression "Restoration completed for GitLab"
