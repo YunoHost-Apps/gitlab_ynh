@@ -68,165 +68,161 @@ generated_external_url="https://$domain${path%/}"
 # DOWNLOAD, CHECK AND UNPACK SOURCE
 #=================================================
 
-# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
-if ynh_app_upstream_version_changed
-then
-	ynh_script_progression "Setting up source files..."
+ynh_script_progression "Setting up source files..."
 
-	# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
-	touch $config_path/skip-auto-backup
+# To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
+touch $config_path/skip-auto-backup
+
+current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
+
+# Get Debian version
+gitlab_debian_version="$(lsb_release -sc)"
+
+
+# Function to get version from a source_id in manifest
+get_version_from_source_id() {
+	local source_id=$1
+	local debian_version=$2
+
+	# Try to read from manifest for this Debian version
+	local section="resources.sources.${source_id}_${debian_version}"
+
+	if grep -q "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml"; then
+		# Extract URL to get version
+		local url=$(grep -A 10 "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml" | grep "amd64.url" | cut -d'"' -f2)
+		gitlab_version=$(echo "$url" | sed -n 's/.*gitlab-ce_\([0-9.]*\)-ce.0.*/\1/p')
+		gitlab_source_id="${source_id}_${debian_version}"
+		return 0
+	fi
+
+	return 1
+}
+
+# Function to get latest version
+get_latest_version() {
+	local debian_version=$1
+	get_version_from_source_id "latest" "$debian_version"
+}
+
+# Function to list all available versions for upgrade path
+list_upgrade_versions() {
+	local major_version=$1
+
+	# List all version IDs matching the pattern v{major}_*
+	grep -o "\[resources\.sources\.v${major_version}_[^]]*\]" "$YNH_APP_BASEDIR/manifest.toml" | \
+		sed 's/\[resources\.sources\.v//;s/\]//' | \
+		grep "^${major_version}_" | \
+		sed 's/_[^_]*$//' | \
+		sort -Vu | \
+		sed 's/_/\./g'
+}
+
+# Function to find and load next version in upgrade path
+source_next_version() {
+	local current_major=${current_version%%.*}
+
+	# Get all versions for this major release
+	local versions=$(list_upgrade_versions "$current_major")
+
+	# Find the next version greater than current
+	local next_version=""
+	for ver in $versions; do
+		if dpkg --compare-versions "$ver" "gt" "$current_version"; then
+			next_version=$ver
+			break
+		fi
+	done
+
+	if [ -n "$next_version" ]; then
+		# Load this version
+		local version_id="v$(echo "$next_version" | tr '.' '_')"
+		if get_version_from_source_id "$version_id" "$gitlab_debian_version"; then
+			return 0
+		fi
+	fi
+
+	# If no next version found in current major, try next major
+	local next_major=$((current_major + 1))
+	versions=$(list_upgrade_versions "$next_major")
+
+	if [ -n "$versions" ]; then
+		# Get first version of next major
+		next_version=$(echo "$versions" | head -n1)
+		local version_id="v$(echo "$next_version" | tr '.' '_')"
+		if get_version_from_source_id "$version_id" "$gitlab_debian_version"; then
+			return 0
+		fi
+	fi
+
+	# Otherwise use latest
+	get_latest_version "$gitlab_debian_version"
+}
+
+# Get the latest version from manifest
+get_latest_version "$gitlab_debian_version"
+last_version=$gitlab_version
+
+# To upgrade GitLab from a major version A to a major version B,
+# we need to follow a specific path described here https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
+# A.last -> B.first -> -> B.X -> B.Y -> B.last
+
+# While the current version is not the last version, do an upgrade
+while [ "$last_version" != "$current_version" ]
+do
+	# https://docs.gitlab.com/ee/update/background_migrations.html
+	checkBatchedBackgroundMigration=1
+
+	counter=0
+	while [ $checkBatchedBackgroundMigration -eq 1 ]
+	do
+		counter=$((counter + 1))
+		if [ $counter -gt 1200 ]
+		then
+			ynh_print_warn "Timeout: a background migration runs for at least 20min !"
+			break
+		fi
+
+		if [ $checkBatchedBackgroundMigration -eq 1 ] && gitlab-psql -c "SELECT job_class_name, table_name, column_name, job_arguments FROM batched_background_migrations WHERE status NOT IN(3, 6);" | grep -q -w 0
+		then
+			checkBatchedBackgroundMigration=0
+		fi
+		ynh_print_info "Wait for the migration in the background to finish"
+		sleep 1
+	done
+
+	source_next_version
+
+	ynh_print_info "Upgrade from ${current_version} to ${gitlab_version}"
+
+	tempdir="$(mktemp -d)"
+
+	# Download using YunoHost's automatic architecture detection
+	ynh_setup_source --dest_dir=$tempdir --source_id="$gitlab_source_id"
+
+	if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then # This command will fail in lxc env
+		package_check_action
+		ynh_hide_warnings dpkg --configure gitlab-ce
+	fi
+
+	ynh_safe_rm "$tempdir"
 
 	current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
 
-	# Get Debian version
-	gitlab_debian_version="$(lsb_release -sc)"
+	# Sometimes we need to update the gitlab.rb configuration file in order to migrate to the next version.
+	current_major_version=${current_version%%.*}
+	if [ -e "$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" ]; then
+		ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" --destination="$config_path/gitlab.rb"
 
+		touch "$config_path/gitlab-persistent.rb"
+		chown root:root "$config_path/gitlab-persistent.rb"
+		chmod 640 "$config_path/gitlab-persistent.rb"
 
-	# Function to get version from a source_id in manifest
-	get_version_from_source_id() {
-		local source_id=$1
-		local debian_version=$2
-
-		# Try to read from manifest for this Debian version
-		local section="resources.sources.${source_id}_${debian_version}"
-
-		if grep -q "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml"; then
-			# Extract URL to get version
-			local url=$(grep -A 10 "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml" | grep "amd64.url" | cut -d'"' -f2)
-			gitlab_version=$(echo "$url" | sed -n 's/.*gitlab-ce_\([0-9.]*\)-ce.0.*/\1/p')
-			gitlab_source_id="${source_id}_${debian_version}"
-			return 0
-		fi
-
-		return 1
-	}
-
-	# Function to get latest version
-	get_latest_version() {
-		local debian_version=$1
-		get_version_from_source_id "latest" "$debian_version"
-	}
-
-	# Function to list all available versions for upgrade path
-	list_upgrade_versions() {
-		local major_version=$1
-
-		# List all version IDs matching the pattern v{major}_*
-		grep -o "\[resources\.sources\.v${major_version}_[^]]*\]" "$YNH_APP_BASEDIR/manifest.toml" | \
-			sed 's/\[resources\.sources\.v//;s/\]//' | \
-			grep "^${major_version}_" | \
-			sed 's/_[^_]*$//' | \
-			sort -Vu | \
-			sed 's/_/\./g'
-	}
-
-	# Function to find and load next version in upgrade path
-	source_next_version() {
-		local current_major=${current_version%%.*}
-
-		# Get all versions for this major release
-		local versions=$(list_upgrade_versions "$current_major")
-
-		# Find the next version greater than current
-		local next_version=""
-		for ver in $versions; do
-			if dpkg --compare-versions "$ver" "gt" "$current_version"; then
-				next_version=$ver
-				break
-			fi
-		done
-
-		if [ -n "$next_version" ]; then
-			# Load this version
-			local version_id="v$(echo "$next_version" | tr '.' '_')"
-			if get_version_from_source_id "$version_id" "$gitlab_debian_version"; then
-				return 0
-			fi
-		fi
-
-		# If no next version found in current major, try next major
-		local next_major=$((current_major + 1))
-		versions=$(list_upgrade_versions "$next_major")
-
-		if [ -n "$versions" ]; then
-			# Get first version of next major
-			next_version=$(echo "$versions" | head -n1)
-			local version_id="v$(echo "$next_version" | tr '.' '_')"
-			if get_version_from_source_id "$version_id" "$gitlab_debian_version"; then
-				return 0
-			fi
-		fi
-
-		# Otherwise use latest
-		get_latest_version "$gitlab_debian_version"
-	}
-
-	# Get the latest version from manifest
-	get_latest_version "$gitlab_debian_version"
-	last_version=$gitlab_version
-
-	# To upgrade GitLab from a major version A to a major version B,
-	# we need to follow a specific path described here https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
-	# A.last -> B.first -> -> B.X -> B.Y -> B.last
-
-	# While the current version is not the last version, do an upgrade
-	while [ "$last_version" != "$current_version" ]
-	do
-		# https://docs.gitlab.com/ee/update/background_migrations.html
-		checkBatchedBackgroundMigration=1
-
-		counter=0
-		while [ $checkBatchedBackgroundMigration -eq 1 ]
-		do
-			counter=$((counter + 1))
-			if [ $counter -gt 1200 ]
-			then
-				ynh_print_warn "Timeout: a background migration runs for at least 20min !"
-				break
-			fi
-
-			if [ $checkBatchedBackgroundMigration -eq 1 ] && gitlab-psql -c "SELECT job_class_name, table_name, column_name, job_arguments FROM batched_background_migrations WHERE status NOT IN(3, 6);" | grep -q -w 0
-			then
-				checkBatchedBackgroundMigration=0
-			fi
-			ynh_print_info "Wait for the migration in the background to finish"
-			sleep 1
-		done
-
-		source_next_version
-
-		ynh_print_info "Upgrade from ${current_version} to ${gitlab_version}"
-
-		tempdir="$(mktemp -d)"
-
-		# Download using YunoHost's automatic architecture detection
-		ynh_setup_source --dest_dir=$tempdir --source_id="$gitlab_source_id"
-
-		if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then # This command will fail in lxc env
-			package_check_action
-			ynh_hide_warnings dpkg --configure gitlab-ce
-		fi
-
-		ynh_safe_rm "$tempdir"
-
-		current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
-
-		# Sometimes we need to update the gitlab.rb configuration file in order to migrate to the next version.
-		current_major_version=${current_version%%.*}
-		if [ -e "$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" ]; then
-			ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.$current_major_version.rb" --destination="$config_path/gitlab.rb"
-
-			touch "$config_path/gitlab-persistent.rb"
-			chown root:root "$config_path/gitlab-persistent.rb"
-			chmod 640 "$config_path/gitlab-persistent.rb"
-
-			# During large migrations, the logs are too big to be sent to paste.yunohost.org
-			# Send the reconfigure logs in a file, and if the process succeeds, just delete it.
-			gitlab-ctl reconfigure > "/tmp/gitlab_upgrade_$current_version.log"
-			ynh_safe_rm "/tmp/gitlab_upgrade_$current_version.log"
-		fi
-	done
-fi
+		# During large migrations, the logs are too big to be sent to paste.yunohost.org
+		# Send the reconfigure logs in a file, and if the process succeeds, just delete it.
+		gitlab-ctl reconfigure > "/tmp/gitlab_upgrade_$current_version.log"
+		ynh_safe_rm "/tmp/gitlab_upgrade_$current_version.log"
+	fi
+done
 
 #=================================================
 # RECONFIGURE GITLAB
@@ -265,14 +261,9 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 #=================================================
 # WAITING GITLAB
 #=================================================
+ynh_script_progression "Restarting GitLab..."
 
-# FIXME: this is still supported but the recommendation is now to *always* re-setup the app sources wether or not the upstream sources changed
-if ynh_app_upstream_version_changed
-then
-	ynh_script_progression "Restarting GitLab..."
-
-	ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
-fi
+ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
 
 #=================================================
 # RELOAD NGINX
