@@ -920,8 +920,11 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # }
 
 #### OpenBao (GitLab Secret Manager)
+#### Beta: these attributes are subject to change without
+####       a breaking change announcement.
 # gitlab_rails['openbao']['url'] = nil
 # gitlab_rails['openbao']['internal_url'] = nil
+# gitlab_rails['openbao']['authentication_token_secret_file_path'] = nil
 
 #### Session cookie settings
 # gitlab_rails['session_store_session_cookie_token_prefix'] = ''
@@ -1184,7 +1187,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #     'name' => 'test_endpoint',
 #     'url' => 'https://gitlab.example.com/notify2',
 #     'timeout' => '500ms',
-#     'threshold' => 5, # DEPRECATED: use maxretries instead https://gitlab.com/gitlab-org/container-registry/-/issues/1243
+#     'threshold' => 5, # DEPRECATED: use maxretries instead https://docs.gitlab.com/administration/packages/container_registry/#configure-container-registry-notifications
 #     'maxretries' => 5,
 #     'backoff' => '1s',
 #     'headers' => {
@@ -2130,7 +2133,7 @@ nginx['listen_https'] = false
 # gitlab_pages['server_shutdown_timeout'] = "30s"
 
 ##! GitLab API HTTP client connection timeout
-# gitlab_pages['gitlab_client_http_timeout'] = "10s"
+# gitlab_pages['gitlab_client_http_timeout'] = "60s"
 
 ##! GitLab API JWT Token expiry time
 # gitlab_pages['gitlab_client_jwt_expiry'] = "30s"
@@ -2605,7 +2608,10 @@ nginx['listen_https'] = false
 # redis_exporter['log_directory'] = '/var/log/gitlab/redis-exporter'
 # redis_exporter['log_group'] = nil
 # redis_exporter['flags'] = {
-#   'redis.addr' => "unix:///var/opt/gitlab/redis/redis.socket",
+#   'redis.password' => 'your-redis-password',
+#   'namespace' => 'redis',
+#   'web.listen-address' => ':9121',
+#   'web.telemetry-path' => '/metrics'
 # }
 # redis_exporter['env_directory'] = '/opt/gitlab/etc/redis-exporter/env'
 # redis_exporter['env'] = {
