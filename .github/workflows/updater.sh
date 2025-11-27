@@ -13,7 +13,14 @@
 # FETCHING LATEST RELEASE AND ITS ASSETS
 #=================================================
 
+# For the time being, let's assume the script will fail
+echo "PROCEED=false" >> $GITHUB_ENV
+
 /bin/bash ./upgrade-path.sh 16.9.0
+
+version=$(sed -n 's/^version = "\([^~]*\)~.*/\1/p' manifest.toml)
+echo "VERSION=$version" >> $GITHUB_ENV
+echo "REPO=$repo" >> $GITHUB_ENV
 
 #=================================================
 # UPDATE SOURCE FILES
