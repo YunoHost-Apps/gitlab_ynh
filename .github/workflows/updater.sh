@@ -13,7 +13,7 @@
 # FETCHING LATEST RELEASE AND ITS ASSETS
 #=================================================
 
-/bin/bash ./upgrade-path.sh
+/bin/bash ./upgrade-path.sh 16.9.0
 
 #=================================================
 # UPDATE SOURCE FILES
