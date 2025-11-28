@@ -13,14 +13,32 @@
 # FETCHING LATEST RELEASE AND ITS ASSETS
 #=================================================
 
+current_version=$(yq ".version" manifest.toml | cut -d '~' -f 1 -)
+
 # For the time being, let's assume the script will fail
 echo "PROCEED=false" >> $GITHUB_ENV
 
 /bin/bash ./upgrade-path.sh 16.9.0
 
-version=$(sed -n 's/^version = "\([^~]*\)~.*/\1/p' manifest.toml)
-echo "VERSION=$version" >> $GITHUB_ENV
-echo "REPO=$repo" >> $GITHUB_ENV
+version=$(yq ".version" manifest.toml | cut -d '~' -f 1 -)
+
+echo "Current version: $current_version"
+echo "Latest release from upstream: $version"
+echo "VERSION=$version" >> "$GITHUB_ENV"
+echo "REPO=$repo" >> "$GITHUB_ENV"
+# For the time being, let's assume the script will fail
+echo "PROCEED=false" >> "$GITHUB_ENV"
+
+# Proceed only if the retrieved version is greater than the current one
+if ! dpkg --compare-versions "$current_version" "lt" "$version" ; then
+	echo "::warning ::No new version available"
+	exit 0
+# Proceed only if a PR for this new version does not already exist
+elif git ls-remote -q --exit-code --heads https://github.com/$GITHUB_REPOSITORY.git ci-auto-update-v$version ; then
+	echo "::warning ::A branch already exists for this update"
+	exit 0
+fi
+
 
 #=================================================
 # UPDATE SOURCE FILES
