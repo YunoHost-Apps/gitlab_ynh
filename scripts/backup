@@ -20,6 +20,10 @@ ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 # BACKUP GITLAB DATABASE
 #=================================================
 
+# See https://github.com/YunoHost-Apps/gitlab_ynh/issues/300
+
+chmod 755 $install_dir
+
 # Use gitlab-backup to backup
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename
