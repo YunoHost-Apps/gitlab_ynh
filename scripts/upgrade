@@ -73,7 +73,14 @@ ynh_script_progression "Setting up source files..."
 # To avoid the automatic backup, already performed by YunoHost: https://docs.gitlab.com/omnibus/update/#updating-methods
 touch $config_path/skip-auto-backup
 
-current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
+if [[ "$version" == "Enterprise" ]];then
+	installed_package="gitlab-ee"
+else
+	installed_package="gitlab-ce"
+fi
+
+
+current_version=$(grep $installed_package /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
 
 # Get Debian version
 gitlab_debian_version="$(lsb_release -sc)"
@@ -90,7 +97,7 @@ get_version_from_source_id() {
 	if grep -q "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml"; then
 		# Extract URL to get version
 		local url=$(grep -A 10 "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml" | grep "amd64.url" | cut -d'"' -f2)
-		gitlab_version=$(echo "$url" | sed -n 's/.*gitlab-ce_\([0-9.]*\)-ce.0.*/\1/p')
+		gitlab_version=$(echo "$url" | sed -n "s/.*"$installed_package"_\([0-9.]*\)-ce.0.*/\1/p")
 		gitlab_source_id="${source_id}_${debian_version}"
 		return 0
 	fi
@@ -199,14 +206,14 @@ do
 	# Download using YunoHost's automatic architecture detection
 	ynh_setup_source --dest_dir=$tempdir --source_id="$gitlab_source_id"
 
-	if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then # This command will fail in lxc env
+	if ! ynh_hide_warnings dpkg -i $tempdir/$installed_package.deb; then # This command will fail in lxc env
 		package_check_action
-		ynh_hide_warnings dpkg --configure gitlab-ce
+		ynh_hide_warnings dpkg --configure $installed_package
 	fi
 
 	ynh_safe_rm "$tempdir"
 
-	current_version=$(grep gitlab-ce /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
+	current_version=$(grep $installed_package /opt/gitlab/version-manifest.txt | cut -d' ' -f2)
 
 	# Sometimes we need to update the gitlab.rb configuration file in order to migrate to the next version.
 	current_major_version=${current_version%%.*}
