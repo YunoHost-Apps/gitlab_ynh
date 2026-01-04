@@ -8,6 +8,8 @@
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
+version=$(ynh_app_setting_get --key=gitlab_version)
+
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
