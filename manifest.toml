@@ -38,7 +38,7 @@ ram.runtime = "2000M"
     type = "path"
     default = "/gitlab"
 
-   [install.version]
+    [install.version]
     ask.en = "Choose the version you want to install"
     ask.fr = "Choisissez la version que vous souhaitez installer"
     help.en = "Use Community Edition for the open source version (ARM, ARM64 and x86-64 support) or Enterprise Edition if you want to use a license (x86-64 and ARM64 support)"
