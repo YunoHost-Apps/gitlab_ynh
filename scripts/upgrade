@@ -10,17 +10,8 @@ source /usr/share/yunohost/helpers
 config_path=/etc/$app
 chmod 755 $install_dir
 
-# If client_max_body_size doesn't exist, create it
-if [ -z "$client_max_body_size" ]; then
-	client_max_body_size="250m"
-	ynh_app_setting_set --key=client_max_body_size --value=$client_max_body_size
-fi
-
-# Fallback for existing installations before Enterprise edition support
-if [ -z "$gitlab_edition" ]; then
-	gitlab_edition="Community"
-	ynh_app_setting_set --key=gitlab_edition --value=$gitlab_edition
-fi
+ynh_app_setting_set_default --key=client_max_body_size --value="250m"
+ynh_app_setting_set_default --key=gitlab_edition --value="Community"
 
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
