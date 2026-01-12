@@ -8,8 +8,6 @@
 source ../settings/scripts/_common.sh
 source /usr/share/yunohost/helpers
 
-version=$(ynh_app_setting_get --key=gitlab_version)
-
 #=================================================
 # RESTORE THE NGINX CONFIGURATION
 #=================================================
@@ -54,7 +52,7 @@ ynh_script_progression "Reinstalling GitLab..."
 
 tempdir="$(mktemp -d)"
 
-if [[ "$version" == "Enterprise" ]];then
+if [[ "$gitlab_edition" == "Enterprise" ]];then
 	ynh_setup_source --dest_dir=$tempdir --source_id="latest_ee_$(lsb_release -sc)"
 
 	chmod 755 $install_dir

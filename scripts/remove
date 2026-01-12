@@ -3,8 +3,6 @@
 source _common.sh
 source /usr/share/yunohost/helpers
 
-version=$(ynh_app_setting_get --key=gitlab_version)
-
 #=================================================
 # REMOVE SERVICE FROM ADMIN PANEL
 #=================================================
@@ -28,7 +26,7 @@ gitlab-ctl stop
 #=================================================
 ynh_script_progression "Removing GitLab"
 
-if [[ "$version" == "Enterprise" ]];then
+if [[ "$gitlab_edition" == "Enterprise" ]];then
 	dpkg --remove gitlab-ee
 else
 	dpkg --remove gitlab-ce
