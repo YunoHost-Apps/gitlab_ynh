@@ -85,7 +85,7 @@ if [[ "$gitlab_edition" == "Enterprise" ]];then
 		EXTERNAL_URL="$generated_external_url" ynh_hide_warnings dpkg --configure gitlab-ee
 	fi
 else
-	ynh_setup_source --dest_dir=$tempdir --source_id="latest_$(lsb_release -sc)"
+	ynh_setup_source --dest_dir=$tempdir --source_id="latest_ce_$(lsb_release -sc)"
 
 	chmod 755 $install_dir
 	# https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
