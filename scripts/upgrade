@@ -83,20 +83,19 @@ current_version=$(grep $installed_package /opt/gitlab/version-manifest.txt | cut
 gitlab_debian_version="$(lsb_release -sc)"
 
 
+# Edition code: ce or ee
+edition_code=$([ "$installed_package" = "gitlab-ee" ] && echo "ee" || echo "ce")
+
 # Function to get version from a source_id in manifest
 get_version_from_source_id() {
 	local source_id=$1
 	local debian_version=$2
-
-	# Try to read from manifest for this Debian version
-	local section="resources.sources.${source_id}_${debian_version}"
+	local section="resources.sources.${source_id}_${edition_code}_${debian_version}"
 
 	if grep -q "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml"; then
-		# Extract URL to get version
 		local url=$(grep -A 10 "\[${section}\]" "$YNH_APP_BASEDIR/manifest.toml" | grep "amd64.url" | cut -d'"' -f2)
-		local edition_suffix=$([ "$installed_package" = "gitlab-ee" ] && echo "ee" || echo "ce")
-		gitlab_version=$(echo "$url" | sed -n "s/.*${installed_package}_\([0-9.]*\)-${edition_suffix}.0.*/\1/p")
-		gitlab_source_id="${source_id}_${debian_version}"
+		gitlab_version=$(echo "$url" | sed -n "s/.*${installed_package}_\([0-9.]*\)-${edition_code}.0.*/\1/p")
+		gitlab_source_id="${source_id}_${edition_code}_${debian_version}"
 		return 0
 	fi
 
@@ -113,11 +112,10 @@ get_latest_version() {
 list_upgrade_versions() {
 	local major_version=$1
 
-	# List all version IDs matching the pattern v{major}_*
-	grep -o "\[resources\.sources\.v${major_version}_[^]]*\]" "$YNH_APP_BASEDIR/manifest.toml" | \
-		sed 's/\[resources\.sources\.v//;s/\]//' | \
-		grep "^${major_version}_" | \
-		sed 's/_[^_]*$//' | \
+	# List all version IDs matching v{major}_X_Y_{ce|ee}_{distro}
+	# Example: v17_11_7_ce_bookworm -> 17.11.7
+	grep -o "\[resources\.sources\.v${major_version}_[^]]*_${edition_code}_[^]]*\]" "$YNH_APP_BASEDIR/manifest.toml" | \
+		sed "s/\[resources\.sources\.v//;s/_${edition_code}_[^]]*\]$//" | \
 		sort -Vu | \
 		sed 's/_/\./g'
 }
