@@ -6,6 +6,7 @@ This script:
 1. Fetches the upgrade path from GitLab's official tool
 2. Fetches SHA256 checksums from packages.gitlab.com
 3. Renders manifest.toml from the Jinja2 template
+4. Downloads and patches gitlab.rb from upstream
 
 Usage:
     ./upgrade-path.py <starting_version>
@@ -28,12 +29,59 @@ except ImportError:
 SCRIPT_DIR = Path(__file__).parent
 TEMPLATE_FILE = "manifest.toml.j2"
 OUTPUT_FILE = "manifest.toml"
+GITLAB_RB_FILE = "conf/gitlab.rb"
 
 ARCHITECTURES = ["amd64", "arm64"]
 DISTROS = ["bullseye", "bookworm", "trixie"]
 EDITIONS = ["ce", "ee"]
 
 UPGRADE_PATH_URL = "https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/path.json"
+GITLAB_RB_TEMPLATE_URL = "https://gitlab.com/gitlab-org/omnibus-gitlab/-/raw/{version}+ce.0/files/gitlab-config-template/gitlab.rb.template"
+
+GITLAB_RB_HEADER = """################################################################################
+################################################################################
+##                             FOR YUNOHOST USERS                             ##
+################################################################################
+################################################################################
+
+# Please do not modify this file, it will be reset with the next update.
+# You can create or modify the file:
+# /etc/gitlab/gitlab-persistent.rb
+# and add all the configuration you want.
+# Options you add in gitlab-persistent.rb will override these one,
+# but you can use options and documentations in this file to know what
+# is it possible to do.
+
+################################################################################
+################################################################################
+"""
+
+GITLAB_RB_FOOTER = """
+from_file '/etc/gitlab/gitlab-persistent.rb'"""
+
+LDAP_CONFIG = """
+gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block with 'EOS' below
+  main: # 'main' is the GitLab 'provider ID' of this LDAP server
+    label: 'YunoHost LDAP'
+    host: 'localhost'
+    port: 389
+    uid: 'uid'
+    encryption: 'plain' # 'start_tls' or 'simple_tls' or 'plain'
+    bind_dn: 'ou=users,dc=yunohost,dc=org'
+    password: ''
+    active_directory: false
+    allow_username_or_email_login: false
+    block_auto_created_users: false
+    base: 'dc=yunohost,dc=org'
+    user_filter: '(&(objectClass=posixAccount)(permission=cn=gitlab.main,ou=permission,dc=yunohost,dc=org))'
+    timeout: 10
+    attributes: {
+      username: ['uid', 'sAMAccountName'],
+      name: 'cn',
+      first_name: 'givenName',
+      last_name: 'sn'
+    }
+EOS"""
 
 
 class FetchError(Exception):
@@ -173,6 +221,69 @@ def render_manifest(latest_version: str, latest_sha256: dict, upgrade_path: list
     print(f"\nGenerated {output_path}")
 
 
+def update_gitlab_rb(version: str):
+    """Download gitlab.rb template from upstream and apply YunoHost patches."""
+    print(f"\nUpdating gitlab.rb from upstream ({version})...")
+
+    url = GITLAB_RB_TEMPLATE_URL.format(version=version)
+    print(f"  Downloading from {url}...")
+
+    try:
+        with urllib.request.urlopen(url, timeout=60) as response:
+            content = response.read().decode('utf-8')
+    except Exception as e:
+        print(f"ERROR: Failed to download gitlab.rb template: {e}")
+        sys.exit(1)
+
+    print("  Applying YunoHost patches...")
+
+    # Apply sed-like replacements
+    replacements = [
+        # External URL
+        (r"external_url 'GENERATED_EXTERNAL_URL'",
+         "external_url '__GENERATED_EXTERNAL_URL__'"),
+
+        # LDAP
+        (r"# gitlab_rails\['ldap_enabled'\] = .*",
+         "gitlab_rails['ldap_enabled'] = true"),
+
+        # SSH port
+        (r"# gitlab_rails\['gitlab_shell_ssh_port'\] = 22",
+         "gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__"),
+
+        # Puma port
+        (r"# puma\['port'\] = .*",
+         "puma['port'] = __PORT_PUMA__"),
+
+        # Sidekiq port
+        (r"# sidekiq\['listen_port'\] = .*",
+         "sidekiq['listen_port'] = __PORT_SIDEKIQ__"),
+
+        # Nginx settings
+        (r"# nginx\['client_max_body_size'\] = .*",
+         "nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'"),
+        (r"# nginx\['listen_port'\] = .*",
+         "nginx['listen_port'] = __PORT__"),
+        (r"# nginx\['listen_https'\] = .*",
+         "nginx['listen_https'] = false"),
+
+        # Kernel parameters
+        (r"# package\['modify_kernel_parameters'\] = .*",
+         "package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__"),
+    ]
+
+    for pattern, replacement in replacements:
+        content = re.sub(pattern, replacement, content)
+
+    # Insert LDAP config after "# EOS" line
+    content = re.sub(r"(^# EOS$)", r"\1" + LDAP_CONFIG, content, count=1, flags=re.MULTILINE)
+
+    # Write final file
+    output_path = SCRIPT_DIR / GITLAB_RB_FILE
+    output_path.write_text(GITLAB_RB_HEADER + content + GITLAB_RB_FOOTER)
+    print(f"  Generated {output_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Process GitLab upgrade path")
     parser.add_argument("starting_version", help="Starting version (e.g., 16.11.10)")
@@ -220,7 +331,10 @@ def main():
     # Render template (reverse upgrade path so newest versions come first)
     render_manifest(latest_version, latest_sha256, list(reversed(upgrade_path_data)), latest_distros)
 
-    print("\nDone! Review changes with: git diff manifest.toml")
+    # Update gitlab.rb from upstream
+    update_gitlab_rb(latest_version)
+
+    print("\nDone! Review changes with: git diff manifest.toml conf/gitlab.rb")
 
 
 if __name__ == "__main__":
