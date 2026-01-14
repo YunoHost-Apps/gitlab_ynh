@@ -261,6 +261,45 @@ ynh_script_progression "Restarting GitLab..."
 ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
 
 #=================================================
+# MANAGE GITLAB PAGES REDIRECT
+#=================================================
+
+# Handle GitLab Pages configuration
+pages_app_id=$(ynh_app_setting_get --key=pages_app_id)
+
+if [ "$pages_enable" = "true" ] && [ -z "$pages_url" ]; then
+	ynh_print_warn "GitLab Pages enabled but no domain specified, disabling Pages"
+	pages_enable="false"
+	ynh_app_setting_set --key=pages_enable --value="$pages_enable"
+fi
+
+if [ "$pages_enable" = "true" ]; then
+	# Clean up pages_url
+	shopt -s extglob
+	pages_url=${pages_url#http?(s)://}
+	shopt -u extglob
+	pages_url=${pages_url%/}
+
+	if [ -z "$pages_app_id" ]; then
+		# Install redirect app if not yet installed
+		ynh_script_progression "Installing GitLab Pages redirect..."
+		yunohost app install redirect --label "GitLab Pages" --args "domain=$pages_url&path=/&redirect_type=reverseproxy&target=http://127.0.0.1:$port_nginx_pages&init_main_permission=visitors"
+		pages_app_id=$(get_gitlab_pages_app_id)
+		ynh_app_setting_set --key=pages_app_id --value="$pages_app_id"
+	fi
+elif [ -n "$pages_app_id" ]; then
+	# Remove redirect app if pages were disabled
+	# Validate the ID matches expected pattern before removing
+	if echo "$pages_app_id" | grep -qE '^redirect(__[0-9]+)?$'; then
+		ynh_script_progression "Removing GitLab Pages redirect..."
+		yunohost app remove "$pages_app_id" || true
+		ynh_app_setting_delete --key=pages_app_id
+	else
+		ynh_print_warn "Stored pages_app_id '$pages_app_id' doesn't match expected pattern, skipping removal"
+	fi
+fi
+
+#=================================================
 # RELOAD NGINX
 #=================================================
 

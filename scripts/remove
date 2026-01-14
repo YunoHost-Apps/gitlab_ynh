@@ -48,7 +48,17 @@ ynh_script_progression "Removing NGINX web server configuration"
 # Remove the dedicated NGINX config
 ynh_config_remove_nginx
 
-yunohost app remove redirect
+# Remove GitLab Pages redirect app if it was installed
+pages_app_id=$(ynh_app_setting_get --key=pages_app_id)
+if [ -n "$pages_app_id" ]; then
+	# Validate the ID matches expected pattern before removing
+	if echo "$pages_app_id" | grep -qE '^redirect(__[0-9]+)?$'; then
+		ynh_script_progression "Removing GitLab Pages redirect..."
+		yunohost app remove "$pages_app_id" || true
+	else
+		ynh_print_warn "Stored pages_app_id '$pages_app_id' doesn't match expected pattern, skipping removal"
+	fi
+fi
 
 #=================================================
 # REMOVE GITLAB FILES
