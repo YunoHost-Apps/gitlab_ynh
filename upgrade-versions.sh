@@ -1,9 +1,13 @@
 #!/bin/bash
 
 # Script to upgrade GitLab version in manifest.toml
-# Usage: ./upgrade-versions.sh <version> [--add-only]
-# Example: ./upgrade-versions.sh 18.6.0
-# Example: ./upgrade-versions.sh 18.4.0 --add-only  (add old version without updating latest)
+# Usage: ./upgrade-versions.sh <version> [--edition ce|ee] [--add-only]
+#
+# Examples:
+#   ./upgrade-versions.sh 18.6.0                    # Update both CE and EE to latest version
+#   ./upgrade-versions.sh 18.6.0 --edition ce       # Update only CE
+#   ./upgrade-versions.sh 18.4.0 --add-only         # Add old version for upgrade path (both editions)
+#   ./upgrade-versions.sh 18.4.0 --edition ee --add-only  # Add old version for EE only
 
 set -e
 
@@ -12,7 +16,6 @@ version_gt() {
     local v1=$1
     local v2=$2
 
-    # Use sort -V (version sort) to compare
     if [ "$(printf '%s\n%s\n' "$v1" "$v2" | sort -V | tail -n1)" = "$v1" ] && [ "$v1" != "$v2" ]; then
         return 0
     else
@@ -20,218 +23,275 @@ version_gt() {
     fi
 }
 
-if [ -z "$1" ]; then
-    echo "Usage: $0 <version> [--add-only]"
+# Parse arguments
+version=""
+edition="both"  # ce, ee, or both
+add_only=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --edition)
+            edition="$2"
+            if [[ "$edition" != "ce" && "$edition" != "ee" ]]; then
+                echo "ERROR: --edition must be 'ce' or 'ee'"
+                exit 1
+            fi
+            shift 2
+            ;;
+        --add-only)
+            add_only=true
+            shift
+            ;;
+        -*)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+        *)
+            if [ -z "$version" ]; then
+                version="$1"
+            else
+                echo "ERROR: Unexpected argument: $1"
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [ -z "$version" ]; then
+    echo "Usage: $0 <version> [--edition ce|ee] [--add-only]"
     echo ""
     echo "Options:"
-    echo "  <version>     GitLab version to add/update (e.g., 18.6.0)"
-    echo "  --add-only    Add version sources without updating latest_* entries"
+    echo "  <version>         GitLab version to add/update (e.g., 18.6.0)"
+    echo "  --edition ce|ee   Update only CE or EE (default: both)"
+    echo "  --add-only        Add version sources without updating latest_* entries"
     echo ""
     echo "Examples:"
-    echo "  $0 18.6.0              # Update to latest version"
-    echo "  $0 18.4.0 --add-only   # Add old version for upgrade path"
+    echo "  $0 18.6.0                          # Update both CE and EE to latest"
+    echo "  $0 18.6.0 --edition ce             # Update only CE"
+    echo "  $0 18.4.0 --add-only               # Add upgrade path sources for both"
+    echo "  $0 18.4.0 --edition ee --add-only  # Add upgrade path sources for EE only"
     exit 1
 fi
 
-version=$1
-add_only=false
-
-if [ "$2" = "--add-only" ]; then
-    add_only=true
-fi
 current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 manifest_file="$current_dir/manifest.toml"
 
-# Create version identifier for TOML section name (e.g., "18.6.0" -> "v18_5_1")
+# Create version identifier for TOML section name (e.g., "18.6.0" -> "v18_6_0")
 version_id="v$(echo "$version" | tr '.' '_')"
 
 debian_versions=("bullseye" "bookworm" "trixie")
 architectures=("amd64" "arm64")
 
+# Determine which editions to process
+editions_to_process=()
+if [ "$edition" = "both" ]; then
+    editions_to_process=("ce" "ee")
+else
+    editions_to_process=("$edition")
+fi
+
 if [ "$add_only" = true ]; then
     echo "========================================="
-    echo "Adding GitLab version $version to sources"
+    echo "Adding GitLab $version to sources"
+    echo "Edition(s): ${editions_to_process[*]}"
     echo "(without updating latest)"
     echo "========================================="
 else
     echo "========================================="
     echo "Upgrading GitLab to version $version"
+    echo "Edition(s): ${editions_to_process[*]}"
     echo "========================================="
 fi
 echo ""
 
-# Function to fetch SHA256 from GitLab packages website (silently)
+# Function to fetch SHA256 from GitLab packages website
 fetch_sha256() {
-    local debian_version=$1
-    local architecture=$2
-    local url="https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_${architecture}.deb"
+    local ed=$1
+    local debian_version=$2
+    local architecture=$3
+    local url="https://packages.gitlab.com/gitlab/gitlab-${ed}/packages/debian/${debian_version}/gitlab-${ed}_${version}-${ed}.0_${architecture}.deb"
 
     local sha256=$(curl -s "$url" | sed -n '/SHA256$/,/<\/tr>$/{ /SHA256$/d; /<\/tr>$/d; p; }' | cut -d$'\n' -f3 | xargs)
-
-    # Return empty string if not found (for optional versions like trixie on older releases)
     echo "$sha256"
 }
 
-# Fetch all SHA256s
-declare -A sha256_map
+# Function to get source suffix for manifest (ee uses latest_ee_*, ce uses latest_*)
+get_latest_source_suffix() {
+    local ed=$1
+    local debian_version=$2
+    if [ "$ed" = "ee" ]; then
+        echo "latest_ee_${debian_version}"
+    else
+        echo "latest_${debian_version}"
+    fi
+}
 
-echo "Fetching SHA256 checksums..."
-echo ""
+# Function to get versioned source suffix
+get_versioned_source_suffix() {
+    local ed=$1
+    local debian_version=$2
+    if [ "$ed" = "ee" ]; then
+        echo "${version_id}_ee_${debian_version}"
+    else
+        echo "${version_id}_${debian_version}"
+    fi
+}
 
-for debian_version in "${debian_versions[@]}"; do
-    for arch in "${architectures[@]}"; do
-        echo -n "  $debian_version/$arch ... "
-        key="${debian_version}_${arch}"
-        sha256_map[$key]=$(fetch_sha256 "$debian_version" "$arch")
+# Process each edition
+for ed in "${editions_to_process[@]}"; do
+    echo "Processing GitLab ${ed^^}..."
+    echo ""
 
-        if [ -z "${sha256_map[$key]}" ]; then
-            echo "NOT AVAILABLE (skipping $debian_version for this version)"
-        else
-            echo "${sha256_map[$key]}"
-        fi
-    done
-done
+    # Fetch all SHA256s for this edition
+    declare -A sha256_map
 
-echo ""
-echo "Updating manifest.toml..."
-echo ""
-
-if [ "$add_only" = false ]; then
-    # Update version
-    sed -i "s/^version = \"[0-9.]*~ynh[0-9]*\"/version = \"${version}~ynh1\"/" "$manifest_file"
-
-    # Update all latest_* sections for each debian version
+    echo "Fetching SHA256 checksums for ${ed^^}..."
     for debian_version in "${debian_versions[@]}"; do
-        # Skip if SHA256 not available (e.g., trixie for older versions)
-        if [ -z "${sha256_map[${debian_version}_amd64]}" ]; then
-            continue
-        fi
-
-        # Add missing latest_* section if it doesn't exist
-        if ! grep -q "\[resources\.sources\.latest_${debian_version}\]" "$manifest_file"; then
-            # Find where to insert - after the last latest_* section but before system_user or versioned sources
-            last_latest_line=$(grep -n "\[resources\.sources\.latest_" "$manifest_file" | tail -n1 | cut -d: -f1)
-            if [ -n "$last_latest_line" ]; then
-                # Find empty line or next section after last latest_* to get the end of that section
-                insert_line=$(tail -n +$((last_latest_line + 1)) "$manifest_file" | grep -n "^$" | head -n1 | cut -d: -f1)
-                if [ -n "$insert_line" ]; then
-                    insert_line=$((last_latest_line + insert_line))
-                else
-                    # If no empty line found, just add after 5 lines (approximate section length)
-                    insert_line=$((last_latest_line + 5))
-                fi
-
-                # Insert debian version section
-                {
-                    head -n "$insert_line" "$manifest_file"
-                    echo "        [resources.sources.latest_${debian_version}]"
-                    echo "            extract = false"
-                    echo "            rename = \"gitlab-ce.deb\""
-                    for arch in "${architectures[@]}"; do
-                        echo "            ${arch}.url = \"https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_${arch}.deb/download.deb\""
-                        echo "            ${arch}.sha256 = \"${sha256_map[${debian_version}_${arch}]}\""
-                    done
-                    echo ""
-                    tail -n +$((insert_line + 1)) "$manifest_file"
-                } > "${manifest_file}.tmp"
-                mv "${manifest_file}.tmp" "$manifest_file"
-            fi
-        fi
-
-        # Update URLs and SHA256s for this debian version
         for arch in "${architectures[@]}"; do
-            sed -i "/\[resources\.sources\.latest_${debian_version}\]/,/\[resources\.sources\./ {
-                s|${arch}\.url = \"https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_[^\"]*\"|${arch}.url = \"https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_${arch}.deb/download.deb\"|
-                s|${arch}\.sha256 = \"[^\"]*\"|${arch}.sha256 = \"${sha256_map[${debian_version}_${arch}]}\"|
-            }" "$manifest_file"
+            echo -n "  $debian_version/$arch ... "
+            key="${debian_version}_${arch}"
+            sha256_map[$key]=$(fetch_sha256 "$ed" "$debian_version" "$arch")
+
+            if [ -z "${sha256_map[$key]}" ]; then
+                echo "NOT AVAILABLE"
+            else
+                echo "${sha256_map[$key]}"
+            fi
         done
     done
-fi
+    echo ""
 
-# Add new versioned sources only if --add-only is used
-if [ "$add_only" = true ]; then
-    # Check if this version already exists (any debian version)
-    if ! grep -q "\\[resources.sources.${version_id}_" "$manifest_file"; then
-        # Find where to insert based on version comparison
-        # Parse all existing versions and find the right position
-        insert_line=""
-
-        # Get all existing GitLab version comments with their line numbers
-        existing_versions=$(grep -n "^\s*# GitLab [0-9]" "$manifest_file" || true)
-
-        if [ -n "$existing_versions" ]; then
-            # Find the first version that is less than our new version
-            while IFS=: read -r line_num version_line; do
-                existing_ver=$(echo "$version_line" | grep -oP "GitLab \K[0-9.]+")
-
-                # Compare versions: if new version is greater, insert before this one
-                if version_gt "$version" "$existing_ver"; then
-                    insert_line=$((line_num - 1))
-                    break
-                fi
-            done <<< "$existing_versions"
+    if [ "$add_only" = false ]; then
+        # Only update package version once (when processing first edition or CE)
+        if [ "$ed" = "ce" ] || [ "$edition" = "ee" ]; then
+            sed -i "s/^version = \"[0-9.]*~ynh[0-9]*\"/version = \"${version}~ynh1\"/" "$manifest_file"
         fi
 
-        # If no position found yet, insert after the last latest_* section
-        if [ -z "$insert_line" ]; then
-            # Find the last latest_* section and insert right after it (6 lines: header + 5 properties)
-            last_latest_line=$(grep -n "^\s*\[resources\.sources\.latest_" "$manifest_file" | tail -n1 | cut -d: -f1)
-            if [ -n "$last_latest_line" ]; then
-                insert_line=$((last_latest_line + 6))
+        # Update all latest_* sections for this edition
+        for debian_version in "${debian_versions[@]}"; do
+            if [ -z "${sha256_map[${debian_version}_amd64]}" ]; then
+                continue
             fi
-        fi
 
-        if [ -n "$insert_line" ]; then
-            # Create temp file with new content
-            {
-                head -n "$insert_line" "$manifest_file"
+            source_suffix=$(get_latest_source_suffix "$ed" "$debian_version")
 
-                # Add an empty line before the comment if this is the first version
-                # (when inserting after latest_*, there's no empty line yet)
-                if [ -z "$existing_versions" ]; then
-                    echo ""
-                fi
+            # Update URLs and SHA256s
+            for arch in "${architectures[@]}"; do
+                sed -i "/\[resources\.sources\.${source_suffix}\]/,/\[resources\.sources\./ {
+                    s|${arch}\.url = \"https://packages.gitlab.com/gitlab/gitlab-${ed}/packages/debian/${debian_version}/gitlab-${ed}_[^\"]*\"|${arch}.url = \"https://packages.gitlab.com/gitlab/gitlab-${ed}/packages/debian/${debian_version}/gitlab-${ed}_${version}-${ed}.0_${arch}.deb/download.deb\"|
+                    s|${arch}\.sha256 = \"[^\"]*\"|${arch}.sha256 = \"${sha256_map[${debian_version}_${arch}]}\"|
+                }" "$manifest_file"
+            done
+        done
 
-                # Add comment
-                echo "        # GitLab $version"
+        echo "Updated latest sources for ${ed^^}"
+    fi
 
-                # Add a section for each debian version that has SHA256 values
-                for debian_version in "${debian_versions[@]}"; do
-                    # Skip if SHA256 not available
-                    if [ -z "${sha256_map[${debian_version}_amd64]}" ]; then
-                        continue
+    # Add versioned sources for upgrade path
+    if [ "$add_only" = true ]; then
+        # Check if this version already exists for this edition
+        test_source=$(get_versioned_source_suffix "$ed" "bookworm")
+        if ! grep -q "\\[resources.sources.${test_source}\\]" "$manifest_file"; then
+
+            # Find the last latest_* section for this edition
+            if [ "$ed" = "ee" ]; then
+                # For EE: find the last latest_ee_* section
+                last_section_pattern="latest_ee_trixie"
+            else
+                # For CE: find the last latest_* (non-ee) section
+                last_section_pattern="latest_trixie"
+            fi
+
+            # Find the line number of the last section header
+            last_section_line=$(grep -n "\\[resources\\.sources\\.${last_section_pattern}\\]" "$manifest_file" | cut -d: -f1)
+
+            if [ -n "$last_section_line" ]; then
+                # Find the end of this section (next section header or end of file)
+                total_lines=$(wc -l < "$manifest_file")
+                insert_line=$last_section_line
+
+                # Read lines after the section header to find where it ends
+                while [ $insert_line -lt $total_lines ]; do
+                    insert_line=$((insert_line + 1))
+                    line=$(sed -n "${insert_line}p" "$manifest_file")
+                    # Stop when we hit another section header
+                    if [[ "$line" =~ ^\s*\[resources\.sources\. ]]; then
+                        insert_line=$((insert_line - 1))
+                        break
                     fi
-
-                    echo "        [resources.sources.${version_id}_${debian_version}]"
-                    echo "            prefetch = false"
-                    echo "            extract = false"
-                    echo "            rename = \"gitlab-ce.deb\""
-                    for arch in "${architectures[@]}"; do
-                        echo "            ${arch}.url = \"https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/${debian_version}/gitlab-ce_${version}-ce.0_${arch}.deb/download.deb\""
-                        echo "            ${arch}.sha256 = \"${sha256_map[${debian_version}_${arch}]}\""
-                    done
-                    echo ""
+                    # Stop at empty line (end of section)
+                    if [[ -z "$line" || "$line" =~ ^[[:space:]]*$ ]]; then
+                        break
+                    fi
                 done
 
-                tail -n +$((insert_line + 1)) "$manifest_file"
-            } > "${manifest_file}.tmp"
+                # Build the new source entries in a temp file
+                temp_sources=$(mktemp)
+                {
+                    echo ""
+                    echo "        # GitLab ${ed^^} $version"
+                    first=true
+                    for debian_version in "${debian_versions[@]}"; do
+                        if [ -z "${sha256_map[${debian_version}_amd64]}" ]; then
+                            continue
+                        fi
 
-            mv "${manifest_file}.tmp" "$manifest_file"
+                        # Add empty line between sections (but not before first one)
+                        if [ "$first" = true ]; then
+                            first=false
+                        else
+                            echo ""
+                        fi
+
+                        source_suffix=$(get_versioned_source_suffix "$ed" "$debian_version")
+                        echo "        [resources.sources.${source_suffix}]"
+                        echo "            prefetch = false"
+                        echo "            extract = false"
+                        echo "            rename = \"gitlab-${ed}.deb\""
+                        for arch in "${architectures[@]}"; do
+                            echo "            ${arch}.url = \"https://packages.gitlab.com/gitlab/gitlab-${ed}/packages/debian/${debian_version}/gitlab-${ed}_${version}-${ed}.0_${arch}.deb/download.deb\""
+                            echo "            ${arch}.sha256 = \"${sha256_map[${debian_version}_${arch}]}\""
+                        done
+                    done
+                    echo ""
+                } > "$temp_sources"
+
+                # Insert after the last line of the current section
+                {
+                    head -n "$insert_line" "$manifest_file"
+                    cat "$temp_sources"
+                    tail -n +"$((insert_line + 1))" "$manifest_file"
+                } > "${manifest_file}.tmp"
+                mv "${manifest_file}.tmp" "$manifest_file"
+                rm -f "$temp_sources"
+
+                echo "Added versioned sources for ${ed^^} $version"
+            fi
+        else
+            echo "Version $version already exists for ${ed^^}, skipping"
         fi
     fi
-fi
 
-echo "✓ manifest.toml updated"
-echo ""
+    # Clear the associative array for next iteration
+    unset sha256_map
+    declare -A sha256_map
 
+    echo ""
+done
+
+echo "Updating manifest.toml..."
+
+# Update gitlab.rb only when not in add-only mode
 if [ "$add_only" = false ]; then
+    echo ""
     echo "========================================="
     echo "Updating gitlab.rb configuration..."
     echo "========================================="
     echo ""
 
-    # Update gitlab.rb
     conf_file="$current_dir/conf/gitlab.rb"
+    # Use CE template (CE and EE templates are identical for gitlab.rb)
     url="https://gitlab.com/gitlab-org/omnibus-gitlab/-/raw/${version}+ce.0/files/gitlab-config-template/gitlab.rb.template"
 
     header="################################################################################
@@ -268,10 +328,7 @@ from_file '/etc/gitlab/gitlab-persistent.rb'"
     # Apply YunoHost-specific modifications
     echo "Applying YunoHost-specific modifications..."
 
-    # Change external url
     sed -i "s/external_url 'GENERATED_EXTERNAL_URL'/external_url '__GENERATED_EXTERNAL_URL__'/" "$conf_file"
-
-    # Activate ldap
     sed -i "s/# gitlab_rails\['ldap_enabled'\] = .*/gitlab_rails['ldap_enabled'] = true/" "$conf_file"
 
     ldap_conf="
@@ -298,51 +355,42 @@ gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block
     }
 EOS"
 
-    # Add ldap conf
     sed -i "/^# EOS/r "<(echo "$ldap_conf") "$conf_file"
-
-    # Change ssh port
     sed -i "s/# gitlab_rails\['gitlab_shell_ssh_port'\] = 22/gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__/" "$conf_file"
-
-    # Change puma settings
     sed -i "s/# puma\['port'\] = .*/puma['port'] = __PORT_PUMA__/" "$conf_file"
-
-    # Change sidekiq settings
     sed -i "s/# sidekiq\['listen_port'\] = .*/sidekiq['listen_port'] = __PORT_SIDEKIQ__/" "$conf_file"
-
-    # Change nginx settings
     sed -i "s/# nginx\['client_max_body_size'\] = .*/nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'/" "$conf_file"
     sed -i "s/# nginx\['listen_port'\] = .*/nginx['listen_port'] = __PORT__/" "$conf_file"
     sed -i "s/# nginx\['listen_https'\] = .*/nginx['listen_https'] = false/" "$conf_file"
-
-    # Change modify kernel parameters settings
     sed -i "s/# package\['modify_kernel_parameters'\] = .*/package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__/" "$conf_file"
+
+    echo "gitlab.rb updated"
 fi
 
 echo ""
 echo "========================================="
-echo "✓ Update complete!"
+echo "Update complete!"
 echo "========================================="
 echo ""
+
 if [ "$add_only" = true ]; then
     echo "Summary:"
-    echo "  - Added new source entries: ${version_id}_bookworm, ${version_id}_trixie and ${version_id}_bullseye"
-    echo "  - latest_bookworm, latest_trixie and latest_bullseye were NOT modified"
+    echo "  - Added versioned source entries for: ${editions_to_process[*]}"
+    echo "  - latest_* entries were NOT modified"
     echo "  - Package version was NOT modified"
     echo ""
-    echo "Please review the changes and commit if everything looks good:"
+    echo "Please review the changes and commit:"
     echo "  git diff manifest.toml"
     echo "  git add manifest.toml"
     echo "  git commit -m \"Add GitLab $version sources for upgrade path\""
 else
     echo "Summary:"
-    echo "  - Updated latest_bookworm, latest_trixie and latest_bullseye to version $version"
+    echo "  - Updated latest sources for: ${editions_to_process[*]}"
     echo "  - Updated package version to ${version}~ynh1"
     echo "  - Updated conf/gitlab.rb from upstream"
-    echo "  - No new versioned sources were added"
     echo ""
-    echo "Please review the changes and commit if everything looks good:"
+    echo "Please review the changes and commit:"
     echo "  git diff manifest.toml conf/gitlab.rb"
     echo "  git add manifest.toml conf/gitlab.rb"
-    echo "  git commit -m \"Upgrade to GitLab $version\""
+    echo "  git commit -m \"Upgrade GitLab to $version\""
 fi
