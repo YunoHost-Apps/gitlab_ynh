@@ -17,13 +17,18 @@ ynh_app_setting_set --key=client_max_body_size --value=$client_max_body_size
 ynh_app_setting_set --key=overwrite_nginx --value="1"
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
-# Remove https and http from page_url
-# sets extended pattern matching options in the bash shell
-shopt -s extglob
-pages_url=${pages_url#http?(s)://}
-shopt -u extglob
-# Remove trailing /
-pages_url=${pages_url%/}
+# Handle GitLab Pages configuration
+if [ "$pages_enable" = "true" ]; then
+	if [ -z "$pages_url" ]; then
+		ynh_die "GitLab Pages is enabled but no domain was specified. Please provide a domain for Pages or disable Pages."
+	fi
+	# Remove https and http from pages_url
+	shopt -s extglob
+	pages_url=${pages_url#http?(s)://}
+	shopt -u extglob
+	# Remove trailing /
+	pages_url=${pages_url%/}
+fi
 
 #=================================================
 # ADD SWAP IF NEEDED
@@ -103,8 +108,13 @@ ynh_script_progression "Configuring NGINX web server..."
 # Create a dedicated NGINX config
 ynh_config_add_nginx client_max_body_size
 
-# TODO: Get the app id, to be able to remove the right app in the remove scrip
-yunohost app install redirect --label gitlab-pages --args "domain=$pages_url&path=/&redirect_type=public_proxy&redirect_path=http://127.0.0.1:$port_nginx_pages"
+# Install GitLab Pages redirect app if enabled
+if [ "$pages_enable" = "true" ] && [ -n "$pages_url" ]; then
+	ynh_script_progression "Installing GitLab Pages redirect..."
+	yunohost app install redirect --label "GitLab Pages" --args "domain=$pages_url&path=/&redirect_type=reverseproxy&target=http://127.0.0.1:$port_nginx_pages&init_main_permission=visitors"
+	pages_app_id=$(get_gitlab_pages_app_id)
+	ynh_app_setting_set --key=pages_app_id --value="$pages_app_id"
+fi
 
 #=================================================
 # SPECIFIC SETUP
