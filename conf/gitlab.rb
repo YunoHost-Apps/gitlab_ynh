@@ -2245,7 +2245,7 @@ gitlab_pages['listen_proxy'] = "localhost:__PORT_PAGES__"
 #   'GODEBUG' => "tlsmlkem=0",
 # }
 
-# Experimental - Enable namespace in path
+##! Experimental - Enable namespace in path
 gitlab_pages['namespace_in_path'] = true
 
 ##! Configure GitLab Pages client cert and client key which will be used as mutual TLS with GitLab API
@@ -2264,9 +2264,8 @@ gitlab_pages['namespace_in_path'] = true
 ##! `nginx['some_setting']` WILL NOT be automatically replicated as
 ##! `pages_nginx['some_setting']` and should be set separately.
 
-# Below you can find settings that are exclusive to "GitLab Pages NGINX"
+##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
 pages_nginx['enable'] = true
-
 pages_nginx['listen_https'] = false
 pages_nginx['listen_http'] = true
 pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
