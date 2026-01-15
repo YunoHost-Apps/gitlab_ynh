@@ -12,6 +12,8 @@ chmod 755 $install_dir
 
 ynh_app_setting_set_default --key=client_max_body_size --value="250m"
 ynh_app_setting_set_default --key=gitlab_edition --value="Community"
+ynh_app_setting_set_default --key=pages_enable --value="false"
+ynh_app_setting_set_default --key=pages_url --value=""
 
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
