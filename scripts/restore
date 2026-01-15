@@ -50,15 +50,15 @@ ynh_restore "$config_path/gitlab-persistent.rb"
 #=================================================
 ynh_script_progression "Reinstalling GitLab..."
 
+edition_code=$([ "$gitlab_edition" = "Enterprise" ] && echo "ee" || echo "ce")
 tempdir="$(mktemp -d)"
 
-ynh_setup_source --dest_dir=$tempdir --source_id="latest_$(lsb_release -sc)"
+ynh_setup_source --dest_dir=$tempdir --source_id="latest_${edition_code}_$(lsb_release -sc)"
 
 chmod 755 $install_dir
-# https://docs.gitlab.com/omnibus/settings/configuration.html#specify-the-external-url-at-the-time-of-installation
-if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-ce.deb; then # This command will fail in lxc env
+if ! ynh_hide_warnings dpkg -i $tempdir/gitlab-${edition_code}.deb; then # This command will fail in lxc env
 	package_check_action
-	ynh_hide_warnings dpkg --configure gitlab-ce
+	ynh_hide_warnings dpkg --configure gitlab-${edition_code}
 fi
 
 ynh_safe_rm "$tempdir"

@@ -8,13 +8,12 @@
 # You can create or modify the file:
 # /etc/gitlab/gitlab-persistent.rb
 # and add all the configuration you want.
-# Options you add in gitlab-presistent.rb will overide these one,
+# Options you add in gitlab-persistent.rb will override these one,
 # but you can use options and documentations in this file to know what
 # is it possible to do.
 
 ################################################################################
 ################################################################################
-
 ## GitLab configuration settings
 ##! This file is generated during initial installation and **is not** modified
 ##! during upgrades.
@@ -621,7 +620,6 @@ gitlab_rails['ldap_enabled'] = true
 #     admin_group: ''
 #     sync_ssh_keys: false
 # EOS
-
 gitlab_rails['ldap_servers'] = YAML.load <<-'EOS' # remember to close this block with 'EOS' below
   main: # 'main' is the GitLab 'provider ID' of this LDAP server
     label: 'YunoHost LDAP'

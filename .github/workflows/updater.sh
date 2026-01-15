@@ -18,7 +18,7 @@ current_version=$(yq ".version" manifest.toml | cut -d '~' -f 1 -)
 # For the time being, let's assume the script will fail
 echo "PROCEED=false" >> $GITHUB_ENV
 
-/bin/bash ./upgrade-path.sh 16.9.0
+python upgrade-path.py 16.9.0
 
 version=$(yq ".version" manifest.toml | cut -d '~' -f 1 -)
 

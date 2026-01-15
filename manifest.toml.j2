@@ -1,0 +1,136 @@
+packaging_format = 2
+
+id = "gitlab"
+name = "GitLab"
+description.en = "Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features"
+description.fr = "Gestionnaire de dépôts Git proposant des fonctionnalités de wiki, suivi de bugs et de pipeline CI/CD"
+
+version = "{{ latest_version }}~ynh1"
+
+maintainers = ["kay0u"]
+
+[upstream]
+license = "MIT"
+website = "https://gitlab.com"
+demo = "https://gitlab.com/explore"
+admindoc = "https://docs.gitlab.com/"
+code = "https://gitlab.com/gitlab-org/gitlab"
+cpe = "cpe:2.3:a:gitlab:gitlab"
+
+[integration]
+yunohost = ">= 12.0.9"
+helpers_version = "2.1"
+architectures = ["amd64", "arm64"]
+multi_instance = false
+
+ldap = true
+sso = false
+
+disk = "500M"
+ram.build = "3000M"
+ram.runtime = "2000M"
+
+[install]
+    [install.domain]
+    type = "domain"
+
+    [install.path]
+    type = "path"
+    default = "/gitlab"
+
+    [install.gitlab_edition]
+    ask.en = "Choose the edition you want to install"
+    ask.fr = "Choisissez l'édition que vous souhaitez installer"
+    help.en = "Use Community Edition for the open source version or Enterprise Edition if you want to use a license"
+    help.fr = "Utilisez Community Edition pour la version open-source ou Édition Entreprise si vous souhaitez utiliser une licence"
+    type = "select"
+    choices = ["Enterprise", "Community"]
+    default = "Community"
+
+    [install.admin]
+    type = "user"
+
+    [install.init_main_permission]
+    help.en = "If your GitLab instance is set to visitors, anyone can see your public repositories."
+    help.fr = "Si votre instance GitLab est définie sur visiteurs, tout le monde pourra voir vos dépôts publics."
+    type = "group"
+    default = "visitors"
+
+    [install.use_web_account]
+    ask.en = "Authorize account creation from GitLab web interface"
+    ask.fr = "Autoriser la création de compte depuis l'interface web de GitLab ?"
+    type = "boolean"
+    default = false
+
+[resources]
+    [resources.system_user]
+
+    [resources.install_dir]
+    dir = "/opt/__APP__"
+    owner = "root:rwx"
+    group = "root:rx"
+
+    [resources.permissions]
+    main.url = "/"
+    # Fix #264 and #267
+    main.auth_header = false
+
+    [resources.ports]
+    main.default = 8080
+    puma.default = 8081
+    sidekiq.default = 8082
+
+    [resources.apt]
+    packages = "openssh-server"
+
+    [resources.sources]
+{# Latest sources (prefetch = true by default) #}
+{% for distro in distros %}
+        [resources.sources.latest_ce_{{ distro }}]
+            extract = false
+            rename = "gitlab-ce.deb"
+{% for arch in architectures %}
+            {{ arch }}.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/{{ distro }}/gitlab-ce_{{ latest_version }}-ce.0_{{ arch }}.deb/download.deb"
+            {{ arch }}.sha256 = "{{ latest.ce[distro][arch] }}"
+{% endfor %}
+
+{% endfor %}
+{% for distro in distros %}
+        [resources.sources.latest_ee_{{ distro }}]
+            extract = false
+            rename = "gitlab-ee.deb"
+{% for arch in architectures %}
+            {{ arch }}.url = "https://packages.gitlab.com/gitlab/gitlab-ee/packages/debian/{{ distro }}/gitlab-ee_{{ latest_version }}-ee.0_{{ arch }}.deb/download.deb"
+            {{ arch }}.sha256 = "{{ latest.ee[distro][arch] }}"
+{% endfor %}
+
+{% endfor %}
+{# Upgrade path sources (prefetch = false) #}
+{% for version_entry in upgrade_path %}
+{% set version = version_entry.version %}
+{% set version_id = "v" + version.replace(".", "_") %}
+        # GitLab CE {{ version }}
+{% for distro in version_entry.distros %}
+        [resources.sources.{{ version_id }}_ce_{{ distro }}]
+            prefetch = false
+            extract = false
+            rename = "gitlab-ce.deb"
+{% for arch in architectures %}
+            {{ arch }}.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/{{ distro }}/gitlab-ce_{{ version }}-ce.0_{{ arch }}.deb/download.deb"
+            {{ arch }}.sha256 = "{{ version_entry.ce[distro][arch] }}"
+{% endfor %}
+{% endfor %}
+
+        # GitLab EE {{ version }}
+{% for distro in version_entry.distros %}
+        [resources.sources.{{ version_id }}_ee_{{ distro }}]
+            prefetch = false
+            extract = false
+            rename = "gitlab-ee.deb"
+{% for arch in architectures %}
+            {{ arch }}.url = "https://packages.gitlab.com/gitlab/gitlab-ee/packages/debian/{{ distro }}/gitlab-ee_{{ version }}-ee.0_{{ arch }}.deb/download.deb"
+            {{ arch }}.sha256 = "{{ version_entry.ee[distro][arch] }}"
+{% endfor %}
+{% endfor %}
+
+{% endfor %}

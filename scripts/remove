@@ -26,7 +26,11 @@ gitlab-ctl stop
 #=================================================
 ynh_script_progression "Removing GitLab"
 
-dpkg --remove gitlab-ce
+if [[ "$gitlab_edition" == "Enterprise" ]];then
+	dpkg --remove gitlab-ee
+else
+	dpkg --remove gitlab-ce
+fi
 
 #=================================================
 # REMOVE APP MAIN DIR
