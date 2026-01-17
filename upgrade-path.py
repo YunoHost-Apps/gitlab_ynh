@@ -270,6 +270,18 @@ def update_gitlab_rb(version: str):
         # Kernel parameters
         (r"# package\['modify_kernel_parameters'\] = .*",
          "package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__"),
+
+        # GitLab Pages
+        (r"# pages_external_url \"http://pages\.example\.com/\"",
+         'pages_external_url "https://__PAGES_URL__/"'),
+        (r"# gitlab_pages\['enable'\] = false",
+         "gitlab_pages['enable'] = __PAGES_ENABLE__"),
+        (r"# gitlab_pages\['listen_proxy'\] = \"localhost:8090\"",
+         "gitlab_pages['listen_proxy'] = \"localhost:__PORT_PAGES__\""),
+        (r"# gitlab_pages\['namespace_in_path'\] = false",
+         "gitlab_pages['namespace_in_path'] = true"),
+        (r"# pages_nginx\['enable'\] = true",
+         "pages_nginx['enable'] = true"),
     ]
 
     for pattern, replacement in replacements:
@@ -277,6 +289,19 @@ def update_gitlab_rb(version: str):
 
     # Insert LDAP config after "# EOS" line
     content = re.sub(r"(^# EOS$)", r"\1" + LDAP_CONFIG, content, count=1, flags=re.MULTILINE)
+
+    # Add pages_nginx settings after pages_nginx['enable'] = true
+    pages_nginx_config = """
+pages_nginx['listen_https'] = false
+pages_nginx['listen_http'] = true
+pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
+pages_nginx['listen_addresses'] = ['127.0.0.1']"""
+
+    content = re.sub(
+        r"(pages_nginx\['enable'\] = true)",
+        r"\1" + pages_nginx_config,
+        content
+    )
 
     # Write final file
     output_path = SCRIPT_DIR / GITLAB_RB_FILE

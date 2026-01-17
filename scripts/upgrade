@@ -12,6 +12,8 @@ chmod 755 $install_dir
 
 ynh_app_setting_set_default --key=client_max_body_size --value="250m"
 ynh_app_setting_set_default --key=gitlab_edition --value="Community"
+ynh_app_setting_set_default --key=pages_enable --value="false"
+ynh_app_setting_set_default --key=pages_url --value=""
 
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
@@ -251,7 +253,7 @@ fi
 # ADVERTISE SERVICE IN ADMIN PANEL
 #=================================================
 
-yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/puma/current" "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-monitor/current" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current"
+yunohost service add "gitlab-runsvdir" --log "/var/log/$app/alertmanager/current" "/var/log/$app/gitaly/current" "/var/log/$app/gitlab-exporter/current" "/var/log/$app/gitlab-kas/current" "/var/log/$app/gitlab-pages/current" "/var/log/$app/gitlab-rails/api_json.log" "/var/log/$app/gitlab-rails/application.log" "/var/log/$app/gitlab-rails/application_json.log" "/var/log/$app/gitlab-rails/audit_json.log" "/var/log/$app/gitlab-rails/auth.log" "/var/log/$app/gitlab-rails/database_load_balancing.log" "/var/log/$app/gitlab-rails/exceptions_json.log" "/var/log/$app/gitlab-rails/graphql_json.log" "/var/log/$app/gitlab-rails/grpc.log" "/var/log/$app/gitlab-rails/importer.log" "/var/log/$app/gitlab-rails/production.log" "/var/log/$app/gitlab-rails/production_json.log" "/var/log/$app/gitlab-rails/service_measurement.log" "/var/log/$app/gitlab-rails/sidekiq.log" "/var/log/$app/gitlab-rails/sidekiq_client.log" "/var/log/$app/gitlab-shell/gitlab-shell.log" "/var/log/$app/gitlab-workhorse/current" "/var/log/$app/logrotate/current" "/var/log/$app/nginx/current" "/var/log/$app/nginx/access.log" "/var/log/$app/nginx/error.log" "/var/log/$app/nginx/gitlab_access.log" "/var/log/$app/nginx/gitlab_error.log" "/var/log/$app/nginx/gitlab_pages_access.log" "/var/log/$app/nginx/gitlab_pages_error.log" "/var/log/$app/node-exporter/current" "/var/log/$app/postgres-exporter/current" "/var/log/$app/postgresql/current" "/var/log/$app/prometheus/current" "/var/log/$app/puma/current" "/var/log/$app/puma/puma_stdout.log" "/var/log/$app/puma/puma_stderr.log" "/var/log/$app/redis/current" "/var/log/$app/redis-exporter/current" "/var/log/$app/sidekiq/current"
 
 #=================================================
 # WAITING GITLAB
@@ -259,6 +261,45 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/gitlab-rails/applica
 ynh_script_progression "Restarting GitLab..."
 
 ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
+
+#=================================================
+# MANAGE GITLAB PAGES REDIRECT
+#=================================================
+
+# Handle GitLab Pages configuration
+pages_app_id=$(ynh_app_setting_get --key=pages_app_id)
+
+if [ "$pages_enable" = "true" ] && [ -z "$pages_url" ]; then
+	ynh_print_warn "GitLab Pages enabled but no domain specified, disabling Pages"
+	pages_enable="false"
+	ynh_app_setting_set --key=pages_enable --value="$pages_enable"
+fi
+
+if [ "$pages_enable" = "true" ]; then
+	# Clean up pages_url
+	shopt -s extglob
+	pages_url=${pages_url#http?(s)://}
+	shopt -u extglob
+	pages_url=${pages_url%/}
+
+	if [ -z "$pages_app_id" ]; then
+		# Install redirect app if not yet installed
+		ynh_script_progression "Installing GitLab Pages redirect..."
+		yunohost app install redirect --label "GitLab Pages" --args "domain=$pages_url&path=/&redirect_type=reverseproxy&target=http://127.0.0.1:$port_nginx_pages&init_main_permission=visitors"
+		pages_app_id=$(get_gitlab_pages_app_id)
+		ynh_app_setting_set --key=pages_app_id --value="$pages_app_id"
+	fi
+elif [ -n "$pages_app_id" ]; then
+	# Remove redirect app if pages were disabled
+	# Validate the ID matches expected pattern before removing
+	if echo "$pages_app_id" | grep -qE '^redirect(__[0-9]+)?$'; then
+		ynh_script_progression "Removing GitLab Pages redirect..."
+		yunohost app remove "$pages_app_id" || true
+		ynh_app_setting_delete --key=pages_app_id
+	else
+		ynh_print_warn "Stored pages_app_id '$pages_app_id' doesn't match expected pattern, skipping removal"
+	fi
+fi
 
 #=================================================
 # RELOAD NGINX
