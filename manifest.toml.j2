@@ -87,6 +87,7 @@ ram.runtime = "2000M"
 {# Latest sources (prefetch = true by default) #}
 {% for distro in distros %}
         [resources.sources.latest_ce_{{ distro }}]
+            prefetch = false
             extract = false
             rename = "gitlab-ce.deb"
 {% for arch in architectures %}
@@ -97,6 +98,7 @@ ram.runtime = "2000M"
 {% endfor %}
 {% for distro in distros %}
         [resources.sources.latest_ee_{{ distro }}]
+            prefetch = false
             extract = false
             rename = "gitlab-ee.deb"
 {% for arch in architectures %}

@@ -85,6 +85,7 @@ ram.runtime = "2000M"
 
     [resources.sources]
         [resources.sources.latest_ce_bullseye]
+            prefetch = false
             extract = false
             rename = "gitlab-ce.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bullseye/gitlab-ce_18.8.0-ce.0_amd64.deb/download.deb"
@@ -93,6 +94,7 @@ ram.runtime = "2000M"
             arm64.sha256 = "f8fb79141f8b08b257aba1df58870c8226e5cfc32671ee005b273757652204ea"
 
         [resources.sources.latest_ce_bookworm]
+            prefetch = false
             extract = false
             rename = "gitlab-ce.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/bookworm/gitlab-ce_18.8.0-ce.0_amd64.deb/download.deb"
@@ -101,6 +103,7 @@ ram.runtime = "2000M"
             arm64.sha256 = "ff9de2e8aaa88768d225a0b209f0e524edee2f4531e10435e73a56018d0faa04"
 
         [resources.sources.latest_ce_trixie]
+            prefetch = false
             extract = false
             rename = "gitlab-ce.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ce/packages/debian/trixie/gitlab-ce_18.8.0-ce.0_amd64.deb/download.deb"
@@ -109,6 +112,7 @@ ram.runtime = "2000M"
             arm64.sha256 = "bb14b0a6a49ef348f181bfcdafd763100fc03cd236973597562d42a4e1abbc0b"
 
         [resources.sources.latest_ee_bullseye]
+            prefetch = false
             extract = false
             rename = "gitlab-ee.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ee/packages/debian/bullseye/gitlab-ee_18.8.0-ee.0_amd64.deb/download.deb"
@@ -117,6 +121,7 @@ ram.runtime = "2000M"
             arm64.sha256 = "08d69abc01cd16159c4cbdf5031694b17d440e88baf03fc037348a8ef1e3e607"
 
         [resources.sources.latest_ee_bookworm]
+            prefetch = false
             extract = false
             rename = "gitlab-ee.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ee/packages/debian/bookworm/gitlab-ee_18.8.0-ee.0_amd64.deb/download.deb"
@@ -125,6 +130,7 @@ ram.runtime = "2000M"
             arm64.sha256 = "ed9421764b8f2735346a1fb646b7d6231d349c093689867dce0ce46c5d9cf05f"
 
         [resources.sources.latest_ee_trixie]
+            prefetch = false
             extract = false
             rename = "gitlab-ee.deb"
             amd64.url = "https://packages.gitlab.com/gitlab/gitlab-ee/packages/debian/trixie/gitlab-ee_18.8.0-ee.0_amd64.deb/download.deb"
