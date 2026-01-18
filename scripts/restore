@@ -112,14 +112,14 @@ usermod -a -G "ssh.app" "git"
 #=================================================
 
 # Validate pages configuration
-if [ "$pages_enable" = "true" ] && [ -z "$pages_url" ]; then
+if [ "$pages_enable" -eq 1 ] && [ -z "$pages_url" ]; then
 	ynh_print_warn "GitLab Pages enabled but no domain specified, disabling Pages"
-	pages_enable="false"
+	pages_enable="0"
 	ynh_app_setting_set --key=pages_enable --value="$pages_enable"
 fi
 
 # Reinstall GitLab Pages nginx config and permission if enabled
-if [ "$pages_enable" = "true" ] && [ -n "$pages_url" ]; then
+if [ "$pages_enable" -eq 1 ] && [ -n "$pages_url" ]; then
 	ynh_script_progression "Restoring GitLab Pages configuration..."
 	# Clean up pages_url
 	shopt -s extglob

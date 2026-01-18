@@ -12,7 +12,7 @@ chmod 755 $install_dir
 
 ynh_app_setting_set_default --key=client_max_body_size --value="250m"
 ynh_app_setting_set_default --key=gitlab_edition --value="Community"
-ynh_app_setting_set_default --key=pages_enable --value="false"
+ynh_app_setting_set_default --key=pages_enable --value="0"
 ynh_app_setting_set_default --key=pages_url --value=""
 
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
@@ -267,9 +267,9 @@ ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/
 #=================================================
 
 # Validate pages configuration
-if [ "$pages_enable" = "true" ] && [ -z "$pages_url" ]; then
+if [ "$pages_enable" -eq 1 ] && [ -z "$pages_url" ]; then
 	ynh_print_warn "GitLab Pages enabled but no domain specified, disabling Pages"
-	pages_enable="false"
+	pages_enable="0"
 	ynh_app_setting_set --key=pages_enable --value="$pages_enable"
 fi
 
@@ -281,7 +281,7 @@ if [ -n "$pages_url" ]; then
 	pages_url=${pages_url%/}
 fi
 
-if [ "$pages_enable" = "true" ] && [ -n "$pages_url" ]; then
+if [ "$pages_enable" -eq 1 ] && [ -n "$pages_url" ]; then
 	# Check if permission already exists
 	if ! yunohost user permission list --short | grep -q "^${app}.pages$"; then
 		ynh_script_progression "Configuring GitLab Pages..."

@@ -2114,7 +2114,7 @@ gitlab_pages['enable'] = __PAGES_ENABLE__
 # gitlab_pages['sentry_environment'] = 'production'
 
 ##! Listen for requests forwarded by reverse proxy
-gitlab_pages['listen_proxy'] = "localhost:__PORT_PAGES__"
+gitlab_pages['listen_proxy'] = "127.0.0.1:__PORT_PAGES__"
 
 # gitlab_pages['redirect_http'] = true
 # gitlab_pages['use_http2'] = true
@@ -2141,7 +2141,7 @@ gitlab_pages['listen_proxy'] = "localhost:__PORT_PAGES__"
 # gitlab_pages['gitlab_secret'] = nil # Generated if not present
 # gitlab_pages['auth_redirect_uri'] = nil # Defaults to projects subdomain of pages_external_url and + '/auth'
 # gitlab_pages['gitlab_server'] = nil # Defaults to external_url
-# gitlab_pages['internal_gitlab_server'] = nil # Defaults to gitlab_server, can be changed to internal load balancer
+gitlab_pages['internal_gitlab_server'] = "http://127.0.0.1:__PORT__" # Use internal HTTP to avoid TLS issues
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 # gitlab_pages['auth_scope'] = nil # Defaults to api, can be changed to read_api to increase security
 # gitlab_pages['auth_timeout'] = "5s" # GitLab application client timeout for authentication

@@ -277,9 +277,11 @@ def update_gitlab_rb(version: str):
         (r"# gitlab_pages\['enable'\] = false",
          "gitlab_pages['enable'] = __PAGES_ENABLE__"),
         (r"# gitlab_pages\['listen_proxy'\] = \"localhost:8090\"",
-         "gitlab_pages['listen_proxy'] = \"localhost:__PORT_PAGES__\""),
+         "gitlab_pages['listen_proxy'] = \"127.0.0.1:__PORT_PAGES__\""),
         (r"# gitlab_pages\['namespace_in_path'\] = false",
          "gitlab_pages['namespace_in_path'] = true"),
+        (r"# gitlab_pages\['internal_gitlab_server'\] = nil",
+         "gitlab_pages['internal_gitlab_server'] = \"http://127.0.0.1:__PORT__\""),
         (r"# pages_nginx\['enable'\] = true",
          "pages_nginx['enable'] = true"),
     ]
