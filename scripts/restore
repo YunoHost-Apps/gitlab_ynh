@@ -120,13 +120,18 @@ fi
 
 # Reinstall GitLab Pages nginx config and permission if enabled
 if [ "$pages_enable" -eq 1 ] && [ -n "$pages_url" ]; then
-	ynh_script_progression "Restoring GitLab Pages configuration..."
 	# Clean up pages_url
 	shopt -s extglob
 	pages_url=${pages_url#http?(s)://}
 	shopt -u extglob
 	pages_url=${pages_url%/}
 
+	# Check that no app is installed on the pages domain
+	if yunohost user permission list --json | jq -e ".permissions[] | select(.url != null) | select(.url | startswith(\"$pages_url/\"))" > /dev/null 2>&1; then
+		ynh_die "An app is already installed on $pages_url. GitLab Pages requires a dedicated domain."
+	fi
+
+	ynh_script_progression "Restoring GitLab Pages configuration..."
 	ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
 	ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
 fi

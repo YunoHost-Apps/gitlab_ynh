@@ -28,6 +28,10 @@ if [ "$pages_enable" -eq 1 ]; then
 	shopt -u extglob
 	# Remove trailing /
 	pages_url=${pages_url%/}
+	# Check that no app is installed on the pages domain
+	if yunohost user permission list --json | jq -e ".permissions[] | select(.url != null) | select(.url | startswith(\"$pages_url/\"))" > /dev/null 2>&1; then
+		ynh_die "An app is already installed on $pages_url. GitLab Pages requires a dedicated domain."
+	fi
 fi
 
 #=================================================

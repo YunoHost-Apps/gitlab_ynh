@@ -284,6 +284,10 @@ fi
 if [ "$pages_enable" -eq 1 ] && [ -n "$pages_url" ]; then
 	# Check if permission already exists
 	if ! yunohost user permission list --short | grep -q "^${app}.pages$"; then
+		# Warn if another app is on the pages domain
+		if yunohost user permission list --json | jq -e ".permissions[] | select(.url != null) | select(.url | startswith(\"$pages_url/\"))" > /dev/null 2>&1; then
+			ynh_print_warn "An app is already installed on $pages_url. GitLab Pages may not work correctly."
+		fi
 		ynh_script_progression "Configuring GitLab Pages..."
 		ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
 		ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
