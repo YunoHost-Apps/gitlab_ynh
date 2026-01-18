@@ -1,31 +1,5 @@
 #!/bin/bash
 
-# Get the GitLab Pages redirect app ID safely
-# Returns the app ID if exactly one redirect app named "GitLab Pages" exists
-# Dies if multiple apps match or if the ID doesn't match expected pattern
-get_gitlab_pages_app_id() {
-	local app_ids
-	app_ids=$(yunohost app list --json | jq -r '.apps[] | select(.name == "GitLab Pages") | .id')
-
-	# Count matches
-	local count
-	count=$(echo "$app_ids" | grep -c . || true)
-
-	if [ "$count" -eq 0 ]; then
-		echo ""
-		return 0
-	elif [ "$count" -gt 1 ]; then
-		ynh_die "Multiple apps named 'GitLab Pages' found. Cannot safely identify the redirect app."
-	fi
-
-	# Validate the ID matches expected pattern (redirect__N)
-	if ! echo "$app_ids" | grep -qE '^redirect(__[0-9]+)?$'; then
-		ynh_die "GitLab Pages app ID '$app_ids' doesn't match expected pattern 'redirect' or 'redirect__N'"
-	fi
-
-	echo "$app_ids"
-}
-
 # Action to do in case of failure of the package_check
 package_check_action() {
 	ynh_backup_if_checksum_is_different "$config_path/gitlab.rb"

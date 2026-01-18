@@ -108,33 +108,27 @@ gitlab-rake gitlab:check SANITIZE=true
 usermod -a -G "ssh.app" "git"
 
 #=================================================
-# RESTORE GITLAB PAGES REDIRECT
+# RESTORE GITLAB PAGES
 #=================================================
 
-# Handle GitLab Pages configuration
-pages_app_id=$(ynh_app_setting_get --key=pages_app_id)
-
+# Validate pages configuration
 if [ "$pages_enable" = "true" ] && [ -z "$pages_url" ]; then
 	ynh_print_warn "GitLab Pages enabled but no domain specified, disabling Pages"
 	pages_enable="false"
 	ynh_app_setting_set --key=pages_enable --value="$pages_enable"
 fi
 
-# Reinstall GitLab Pages redirect app if it was enabled
+# Reinstall GitLab Pages nginx config and permission if enabled
 if [ "$pages_enable" = "true" ] && [ -n "$pages_url" ]; then
-	ynh_script_progression "Reinstalling GitLab Pages redirect..."
+	ynh_script_progression "Restoring GitLab Pages configuration..."
 	# Clean up pages_url
 	shopt -s extglob
 	pages_url=${pages_url#http?(s)://}
 	shopt -u extglob
 	pages_url=${pages_url%/}
-	# Remove old app if it exists and reinstall
-	if [ -n "$pages_app_id" ] && echo "$pages_app_id" | grep -qE '^redirect(__[0-9]+)?$'; then
-		yunohost app remove "$pages_app_id" 2>/dev/null || true
-	fi
-	yunohost app install redirect --label "GitLab Pages" --args "domain=$pages_url&path=/&redirect_type=reverseproxy&target=http://127.0.0.1:$port_nginx_pages&init_main_permission=visitors"
-	pages_app_id=$(get_gitlab_pages_app_id)
-	ynh_app_setting_set --key=pages_app_id --value="$pages_app_id"
+
+	ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+	ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
 fi
 
 #=================================================

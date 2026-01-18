@@ -108,12 +108,11 @@ ynh_script_progression "Configuring NGINX web server..."
 # Create a dedicated NGINX config
 ynh_config_add_nginx client_max_body_size
 
-# Install GitLab Pages redirect app if enabled
+# Configure GitLab Pages nginx and permission if enabled
 if [ "$pages_enable" = "true" ] && [ -n "$pages_url" ]; then
-	ynh_script_progression "Installing GitLab Pages redirect..."
-	yunohost app install redirect --label "GitLab Pages" --args "domain=$pages_url&path=/&redirect_type=reverseproxy&target=http://127.0.0.1:$port_nginx_pages&init_main_permission=visitors"
-	pages_app_id=$(get_gitlab_pages_app_id)
-	ynh_app_setting_set --key=pages_app_id --value="$pages_app_id"
+	ynh_script_progression "Configuring GitLab Pages..."
+	ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+	ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
 fi
 
 #=================================================

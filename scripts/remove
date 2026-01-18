@@ -48,16 +48,11 @@ ynh_script_progression "Removing NGINX web server configuration"
 # Remove the dedicated NGINX config
 ynh_config_remove_nginx
 
-# Remove GitLab Pages redirect app if it was installed
-pages_app_id=$(ynh_app_setting_get --key=pages_app_id)
-if [ -n "$pages_app_id" ]; then
-	# Validate the ID matches expected pattern before removing
-	if echo "$pages_app_id" | grep -qE '^redirect(__[0-9]+)?$'; then
-		ynh_script_progression "Removing GitLab Pages redirect..."
-		yunohost app remove "$pages_app_id" || true
-	else
-		ynh_print_warn "Stored pages_app_id '$pages_app_id' doesn't match expected pattern, skipping removal"
-	fi
+# Remove GitLab Pages nginx config and permission if it was enabled
+pages_url=$(ynh_app_setting_get --key=pages_url)
+if [ -n "$pages_url" ]; then
+	ynh_safe_rm "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+	ynh_permission_delete --permission="pages" 2>/dev/null || true
 fi
 
 #=================================================
