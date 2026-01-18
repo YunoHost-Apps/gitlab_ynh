@@ -2265,7 +2265,7 @@ gitlab_pages['namespace_in_path'] = true
 ##! `pages_nginx['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
-pages_nginx['enable'] = true
+pages_nginx['enable'] = __PAGES_ENABLE__
 pages_nginx['listen_https'] = false
 pages_nginx['listen_http'] = true
 pages_nginx['listen_port'] = __PORT_NGINX_PAGES__

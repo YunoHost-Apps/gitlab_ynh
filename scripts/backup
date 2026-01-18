@@ -16,6 +16,11 @@ ynh_print_info "Declaring files to be backed up..."
 
 ynh_backup "/etc/nginx/conf.d/$domain.d/$app.conf"
 
+# Backup GitLab Pages nginx config if enabled
+if [ -n "$pages_url" ]; then
+	ynh_backup "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+fi
+
 #=================================================
 # BACKUP GITLAB DATABASE
 #=================================================

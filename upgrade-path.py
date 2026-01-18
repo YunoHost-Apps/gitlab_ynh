@@ -283,7 +283,7 @@ def update_gitlab_rb(version: str):
         (r"# gitlab_pages\['internal_gitlab_server'\] = nil",
          "gitlab_pages['internal_gitlab_server'] = \"http://127.0.0.1:__PORT__\""),
         (r"# pages_nginx\['enable'\] = true",
-         "pages_nginx['enable'] = true"),
+         "pages_nginx['enable'] = __PAGES_ENABLE__"),
     ]
 
     for pattern, replacement in replacements:

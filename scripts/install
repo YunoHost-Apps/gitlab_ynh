@@ -18,10 +18,7 @@ ynh_app_setting_set --key=overwrite_nginx --value="1"
 ynh_app_setting_set --key=protect_against_basic_auth_spoofing --value=false
 
 # Handle GitLab Pages configuration
-if [ "$pages_enable" -eq 1 ]; then
-	if [ -z "$pages_url" ]; then
-		ynh_die "GitLab Pages is enabled but no domain was specified. Please provide a domain for Pages or disable Pages."
-	fi
+if [ -n "$pages_url" ]; then
 	# Remove https and http from pages_url
 	shopt -s extglob
 	pages_url=${pages_url#http?(s)://}
@@ -83,6 +80,10 @@ ssh_port=$(grep -P "Port\s+\d+" /etc/ssh/sshd_config | grep -P -o "\d+")
 
 generated_external_url="https://$domain${path%/}"
 
+# Calculate pages_enable from pages_url for gitlab.rb template
+pages_enable=$([ -n "$pages_url" ] && echo "true" || echo "false")
+ynh_app_setting_set --key=pages_enable --value="$pages_enable"
+
 ynh_config_add --template="$YNH_APP_BASEDIR/conf/gitlab.rb" --destination="$config_path/gitlab.rb"
 
 #=================================================
@@ -113,7 +114,7 @@ ynh_script_progression "Configuring NGINX web server..."
 ynh_config_add_nginx client_max_body_size
 
 # Configure GitLab Pages nginx and permission if enabled
-if [ "$pages_enable" -eq 1 ] && [ -n "$pages_url" ]; then
+if [ -n "$pages_url" ]; then
 	ynh_script_progression "Configuring GitLab Pages..."
 	ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
 	ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
