@@ -112,9 +112,17 @@ usermod -a -G "ssh.app" "git"
 #=================================================
 
 # Restore GitLab Pages nginx config if enabled
-if [ -n "$pages_url" ]; then
-	ynh_script_progression "Restoring GitLab Pages configuration..."
-	ynh_restore "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+if [ "$pages_enable" -eq 1 ]; then
+	if [ -z "$pages_url" ]; then
+		ynh_print_warn "GitLab Pages is enabled but no domain is configured. Disabling GitLab Pages."
+		pages_enable=0
+		ynh_app_setting_set --key=pages_enable --value=0
+		# Delete the permission that YunoHost restored automatically
+		ynh_permission_delete --permission="pages" 2>/dev/null || true
+	else
+		ynh_script_progression "Restoring GitLab Pages configuration..."
+		ynh_restore "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+	fi
 fi
 
 #=================================================

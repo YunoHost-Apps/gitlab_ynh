@@ -62,11 +62,19 @@ ram.runtime = "2000M"
     type = "boolean"
     default = false
 
+    [install.pages_enable]
+    ask.en = "Enable GitLab Pages?"
+    ask.fr = "Activer GitLab Pages ?"
+    help.en = "GitLab Pages allows you to publish static websites directly from a repository."
+    help.fr = "GitLab Pages permet de publier des sites web statiques directement depuis un dépôt."
+    type = "boolean"
+    default = false
+
     [install.pages_url]
-    ask.en = "Domain for GitLab Pages (leave empty to disable)"
-    ask.fr = "Domaine pour GitLab Pages (laisser vide pour désactiver)"
-    help.en = "GitLab Pages allows you to publish static websites directly from a repository. Requires a dedicated domain."
-    help.fr = "GitLab Pages permet de publier des sites web statiques directement depuis un dépôt. Nécessite un domaine dédié."
+    ask.en = "Domain for GitLab Pages"
+    ask.fr = "Domaine pour GitLab Pages"
+    help.en = "Requires a dedicated domain (e.g., pages.example.com)."
+    help.fr = "Nécessite un domaine dédié (ex: pages.example.com)."
     type = "domain"
     optional = true
 

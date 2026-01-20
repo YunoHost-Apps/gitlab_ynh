@@ -26,8 +26,9 @@ set__use_web_account() {
     fi
 }
 
-set__pages_url() {
-    local old_pages_url=$(ynh_app_setting_get --key=pages_url)
+set__pages_enable() {
+    local old_pages_enable=$(ynh_app_setting_get --key=pages_enable)
+    local pages_url=$(ynh_app_setting_get --key=pages_url)
 
     # Clean up pages_url
     if [ -n "$pages_url" ]; then
@@ -37,44 +38,69 @@ set__pages_url() {
         pages_url=${pages_url%/}
     fi
 
-    # If pages_url is empty, disable pages
-    if [ -z "$pages_url" ]; then
-        # Remove existing permission and nginx config if pages was enabled
-        if [ -n "$old_pages_url" ]; then
-            ynh_safe_rm "/etc/nginx/conf.d/${old_pages_url}.d/${app}-pages.conf"
-            ynh_permission_delete --permission="pages" 2>/dev/null || true
+    if [ "$pages_enable" -eq 1 ] && [ "$old_pages_enable" -ne 1 ]; then
+        # Pages enabled, create permission and nginx config
+        if [ -z "$pages_url" ]; then
+            ynh_die "GitLab Pages is enabled but no domain is configured."
         fi
-    else
-        # Handle permission
-        if ! yunohost user permission list "$app" --json | jq -e ".permissions.\"${app}.pages\"" > /dev/null 2>&1; then
-            # Permission doesn't exist, check for collision then create
-            if yunohost user permission list --json | jq -e ".permissions[] | select(.url != null) | select(.url | startswith(\"$pages_url/\"))" > /dev/null 2>&1; then
-                ynh_die "An app is already installed on $pages_url. GitLab Pages requires a dedicated domain."
-            fi
-            ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
-        elif [ -n "$old_pages_url" ] && [ "$old_pages_url" != "$pages_url" ]; then
-            # Domain changed, update permission URL
-            ynh_permission_url --permission="pages" --url="${pages_url}/"
+        if yunohost user permission list --json | jq -e ".permissions[] | select(.url != null) | select(.url | startswith(\"$pages_url/\"))" > /dev/null 2>&1; then
+            ynh_die "An app is already installed on $pages_url. GitLab Pages requires a dedicated domain."
         fi
-
-        # Handle nginx config
-        if [ -z "$old_pages_url" ]; then
-            # Pages was disabled, create nginx config
-            ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
-        elif [ "$old_pages_url" != "$pages_url" ]; then
-            # Domain changed, move nginx config
-            mv "/etc/nginx/conf.d/${old_pages_url}.d/${app}-pages.conf" "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+        ynh_permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
+        ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+    elif [ "$pages_enable" -ne 1 ] && [ "$old_pages_enable" -eq 1 ]; then
+        # Pages disabled, remove permission and nginx config
+        if [ -n "$pages_url" ]; then
+            ynh_safe_rm "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
         fi
+        ynh_permission_delete --permission="pages" 2>/dev/null || true
     fi
 
     ynh_systemctl --action=reload --service=nginx
-    ynh_app_setting_set --key=pages_url --value="$pages_url"
-
-    # Calculate and save pages_enable for gitlab.rb template
-    pages_enable=$([ -n "$pages_url" ] && echo "true" || echo "false")
     ynh_app_setting_set --key=pages_enable --value="$pages_enable"
 
     # Reapply gitlab.rb with updated pages_enable
+    config_path=/etc/$app
+    ynh_config_add --template="gitlab.rb" --destination="$config_path/gitlab.rb"
+
+    # Reconfigure GitLab to apply changes
+    ynh_hide_warnings gitlab-ctl reconfigure
+}
+
+set__pages_url() {
+    local old_pages_url=$(ynh_app_setting_get --key=pages_url)
+    local pages_enable=$(ynh_app_setting_get --key=pages_enable)
+
+    # Clean up old_pages_url
+    if [ -n "$old_pages_url" ]; then
+        shopt -s extglob
+        old_pages_url=${old_pages_url#http?(s)://}
+        shopt -u extglob
+        old_pages_url=${old_pages_url%/}
+    fi
+
+    # Clean up pages_url
+    if [ -n "$pages_url" ]; then
+        shopt -s extglob
+        pages_url=${pages_url#http?(s)://}
+        shopt -u extglob
+        pages_url=${pages_url%/}
+    fi
+
+    # Only process if pages is enabled and URL changed
+    if [ "$pages_enable" -eq 1 ] && [ "$old_pages_url" != "$pages_url" ]; then
+        # Update permission URL
+        ynh_permission_url --permission="pages" --url="${pages_url}/"
+
+        # Move nginx config
+        mv "/etc/nginx/conf.d/${old_pages_url}.d/${app}-pages.conf" "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+
+        ynh_systemctl --action=reload --service=nginx
+    fi
+
+    ynh_app_setting_set --key=pages_url --value="$pages_url"
+
+    # Reapply gitlab.rb with updated pages_url
     config_path=/etc/$app
     ynh_config_add --template="gitlab.rb" --destination="$config_path/gitlab.rb"
 

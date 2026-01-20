@@ -13,8 +13,13 @@ name = "GitLab configuration"
     [main.pages]
     name = "GitLab Pages"
 
+        [main.pages.pages_enable]
+        ask = "Enable GitLab Pages?"
+        type = "boolean"
+        help = "GitLab Pages allows you to publish static websites directly from a repository."
+
         [main.pages.pages_url]
-        ask = "Domain for GitLab Pages (leave empty to disable)"
+        ask = "Domain for GitLab Pages"
         type = "string"
         optional = true
-        help = "GitLab Pages allows you to publish static websites directly from a repository. Requires a dedicated domain."
+        help = "Requires a dedicated domain (e.g., pages.example.com)."
