@@ -62,6 +62,14 @@ ram.runtime = "2000M"
     type = "boolean"
     default = false
 
+    [install.pages_url]
+    ask.en = "Domain for GitLab Pages (leave empty to disable)"
+    ask.fr = "Domaine pour GitLab Pages (laisser vide pour désactiver)"
+    help.en = "GitLab Pages allows you to publish static websites directly from a repository. Requires a dedicated domain."
+    help.fr = "GitLab Pages permet de publier des sites web statiques directement depuis un dépôt. Nécessite un domaine dédié."
+    type = "domain"
+    optional = true
+
 [resources]
     [resources.system_user]
 
@@ -79,6 +87,8 @@ ram.runtime = "2000M"
     main.default = 8080
     puma.default = 8081
     sidekiq.default = 8082
+    pages.default = 8083
+    nginx_pages.default = 8084
 
     [resources.apt]
     packages = "openssh-server"

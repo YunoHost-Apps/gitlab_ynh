@@ -48,6 +48,13 @@ ynh_script_progression "Removing NGINX web server configuration"
 # Remove the dedicated NGINX config
 ynh_config_remove_nginx
 
+# Remove GitLab Pages nginx config and permission if it was enabled
+pages_url=$(ynh_app_setting_get --key=pages_url)
+if [ -n "$pages_url" ]; then
+	ynh_safe_rm "/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
+	ynh_permission_delete --permission="pages" 2>/dev/null || true
+fi
+
 #=================================================
 # REMOVE GITLAB FILES
 #=================================================
