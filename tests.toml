@@ -1,11 +1,24 @@
 test_format = 1.0
 
 [default]
+    args.pages_enable = false
+    args.pages_url = ""
+    
     # -------------------------------
     # Commits to test upgrade from
     # -------------------------------
 
     test_upgrade_from.a2faefc.name = "Upgrade from 17.11.1"
 
+[pages]
+    args.pages_enable = true
+    args.pages_url = "domain.tld"
+
+    only = ["install.root", "backup_restore", "upgrade"]
+
 [enterprise]
+    args.pages_enable = false
+    args.pages_url = ""
     args.gitlab_edition = "Enterprise"
+
+    only = ["install.root"]

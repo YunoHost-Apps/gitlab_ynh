@@ -3,17 +3,23 @@ version = "1.0"
 [main]
 name = "GitLab configuration"
 
-    [main.overwrite_files]
-    name = "Overwriting config files"
-
-        [main.overwrite_files.overwrite_nginx]
-        ask = "Overwrite the NGINX config file?"
-        type = "boolean"
-        help = "If the file is overwritten, a backup will be created."
-
     [main.users]
     name = "External users"
-    
+
         [main.users.use_web_account]
         ask = "Authorized external user creation?"
         type = "boolean"
+
+    [main.pages]
+    name = "GitLab Pages"
+
+        [main.pages.pages_enable]
+        ask = "Enable GitLab Pages?"
+        type = "boolean"
+        help = "GitLab Pages allows you to publish static websites directly from a repository."
+
+        [main.pages.pages_url]
+        ask = "Domain for GitLab Pages"
+        type = "string"
+        optional = true
+        help = "Requires a dedicated domain (e.g., pages.example.com)."

@@ -942,6 +942,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   {'host' => '127.0.0.1', 'port' => 26379},
 # ]
 # gitlab_rails['redis_sentinels_password'] = 'sentinel-requirepass-goes-here'
+# gitlab_rails['redis_sentinels_ssl'] = false
 
 # gitlab_rails['redis_sentinel_master'] = nil
 # gitlab_rails['redis_sentinel_master_ip'] = nil
@@ -963,6 +964,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_cache_instance'] = nil
 # gitlab_rails['redis_cache_sentinels'] = nil
 # gitlab_rails['redis_cache_sentinels_password'] = nil
+# gitlab_rails['redis_cache_sentinels_ssl'] = false
 # gitlab_rails['redis_cache_username'] = nil
 # gitlab_rails['redis_cache_password'] = nil
 # gitlab_rails['redis_cache_cluster_nodes'] = nil
@@ -973,6 +975,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_queues_instance'] = nil
 # gitlab_rails['redis_queues_sentinels'] = nil
 # gitlab_rails['redis_queues_sentinels_password'] = nil
+# gitlab_rails['redis_queues_sentinels_ssl'] = false
 # gitlab_rails['redis_queues_username'] = nil
 # gitlab_rails['redis_queues_password'] = nil
 # gitlab_rails['redis_queues_cluster_nodes'] = nil
@@ -983,6 +986,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_shared_state_instance'] = nil
 # gitlab_rails['redis_shared_state_sentinels'] = nil
 # gitlab_rails['redis_shared_state_sentinels_password'] = nil
+# gitlab_rails['redis_shared_state_sentinels_ssl'] = false
 # gitlab_rails['redis_shared_state_username'] = nil
 # gitlab_rails['redis_shared_state_password'] = nil
 # gitlab_rails['redis_shared_state_cluster_nodes'] = nil
@@ -993,6 +997,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_trace_chunks_instance'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels_password'] = nil
+# gitlab_rails['redis_trace_chunks_sentinels_ssl'] = false
 # gitlab_rails['redis_trace_chunks_username'] = nil
 # gitlab_rails['redis_trace_chunks_password'] = nil
 # gitlab_rails['redis_trace_chunks_cluster_nodes'] = nil
@@ -1003,6 +1008,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_actioncable_instance'] = nil
 # gitlab_rails['redis_actioncable_sentinels'] = nil
 # gitlab_rails['redis_actioncable_sentinels_password'] = nil
+# gitlab_rails['redis_actioncable_sentinels_ssl'] = false
 # gitlab_rails['redis_actioncable_username'] = nil
 # gitlab_rails['redis_actioncable_password'] = nil
 # gitlab_rails['redis_actioncable_cluster_nodes'] = nil
@@ -1013,6 +1019,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_rate_limiting_instance'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels_password'] = nil
+# gitlab_rails['redis_rate_limiting_sentinels_ssl'] = false
 # gitlab_rails['redis_rate_limiting_username'] = nil
 # gitlab_rails['redis_rate_limiting_password'] = nil
 # gitlab_rails['redis_rate_limiting_cluster_nodes'] = nil
@@ -1023,6 +1030,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_sessions_instance'] = nil
 # gitlab_rails['redis_sessions_sentinels'] = nil
 # gitlab_rails['redis_sessions_sentinels_password'] = nil
+# gitlab_rails['redis_sessions_sentinels_ssl'] = false
 # gitlab_rails['redis_sessions_username'] = nil
 # gitlab_rails['redis_sessions_password'] = nil
 # gitlab_rails['redis_sessions_cluster_nodes'] = nil
@@ -1033,6 +1041,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_cluster_rate_limiting_instance'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels_password'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_sentinels_ssl'] = false
 # gitlab_rails['redis_cluster_rate_limiting_username'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_cluster_nodes'] = nil
@@ -1043,6 +1052,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_repository_cache_instance'] = nil
 # gitlab_rails['redis_repository_cache_sentinels'] = nil
 # gitlab_rails['redis_repository_cache_sentinels_password'] = nil
+# gitlab_rails['redis_repository_cache_sentinels_ssl'] = false
 # gitlab_rails['redis_repository_cache_username'] = nil
 # gitlab_rails['redis_repository_cache_password'] = nil
 # gitlab_rails['redis_repository_cache_cluster_nodes'] = nil
@@ -1053,6 +1063,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_workhorse_instance'] = nil
 # gitlab_rails['redis_workhorse_sentinels'] = nil
 # gitlab_rails['redis_workhorse_sentinels_password'] = nil
+# gitlab_rails['redis_workhorse_sentinels_ssl'] = false
 # gitlab_rails['redis_workhorse_username'] = nil
 # gitlab_rails['redis_workhorse_password'] = nil
 # gitlab_rails['redis_workhorse_cluster_nodes'] = nil
@@ -1344,6 +1355,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['redis_cluster_nodes'] = []
 # gitlab_workhorse['redis_sentinels'] = []
 # gitlab_workhorse['redis_sentinels_password'] = nil
+# gitlab_workhorse['redis_sentinels_ssl'] = false
 # gitlab_workhorse['redis_sentinel_master'] = nil
 # gitlab_workhorse['redis_sentinel_master_ip'] = nil
 # gitlab_workhorse['redis_sentinel_master_port'] = nil
@@ -2055,8 +2067,8 @@ nginx['listen_https'] = false
 ################################################################################
 
 ##! Define to enable GitLab Pages
-# pages_external_url "http://pages.example.com/"
-# gitlab_pages['enable'] = false
+pages_external_url "https://__PAGES_URL__/"
+gitlab_pages['enable'] = __PAGES_ENABLE__
 
 ##! Configure to expose GitLab Pages on external IP address, serving the HTTP
 # gitlab_pages['external_http'] = []
@@ -2102,7 +2114,7 @@ nginx['listen_https'] = false
 # gitlab_pages['sentry_environment'] = 'production'
 
 ##! Listen for requests forwarded by reverse proxy
-# gitlab_pages['listen_proxy'] = "localhost:8090"
+gitlab_pages['listen_proxy'] = "127.0.0.1:__PORT_PAGES__"
 
 # gitlab_pages['redirect_http'] = true
 # gitlab_pages['use_http2'] = true
@@ -2129,7 +2141,7 @@ nginx['listen_https'] = false
 # gitlab_pages['gitlab_secret'] = nil # Generated if not present
 # gitlab_pages['auth_redirect_uri'] = nil # Defaults to projects subdomain of pages_external_url and + '/auth'
 # gitlab_pages['gitlab_server'] = nil # Defaults to external_url
-# gitlab_pages['internal_gitlab_server'] = nil # Defaults to gitlab_server, can be changed to internal load balancer
+gitlab_pages['internal_gitlab_server'] = "http://127.0.0.1:__PORT__" # Use internal HTTP to avoid TLS issues
 # gitlab_pages['auth_secret'] = nil # Generated if not present
 # gitlab_pages['auth_scope'] = nil # Defaults to api, can be changed to read_api to increase security
 # gitlab_pages['auth_timeout'] = "5s" # GitLab application client timeout for authentication
@@ -2234,7 +2246,7 @@ nginx['listen_https'] = false
 # }
 
 ##! Experimental - Enable namespace in path
-# gitlab_pages['namespace_in_path'] = false
+gitlab_pages['namespace_in_path'] = true
 
 ##! Configure GitLab Pages client cert and client key which will be used as mutual TLS with GitLab API
 # gitlab_pages['client_cert'] = "/path/to/client.crt"
@@ -2253,7 +2265,11 @@ nginx['listen_https'] = false
 ##! `pages_nginx['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
-# pages_nginx['enable'] = true
+pages_nginx['enable'] = __PAGES_ENABLE__
+pages_nginx['listen_https'] = false
+pages_nginx['listen_http'] = true
+pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
+pages_nginx['listen_addresses'] = ['127.0.0.1']
 
 # gitlab_rails['pages_path'] = "/var/opt/gitlab/gitlab-rails/shared/pages"
 
@@ -2359,6 +2375,10 @@ nginx['listen_https'] = false
 # gitlab_kas['redis_sentinels'] = []
 # gitlab_kas['redis_sentinels_master_name'] = nil
 # gitlab_kas['redis_sentinels_password'] = ''
+# gitlab_kas['redis_sentinels_ssl'] = false
+# gitlab_kas['redis_sentinels_tls_ca_cert_file'] = nil
+# gitlab_kas['redis_sentinels_tls_client_cert_file'] = nil
+# gitlab_kas['redis_sentinels_tls_client_key_file'] = nil
 
 # gitlab_kas['redis_ssl'] = false
 # gitlab_kas['redis_tls_ca_cert_file'] = '/opt/gitlab/embedded/ssl/certs/cacert.pem'
@@ -2983,6 +3003,8 @@ nginx['listen_https'] = false
 # letsencrypt['contact_emails'] = [] # This should be an array of email addresses to add as contacts
 # letsencrypt['group'] = 'root'
 # letsencrypt['key_size'] = 2048
+# letsencrypt['key_type'] = 'rsa'
+# letsencrypt['ec_curve'] = nil # Supported EC curves: prime256v1, secp384r1, secp521r1
 # letsencrypt['owner'] = 'root'
 # letsencrypt['wwwroot'] = '/var/opt/gitlab/nginx/www'
 ##! See https://docs.gitlab.com/omnibus/settings/ssl/index.html#renew-the-certificates-automatically for more on these settings
