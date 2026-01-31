@@ -287,7 +287,7 @@ if [ "$pages_enable" -eq 1 ]; then
 			fi
 			ynh_script_progression "Configuring GitLab Pages..."
 			ynh_config_add --template="nginx-pages.conf" --destination="/etc/nginx/conf.d/${pages_url}.d/${app}-pages.conf"
-			# NOTE: Using ynh_permission_create instead of manifest resource because
+			# NOTE: Using ynh_""permission_create instead of manifest resource because
 			# the pages permission URL depends on pages_url which is optional and dynamic
 			ynh_""permission_create --permission="pages" --url="${pages_url}/" --allowed="visitors"
 		fi
