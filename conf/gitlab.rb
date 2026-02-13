@@ -2266,6 +2266,10 @@ gitlab_pages['namespace_in_path'] = true
 
 ##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
 pages_nginx['enable'] = __PAGES_ENABLE__
+pages_nginx['listen_https'] = false
+pages_nginx['listen_http'] = true
+pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
+pages_nginx['listen_addresses'] = ['127.0.0.1']
 
 # gitlab_rails['pages_path'] = "/var/opt/gitlab/gitlab-rails/shared/pages"
 
