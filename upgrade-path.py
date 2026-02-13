@@ -300,7 +300,7 @@ pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
 pages_nginx['listen_addresses'] = ['127.0.0.1']"""
 
     content = re.sub(
-        r"(pages_nginx\['enable'\] = true)",
+        r"(pages_nginx\['enable'\] = __PAGES_ENABLE__)",
         r"\1" + pages_nginx_config,
         content
     )
