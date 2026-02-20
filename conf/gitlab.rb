@@ -778,7 +778,7 @@ EOS
 
 ### GitLab Shell settings for GitLab
 gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
-# gitlab_rails['gitlab_shell_git_timeout'] = 800
+# gitlab_rails['gitlab_shell_git_timeout'] = 10800
 
 ### Extra customization
 # gitlab_rails['extra_google_analytics_id'] = '_your_tracking_id'
@@ -1356,6 +1356,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['redis_sentinels'] = []
 # gitlab_workhorse['redis_sentinels_password'] = nil
 # gitlab_workhorse['redis_sentinels_ssl'] = false
+# gitlab_workhorse['redis_sentinels_tls_ca_cert_file'] = nil
+# gitlab_workhorse['redis_sentinels_tls_client_cert_file'] = nil
+# gitlab_workhorse['redis_sentinels_tls_client_key_file'] = nil
 # gitlab_workhorse['redis_sentinel_master'] = nil
 # gitlab_workhorse['redis_sentinel_master_ip'] = nil
 # gitlab_workhorse['redis_sentinel_master_port'] = nil
@@ -1422,8 +1425,9 @@ puma['port'] = __PORT_PUMA__
 # puma['log_directory'] = "/var/log/gitlab/puma"
 
 ###! **Only change these settings if you understand well what they mean**
-###! Docs: https://github.com/schneems/puma_worker_killer
-# puma['per_worker_max_memory_mb'] = 1024
+###! Docs: https://github.com/zombocom/puma_worker_killer
+###! GitLab defaults: https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/memory/watchdog/configurator.rb
+# puma['per_worker_max_memory_mb'] = 1500
 
 # puma['exporter_enabled'] = false
 # puma['exporter_address'] = "127.0.0.1"
@@ -1840,6 +1844,13 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # redis['io_threads'] = 4
 # redis['io_threads_do_reads'] = true
 
+### Valkey backend (Beta)
+###! Use Valkey instead of Redis. This feature is in Beta and subject to change.
+###! When enabled, uses valkey-server/valkey-sentinel instead of redis-server/redis-sentinel.
+###! All other Redis settings remain the same.
+###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html#using-valkey-instead-of-redis-beta
+# redis['backend'] = 'redis'  # 'redis' (default) or 'valkey'
+
 ################################################################################
 ## GitLab Web server
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#using-a-non-bundled-web-server
@@ -1956,6 +1967,7 @@ nginx['listen_https'] = false
 # nginx['worker_processes'] = 4
 # nginx['worker_connections'] = 10240
 # nginx['log_format'] = '$remote_addr - $remote_user [$time_local] "$request_method $filtered_request_uri $server_protocol" $status $body_bytes_sent "$filtered_http_referer" "$http_user_agent" $gzip_ratio'
+# nginx['log_format_escape'] = 'default'
 # nginx['sendfile'] = 'on'
 # nginx['tcp_nopush'] = 'on'
 # nginx['tcp_nodelay'] = 'on'
@@ -2396,14 +2408,6 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 # gitlab_kas['extra_config_command'] = nil
 
 ################################################################################
-## GitLab Suggested Reviewers (EE Only)
-##! Docs: https://docs.gitlab.com/ee/user/project/merge_requests/reviews/#suggested-reviewers
-################################################################################
-
-##! Shared secret used for authentication between Suggested Reviewers and GitLab
-# suggested_reviewers['api_secret_key'] = nil # Will be generated if not set. Base64 encoded and exactly 32 bytes long.
-
-################################################################################
 ## GitLab Mattermost
 ##! Docs: https://docs.gitlab.com/ee/integration/mattermost/
 ################################################################################
@@ -2758,7 +2762,7 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 #  'PATH' => "/opt/gitlab/bin:/opt/gitlab/embedded/bin:/bin:/usr/bin",
 #  'HOME' => '/var/opt/gitlab',
 #  'TZ' => ':/etc/localtime',
-#  'PYTHONPATH' => "/opt/gitlab/embedded/lib/python3.9/site-packages",
+#  'PYTHONPATH' => "/opt/gitlab/embedded/lib/python3.12/site-packages",
 #  'ICU_DATA' => "/opt/gitlab/embedded/share/icu/current",
 #  'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
 #  'WRAPPER_JSON_LOGGING' => true,
