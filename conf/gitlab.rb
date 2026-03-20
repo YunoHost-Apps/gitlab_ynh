@@ -757,6 +757,8 @@ EOS
 
 ### Gitaly settings
 # gitlab_rails['gitaly_token'] = 'secret token'
+# gitlab_rails['gitaly_client_max_attempts'] = 4
+# gitlab_rails['gitaly_client_max_backoff'] = '1.4s'
 # gitlab_rails['repositories_storages'] = {
 #   'default' => {
 #     'gitaly_address' => 'tcp://praefect-lb:2305',
@@ -928,6 +930,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['openbao']['url'] = nil
 # gitlab_rails['openbao']['internal_url'] = nil
 # gitlab_rails['openbao']['authentication_token_secret_file_path'] = nil
+# gitlab_rails['openbao']['jwt_audience'] = nil
 
 #### Session cookie settings
 # gitlab_rails['session_store_session_cookie_token_prefix'] = ''
@@ -965,6 +968,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_cache_sentinels'] = nil
 # gitlab_rails['redis_cache_sentinels_password'] = nil
 # gitlab_rails['redis_cache_sentinels_ssl'] = false
+# gitlab_rails['redis_cache_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_cache_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_cache_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_cache_username'] = nil
 # gitlab_rails['redis_cache_password'] = nil
 # gitlab_rails['redis_cache_cluster_nodes'] = nil
@@ -976,6 +982,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_queues_sentinels'] = nil
 # gitlab_rails['redis_queues_sentinels_password'] = nil
 # gitlab_rails['redis_queues_sentinels_ssl'] = false
+# gitlab_rails['redis_queues_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_queues_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_queues_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_queues_username'] = nil
 # gitlab_rails['redis_queues_password'] = nil
 # gitlab_rails['redis_queues_cluster_nodes'] = nil
@@ -987,6 +996,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_shared_state_sentinels'] = nil
 # gitlab_rails['redis_shared_state_sentinels_password'] = nil
 # gitlab_rails['redis_shared_state_sentinels_ssl'] = false
+# gitlab_rails['redis_shared_state_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_shared_state_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_shared_state_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_shared_state_username'] = nil
 # gitlab_rails['redis_shared_state_password'] = nil
 # gitlab_rails['redis_shared_state_cluster_nodes'] = nil
@@ -998,6 +1010,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_trace_chunks_sentinels'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels_password'] = nil
 # gitlab_rails['redis_trace_chunks_sentinels_ssl'] = false
+# gitlab_rails['redis_trace_chunks_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_trace_chunks_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_trace_chunks_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_trace_chunks_username'] = nil
 # gitlab_rails['redis_trace_chunks_password'] = nil
 # gitlab_rails['redis_trace_chunks_cluster_nodes'] = nil
@@ -1009,6 +1024,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_actioncable_sentinels'] = nil
 # gitlab_rails['redis_actioncable_sentinels_password'] = nil
 # gitlab_rails['redis_actioncable_sentinels_ssl'] = false
+# gitlab_rails['redis_actioncable_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_actioncable_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_actioncable_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_actioncable_username'] = nil
 # gitlab_rails['redis_actioncable_password'] = nil
 # gitlab_rails['redis_actioncable_cluster_nodes'] = nil
@@ -1020,6 +1038,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels_password'] = nil
 # gitlab_rails['redis_rate_limiting_sentinels_ssl'] = false
+# gitlab_rails['redis_rate_limiting_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_rate_limiting_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_rate_limiting_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_rate_limiting_username'] = nil
 # gitlab_rails['redis_rate_limiting_password'] = nil
 # gitlab_rails['redis_rate_limiting_cluster_nodes'] = nil
@@ -1031,6 +1052,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_sessions_sentinels'] = nil
 # gitlab_rails['redis_sessions_sentinels_password'] = nil
 # gitlab_rails['redis_sessions_sentinels_ssl'] = false
+# gitlab_rails['redis_sessions_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_sessions_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_sessions_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_sessions_username'] = nil
 # gitlab_rails['redis_sessions_password'] = nil
 # gitlab_rails['redis_sessions_cluster_nodes'] = nil
@@ -1042,6 +1066,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_cluster_rate_limiting_sentinels'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_sentinels_ssl'] = false
+# gitlab_rails['redis_cluster_rate_limiting_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_cluster_rate_limiting_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_username'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_password'] = nil
 # gitlab_rails['redis_cluster_rate_limiting_cluster_nodes'] = nil
@@ -1053,6 +1080,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_repository_cache_sentinels'] = nil
 # gitlab_rails['redis_repository_cache_sentinels_password'] = nil
 # gitlab_rails['redis_repository_cache_sentinels_ssl'] = false
+# gitlab_rails['redis_repository_cache_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_repository_cache_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_repository_cache_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_repository_cache_username'] = nil
 # gitlab_rails['redis_repository_cache_password'] = nil
 # gitlab_rails['redis_repository_cache_cluster_nodes'] = nil
@@ -1064,6 +1094,9 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_workhorse_sentinels'] = nil
 # gitlab_rails['redis_workhorse_sentinels_password'] = nil
 # gitlab_rails['redis_workhorse_sentinels_ssl'] = false
+# gitlab_rails['redis_workhorse_sentinels_tls_ca_cert_file'] = nil
+# gitlab_rails['redis_workhorse_sentinels_tls_client_cert_file'] = nil
+# gitlab_rails['redis_workhorse_sentinels_tls_client_key_file'] = nil
 # gitlab_rails['redis_workhorse_username'] = nil
 # gitlab_rails['redis_workhorse_password'] = nil
 # gitlab_rails['redis_workhorse_cluster_nodes'] = nil
@@ -1125,6 +1158,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # registry['validation_enabled'] = false
 # registry['autoredirect'] = false
 # registry['compatibility_schema1_enabled'] = false
+# registry['http_draintimeout'] = 0
 
 ### Registry backend storage
 ###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry.html#configure-storage-for-the-container-registry
@@ -1903,6 +1937,8 @@ nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 # nginx['ssl_session_timeout'] = "1d"
 
 # nginx['ssl_dhparam'] = nil # Path to dhparams.pem, eg. /etc/gitlab/ssl/dhparams.pem
+# nginx['ssl_ecdh_curve'] = nil # Specifies a curve for ECDHE ciphers, eg. 'secp384r1'
+# nginx['ssl_conf_command'] = nil # Array of OpenSSL configuration commands, eg. ["Ciphersuites TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256"]
 # nginx['ssl_password_file'] = nil # Path to file with passphrases for ssl certificate secret keys
 # nginx['listen_addresses'] = ['*']
 
@@ -2750,6 +2786,12 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 ##! Docs: https://docs.gitlab.com/ee/administration/gitaly/configure_gitaly.html
 ################################################################################
 
+##! Default configuration for Gitaly clients
+##! Settings here applies to all components that supports
+##! those settings, unless overwritten at the component level.
+# gitaly_client['max_attempts'] = 4
+# gitaly_client['max_backoff'] = '1.4s'
+
 ##! The gitaly['enable'] option exists for the purpose of cluster
 ##! deployments, see https://docs.gitlab.com/ee/administration/gitaly/index.html .
 # gitaly['enable'] = true
@@ -2771,7 +2813,7 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 # gitaly['gitlab_secret'] = <secret>
 
 
-# gitaly['open_files_ulimit'] = 15000 # Maximum number of open files allowed for the gitaly process
+# gitaly['open_files_ulimit'] = 30000 # Maximum number of open files allowed for the gitaly process
 ##! Service name used to register Gitaly as a Consul service
 # gitaly['consul_service_name'] = 'gitaly'
 ##! Semantic metadata used when registering Gitaly as a Consul service
