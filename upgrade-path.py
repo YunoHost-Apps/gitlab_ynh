@@ -14,10 +14,12 @@ Usage:
 """
 
 import argparse
+import gzip
 import re
 import sys
 import urllib.request
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 try:
@@ -89,31 +91,75 @@ class FetchError(Exception):
     pass
 
 
+_packages_index_cache: dict = {}
+
+
+def _fetch_packages_index(edition: str, distro: str, arch: str) -> dict:
+    """Fetch and parse the APT Packages index, returning {version: sha256}."""
+    cache_key = (edition, distro, arch)
+    if cache_key in _packages_index_cache:
+        return _packages_index_cache[cache_key]
+
+    url = (
+        f"https://packages.gitlab.com/gitlab/gitlab-{edition}/debian/dists/"
+        f"{distro}/main/binary-{arch}/Packages.gz"
+    )
+    with urllib.request.urlopen(url, timeout=60) as response:
+        raw = gzip.decompress(response.read()).decode("utf-8")
+
+    # `.+\n` matches a non-empty line, so blank lines confine the match to a
+    # single package stanza.
+    pattern = re.compile(
+        rf"Package: gitlab-{edition}\n"
+        r"(?:.+\n)*?Version: (?P<version>\S+)\n"
+        r"(?:.+\n)*?SHA256: (?P<sha256>[a-f0-9]{64})"
+    )
+    versions = {m["version"]: m["sha256"] for m in pattern.finditer(raw)}
+
+    _packages_index_cache[cache_key] = versions
+    return versions
+
+
+def prefetch_indexes() -> None:
+    """Download every Packages.gz in parallel to warm the cache.
+    """
+    combos = [(ed, d, a) for ed in EDITIONS for d in DISTROS for a in ARCHITECTURES]
+    print(f"Prefetching {len(combos)} package indexes in parallel...")
+    with ThreadPoolExecutor(max_workers=len(combos)) as executor:
+        futures = {
+            executor.submit(_fetch_packages_index, ed, d, a): (ed, d, a)
+            for ed, d, a in combos
+        }
+        for future in as_completed(futures):
+            ed, d, a = futures[future]
+            try:
+                future.result()
+            except Exception as e:
+                print(f"  {ed}/{d}/{a}: FAILED ({e})")
+
+
 def fetch_sha256(edition: str, version: str, distro: str, arch: str) -> str:
-    """Fetch SHA256 checksum from packages.gitlab.com.
+    """Fetch SHA256 checksum from the GitLab APT repository metadata.
 
     Raises:
         FetchError: If the package doesn't exist or SHA256 can't be found.
     """
-    url = f"https://packages.gitlab.com/gitlab/gitlab-{edition}/packages/debian/{distro}/gitlab-{edition}_{version}-{edition}.0_{arch}.deb"
     print(f"  Fetching SHA256 for {edition}/{version}/{distro}/{arch}...", end=" ", flush=True)
 
     try:
-        with urllib.request.urlopen(url, timeout=30) as response:
-            content = response.read().decode('utf-8')
+        index = _fetch_packages_index(edition, distro, arch)
     except Exception as e:
         print(f"FAILED ({e})")
-        raise FetchError(f"Failed to fetch {url}: {e}")
+        raise FetchError(f"Failed to fetch Packages index for {edition}/{distro}/{arch}: {e}")
 
-    # Parse SHA256 from HTML page
-    match = re.search(r'SHA256.*?<td[^>]*>\s*([a-f0-9]{64})\s*</td>', content, re.DOTALL | re.IGNORECASE)
-    if match:
-        sha256 = match.group(1)
+    target = f"{version}-{edition}.0"
+    sha256 = index.get(target)
+    if sha256:
         print(f"OK ({sha256[:16]}...)")
         return sha256
 
     print("NOT FOUND")
-    raise FetchError(f"SHA256 not found in page for {url}")
+    raise FetchError(f"Version {target} not found in {edition}/{distro}/{arch} index")
 
 
 def fetch_all_sha256(version: str, distros: list = DISTROS) -> tuple[dict, list]:
@@ -178,7 +224,10 @@ def fetch_upgrade_path(starting_version: str) -> list:
         print(f"Error: No version >= {starting_version} found")
         sys.exit(1)
 
-    return all_versions[start_idx:]
+    # Upstream path.json sometimes lists the final target twice; dedupe while
+    # preserving order.
+    seen: set[str] = set()
+    return [v for v in all_versions[start_idx:] if not (v in seen or seen.add(v))]
 
 
 def compare_versions(v1: str, v2: str) -> int:
@@ -331,6 +380,10 @@ def main():
 
     # Latest version is the last one
     latest_version = versions[-1]
+
+    # Warm the Packages.gz cache so that every fetch_sha256 below is a dict
+    # lookup instead of a sequential HTTP round-trip.
+    prefetch_indexes()
 
     # Fetch SHA256 for latest version
     print(f"Fetching SHA256 for latest version ({latest_version})...")
