@@ -712,6 +712,16 @@ EOS
 # gitlab_rails['backup_path'] = "/var/opt/gitlab/backups"
 # gitlab_rails['backup_gitaly_backup_path'] = "/opt/gitlab/embedded/bin/gitaly-backup"
 
+# gitlab_rails['backup_role'] = false
+# gitlab_rails['backup_registry_user'] = "registry_backup"
+# gitlab_rails['backup_registry_password'] = nil
+# gitlab_rails['restore_registry_user'] = "registry_restore"
+# gitlab_rails['restore_registry_password'] = nil
+# gitlab_rails['backup_registry']['database_connection'] = {
+#   'port' => 5432,
+#   'dbname' => "registry"
+# }
+
 ###! Docs: https://docs.gitlab.com/ee/administration/backup_restore/backup_gitlab.html#backup-archive-permissions
 # gitlab_rails['backup_archive_permissions'] = 0644
 
@@ -1264,12 +1274,22 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #     'tls' => {
 #       'enabled' => true,
 #       'insecure' => true
-#     },
-#     'pool' => {
-#       'size' => 10,
-#       'maxlifetime' => '1h',
-#       'idletimeout' => '300s'
 #     }
+#   },
+#   'cache' => {
+#     'enabled' => true,
+#     'addr' => 'localhost:16379,localhost:26379',
+#     'username' => 'registry',
+#     'password' => 'secret',
+#     'db' => 0,
+#     'dialtimeout' => '10ms',
+#     'readtimeout' => '10ms',
+#     'writetimeout' => '10ms'
+#   },
+#   'pool' => {
+#     'size' => 10,
+#     'maxlifetime' => '1h',
+#     'idletimeout' => '300s'
 #   }
 # }
 
@@ -1585,6 +1605,9 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # gitlab_sshd['host_keys_glob'] = 'ssh_host_*_key'
 # gitlab_sshd['host_certs_dir'] = '/var/opt/gitlab/gitlab-sshd'
 # gitlab_sshd['host_certs_glob'] = 'ssh_host_*-cert.pub'
+###! Trusted user CA public key files for instance-level SSH certificate authentication.
+###! For example: ['/etc/gitlab/ssh_user_ca.pub']
+# gitlab_sshd['trusted_user_ca_keys'] = nil
 
 ################################################################
 ## GitLab PostgreSQL
@@ -1648,6 +1671,10 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 ### is under development.
 # postgresql['registry']['user'] = "registry"
 # postgresql['registry']['password'] = nil
+# postgresql['registry']['database_backup_username'] = "registry_backup"
+# postgresql['registry']['database_backup_password'] = nil
+# postgresql['registry']['database_restore_username'] = "registry_restore"
+# postgresql['registry']['database_restore_password'] = nil
 # postgresql['registry']['dbname'] = "registry"
 # postgresql['registry']['auto_create'] = true
 
@@ -1746,7 +1773,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 
 ### Version settings
 # Set this if you have disabled the bundled PostgreSQL but still want to use the backup rake tasks
-# postgresql['version'] = 16
+# postgresql['version'] = 17
 
 
 ##! Automatically restart PostgreSQL service when version changes.
@@ -3633,6 +3660,15 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # consul['tls_key_file'] = nil
 # consul['tls_verify_client'] = nil
 
+### Server rejoin age
+##! Controls the maximum age of a stale server attempting to rejoin a cluster
+##! (introduced in Consul 1.15). Consul will refuse to start a server that has
+##! been offline longer than this duration, requiring manual deletion of
+##! server_metadata.json to recover. Must be at least 6h. Increase this value
+##! if your environment is regularly shut down for more than the default 7 days.
+##! Default: nil (uses Consul's built-in default of 168h / 7 days)
+# consul['server_rejoin_age_max'] = '168h'
+
 ################################################################################
 ## Service desk email settings
 ################################################################################
@@ -3728,5 +3764,15 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_backup_cli['group'] = 'gitlab-backup'
 # gitlab_backup_cli['dir'] = '/var/opt/gitlab/backups'
 # gitlab_backup_cli['additional_groups'] = %w[git gitlab-psql registry]
+
+################################################################################
+## Omnibus Adjacent Kubernetes (OAK) Configuration
+## Beta: These settings are subject to change
+################################################################################
+# oak['enable'] = false
+# oak['network_address'] = '10.0.0.1'  # The K8s pod network IP that Omnibus listens on
+
+# oak['components']['openbao']['enable'] = true
+# oak['components']['openbao']['address'] = 'openbao.k8s.example.com'
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
