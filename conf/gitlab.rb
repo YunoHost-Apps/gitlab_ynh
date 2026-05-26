@@ -63,7 +63,6 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ##!   pgbouncer_role
 ##!   pages_role
 ##!   sidekiq_role
-##!   spamcheck_role
 ##!   gitaly_role
 ##! For more details on each role, see:
 ##! https://docs.gitlab.com/omnibus/roles/index.html#roles
@@ -560,8 +559,8 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['usage_ping_enabled'] = true
 
 ### GitLab Mattermost
-###! These settings are void if Mattermost is installed on the same omnibus
-###! install
+###! Set this to the externally reachable URL of your standalone Mattermost
+###! instance so that GitLab can integrate with it for slash commands and OAuth.
 # gitlab_rails['mattermost_host'] = "https://mattermost.example.com"
 
 ### LDAP Settings
@@ -1189,7 +1188,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 ###! Docs: https://docs.gitlab.com/ee/administration/packages/container_registry_metadata_database.html#new-installations
 # registry['auto_migrate'] = true
 # registry['database'] = {
-#   'enabled' => "false",
+#   'enabled' => "prefer",
 #   'host' => 'localhost',
 #   'port' => 5432,
 #   'user' => 'registry',
@@ -1905,11 +1904,11 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # redis['io_threads'] = 4
 # redis['io_threads_do_reads'] = true
 
-### Valkey backend (Beta)
-###! Use Valkey instead of Redis. This feature is in Beta and subject to change.
+### Valkey backend
+###! Use Valkey instead of Redis.
 ###! When enabled, uses valkey-server/valkey-sentinel instead of redis-server/redis-sentinel.
 ###! All other Redis settings remain the same.
-###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html#using-valkey-instead-of-redis-beta
+###! Docs: https://docs.gitlab.com/omnibus/settings/redis.html#using-valkey-instead-of-redis
 # redis['backend'] = 'redis'  # 'redis' (default) or 'valkey'
 
 ################################################################################
@@ -2469,70 +2468,6 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 
 ##! Command to generate extra configuration
 # gitlab_kas['extra_config_command'] = nil
-
-################################################################################
-## GitLab Mattermost
-##! Docs: https://docs.gitlab.com/ee/integration/mattermost/
-################################################################################
-
-# mattermost_external_url 'http://mattermost.example.com'
-
-# mattermost['enable'] = false
-# mattermost['username'] = 'mattermost'
-# mattermost['group'] = 'mattermost'
-# mattermost['uid'] = nil
-# mattermost['gid'] = nil
-# mattermost['home'] = '/var/opt/gitlab/mattermost'
-# mattermost['database_name'] = 'mattermost_production'
-# mattermost['env'] = {
-#   'SSL_CERT_DIR' => "/opt/gitlab/embedded/ssl/certs/",
-#   'GODEBUG` => "tlsmlkem=0",
-# }
-# mattermost['service_address'] = "127.0.0.1"
-# mattermost['service_port'] = "8065"
-# mattermost['service_site_url'] = nil
-# mattermost['service_allowed_untrusted_internal_connections'] = ""
-# mattermost['service_enable_api_team_deletion'] = true
-# mattermost['team_site_name'] = "GitLab Mattermost"
-# mattermost['sql_driver_name'] = 'mysql'
-# mattermost['sql_data_source'] = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"
-# mattermost['log_file_directory'] = '/var/log/gitlab/mattermost/'
-# mattermost['gitlab_enable'] = false
-# mattermost['gitlab_id'] = "12345656"
-# mattermost['gitlab_secret'] = "123456789"
-# mattermost['gitlab_scope'] = ""
-# mattermost['gitlab_auth_endpoint'] = "http://gitlab.example.com/oauth/authorize"
-# mattermost['gitlab_token_endpoint'] = "http://gitlab.example.com/oauth/token"
-# mattermost['gitlab_user_api_endpoint'] = "http://gitlab.example.com/api/v4/user"
-# mattermost['file_directory'] = "/var/opt/gitlab/mattermost/data"
-# mattermost['plugin_directory'] = "/var/opt/gitlab/mattermost/plugins"
-# mattermost['plugin_client_directory'] = "/var/opt/gitlab/mattermost/client-plugins"
-
-################################################################################
-## Mattermost NGINX
-################################################################################
-
-##! All the settings defined in the "GitLab Nginx" section are also available in
-##! this "Mattermost NGINX" section, using the key `mattermost_nginx`.  However,
-##! those settings should be explicitly set. That is, settings given as
-##! `nginx['some_setting']` WILL NOT be automatically replicated as
-##! `mattermost_nginx['some_setting']` and should be set separately.
-
-##! Below you can find settings that are exclusive to "Mattermost NGINX"
-# mattermost_nginx['enable'] = false
-
-# mattermost_nginx['custom_gitlab_mattermost_server_config'] = "location ^~ /foo-namespace/bar-project/raw/ {\n deny all;\n}\n"
-# mattermost_nginx['proxy_set_headers'] = {
-#   "Host" => "$http_host",
-#   "X-Real-IP" => "$remote_addr",
-#   "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
-#   "X-Frame-Options" => "SAMEORIGIN",
-#   "X-Forwarded-Proto" => "https",
-#   "X-Forwarded-Ssl" => "on",
-#   "Upgrade" => "$http_upgrade",
-#   "Connection" => "$connection_upgrade"
-# }
-
 
 ################################################################################
 ## Registry NGINX
@@ -3726,30 +3661,6 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # gitlab_rails['service_desk_email_auth_token'] = nil
 
 #################################################################################
-## Spamcheck (EE only)
-#################################################################################
-
-# spamcheck['enable'] = false
-# spamcheck['dir'] = '/var/opt/gitlab/spamcheck'
-# spamcheck['port'] = 8001
-# spamcheck['external_port'] = nil
-# spamcheck['monitoring_address'] = ':8003'
-# spamcheck['log_level'] = 'info'
-# spamcheck['log_format'] = 'json'
-# spamcheck['log_output'] = 'stdout'
-# spamcheck['monitor_mode'] = false
-# spamcheck['allowlist'] = {}
-# spamcheck['denylist'] = {}
-# spamcheck['log_directory'] = "/var/log/gitlab/spamcheck"
-# spamcheck['log_group'] = nil
-# spamcheck['env_directory'] = "/opt/gitlab/etc/spamcheck/env"
-# spamcheck['env'] = {
-#   'SSL_CERT_DIR' => '/opt/gitlab/embedded/ssl/certs/',
-#   'GODEBUG' => "tlsmlkem=0",
-# }
-# spamcheck['classifier']['log_directory'] = "/var/log/gitlab/spam-classifier"
-
-#################################################################################
 ## (Go-)Crond
 #################################################################################
 # crond['log_directory'] = '/var/log/gitlab/crond'
@@ -3772,7 +3683,19 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # oak['enable'] = false
 # oak['network_address'] = '10.0.0.1'  # The K8s pod network IP that Omnibus listens on
 
+## OpenBao component (GitLab Secrets Manager)
+## When enabled, gitlab-ctl reconfigure will:
+##   1. Add an NGINX reverse proxy that routes the external URL to the OpenBao service.
+##   2. Auto-configure gitlab_rails['openbao'] URLs (url + internal_url).
+## Use https:// in external_url to enable TLS. When letsencrypt['enable'] is true, the
+## OpenBao hostname is automatically added as a SAN to the Let's Encrypt certificate.
 # oak['components']['openbao']['enable'] = true
-# oak['components']['openbao']['address'] = 'openbao.k8s.example.com'
+# oak['components']['openbao']['internal_url'] = 'http://10.0.0.5:8200'  # full URL where OpenBao is reachable (e.g. LoadBalancer or Kubernetes service URL)
+# oak['components']['openbao']['external_url'] = 'https://openbao.example.com'  # Domain (and optional port) to serve OpenBao on via NGINX
+## SSL certificate paths (auto-derived from external_url hostname when not set):
+# oak['components']['openbao']['ssl_certificate'] = '/etc/gitlab/ssl/openbao.example.com.crt'
+# oak['components']['openbao']['ssl_certificate_key'] = '/etc/gitlab/ssl/openbao.example.com.key'
+## Redirect HTTP to HTTPS (enabled automatically when using Let's Encrypt):
+# oak['components']['openbao']['redirect_http_to_https'] = true
 
 from_file '/etc/gitlab/gitlab-persistent.rb'
