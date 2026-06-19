@@ -188,7 +188,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 ### Automatic issue closing
 ###! See https://docs.gitlab.com/ee/administration/issue_closing_pattern.html for more
 ###! information about this pattern.
-# gitlab_rails['gitlab_issue_closing_pattern'] = "\b((?:[Cc]los(?:e[sd]?|ing)|\b[Ff]ix(?:e[sd]|ing)?|\b[Rr]esolv(?:e[sd]?|ing)|\b[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?:, *| +and +)?)|([A-Z][A-Z0-9_]+-\d+))+)"
+# gitlab_rails['gitlab_issue_closing_pattern'] = '\b((?:[Cc]los(?:e[sd]?|ing)|\b[Ff]ix(?:e[sd]|ing)?|\b[Rr]esolv(?:e[sd]?|ing)|\b[Ii]mplement(?:s|ed|ing)?)(:?) +(?:(?:issues? +)?%{issue_ref}(?:(?: *,? +and +| *,? *)?)|([A-Z][A-Z0-9_]+-\d+))+)'
 
 ### Download location
 ###! When a user clicks e.g. 'Download zip' on a project, a temporary zip file
@@ -415,6 +415,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['object_store']['objects']['dependency_proxy']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['terraform_state']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['ci_secure_files']['bucket'] = nil
+# gitlab_rails['object_store']['objects']['agent_plan_content']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['pages']['bucket'] = nil
 
 ### Job Artifacts
@@ -518,6 +519,23 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['ci_secure_files_object_store_enabled'] = false
 # gitlab_rails['ci_secure_files_object_store_remote_directory'] = "ci-secure-files"
 # gitlab_rails['ci_secure_files_object_store_connection'] = {
+#   'provider' => 'AWS',
+#   'region' => 'eu-west-1',
+#   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
+#   'aws_secret_access_key' => 'AWS_SECRET_ACCESS_KEY',
+#   # # The below options configure an S3 compatible host instead of AWS
+#   # 'host' => 's3.amazonaws.com',
+#   # 'aws_signature_version' => 4, # For creation of signed URLs. Set to 2 if provider does not support v4.
+#   # 'endpoint' => 'https://s3.amazonaws.com', # default: nil - Useful for S3 compliant services such as DigitalOcean Spaces
+#   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
+# }
+
+### Agent Plan Content
+# gitlab_rails['agent_plan_content_enabled'] = true
+# gitlab_rails['agent_plan_content_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/agent_plan_content"
+# gitlab_rails['agent_plan_content_object_store_enabled'] = false
+# gitlab_rails['agent_plan_content_object_store_remote_directory'] = "agent-plan-content"
+# gitlab_rails['agent_plan_content_object_store_connection'] = {
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
 #   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
@@ -1312,10 +1330,10 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 
 ##! Duration to wait for all requests to finish (e.g. "10s" for 10
 ##! seconds). By default this is disabled to preserve the existing
-##! behavior of fast shutdown. This should not be set higher than 30
-##! seconds, since gitlab-ctl will wait up to 30 seconds (as defined by
-##! the SVWAIT variable) and report a timeout error if the process has
-##! not shut down.
+##! behavior of fast shutdown. This should not be set higher than
+##! the SVWAIT value (30 seconds by default), since gitlab-ctl will
+##! wait up to that amount of time and report a timeout error if the
+##! process has not shut down.
 # gitlab_workhorse['shutdown_timeout'] = nil
 # gitlab_workhorse['listen_network'] = "unix"
 # gitlab_workhorse['listen_umask'] = 000
@@ -1451,6 +1469,14 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # puma['enable'] = true
 # puma['ha'] = false
 # puma['worker_timeout'] = 60
+##! The number of Puma worker processes. When not set, this is calculated
+##! automatically as the minimum of:
+##!   - the number of CPUs available to the process (via `nproc`, which
+##!     respects cgroup CPU limits in LXC or Docker containers), and
+##!   - the number of workers that fit in available RAM (reserving 1.5 GB
+##!     for other processes, with ~1 GB per Puma worker).
+##! The result is clamped to a minimum of 2 (required for the web editor).
+##! Set this explicitly if auto-detection produces incorrect results.
 # puma['worker_processes'] = 2
 # puma['min_threads'] = 4
 # puma['max_threads'] = 4
@@ -1647,6 +1673,8 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['group'] = "gitlab-psql"
 ##! `SQL_USER_PASSWORD_HASH` can be generated using the command `gitlab-ctl pg-password-md5 gitlab`
 # postgresql['sql_user_password'] = 'SQL_USER_PASSWORD_HASH'
+##! Password for the gitlab-psql superuser. Required when using md5_auth_cidr_addresses with Patroni.
+# postgresql['sql_superuser_password'] = nil
 # postgresql['uid'] = nil
 # postgresql['gid'] = nil
 # postgresql['shell'] = "/bin/sh"
