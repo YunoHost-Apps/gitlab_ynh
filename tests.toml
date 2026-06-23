@@ -8,7 +8,7 @@ test_format = 1.0
     # Commits to test upgrade from
     # -------------------------------
 
-    test_upgrade_from.a2faefc.name = "Upgrade from 17.11.1"
+    test_upgrade_from.4de0c3b.name = "Upgrade from 18.11.3"
 
 [pages]
     args.pages_enable = true
