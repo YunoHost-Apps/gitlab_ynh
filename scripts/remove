@@ -24,11 +24,15 @@ gitlab-ctl stop
 #=================================================
 # REMOVE GITLAB SYSTEM ACCOUNTS
 #=================================================
-ynh_script_progression "Removing GitLab system accounts"
 
-# The postrm leaves every account behind. Needs the package still installed.
-if ! ynh_hide_warnings gitlab-ctl remove-accounts; then
-	ynh_print_warn "Could not remove the GitLab system accounts, you may have to delete them manually"
+# Only purge removes everything those accounts own, otherwise their uid gets
+# recycled and the leftover files become unreadable
+if [ "${YNH_APP_PURGE:-0}" -eq 1 ]; then
+	ynh_script_progression "Removing GitLab system accounts"
+
+	if ! ynh_hide_warnings gitlab-ctl remove-accounts; then
+		ynh_print_warn "Could not remove the GitLab system accounts, you may have to delete them manually"
+	fi
 fi
 
 #=================================================
@@ -70,8 +74,6 @@ fi
 #=================================================
 
 ynh_safe_rm "/var/opt/$app"
-
-ynh_safe_rm "/var/log/$app"
 
 # Remove swap
 ynh_del_swap
