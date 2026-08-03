@@ -70,6 +70,7 @@ ynh_script_progression "Restoring GitLab..."
 
 ynh_restore "/var/opt/$app/backups/last_gitlab_backup.tar"
 chown git:git "/var/opt/$app/backups/last_gitlab_backup.tar"
+chmod 600 "/var/opt/$app/backups/last_gitlab_backup.tar"
 
 last_backup="last"
 
@@ -96,13 +97,16 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/alertmanager/current
 #=================================================
 ynh_script_progression "Waiting for GitLab..."
 
-ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
+gitlab_restart
 
 #=================================================
 # CHECK THE RESTORED DATA
 #=================================================
 
 gitlab-rake gitlab:check SANITIZE=true
+
+# Report any encrypted value the restored gitlab-secrets.json can't decrypt
+gitlab-rake gitlab:doctor:secrets
 
 # Allow ssh for git
 usermod -a -G "ssh.app" "git"

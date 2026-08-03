@@ -22,6 +22,20 @@ ynh_script_progression "Stopping GitLab"
 gitlab-ctl stop
 
 #=================================================
+# REMOVE GITLAB SYSTEM ACCOUNTS
+#=================================================
+
+# Only purge removes everything those accounts own, otherwise their uid gets
+# recycled and the leftover files become unreadable
+if [ "${YNH_APP_PURGE:-0}" -eq 1 ]; then
+	ynh_script_progression "Removing GitLab system accounts"
+
+	if ! ynh_hide_warnings gitlab-ctl remove-accounts; then
+		ynh_print_warn "Could not remove the GitLab system accounts, you may have to delete them manually"
+	fi
+fi
+
+#=================================================
 # REMOVE GITLAB
 #=================================================
 ynh_script_progression "Removing GitLab"

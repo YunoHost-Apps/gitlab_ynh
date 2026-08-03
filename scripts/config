@@ -19,7 +19,7 @@ source /usr/share/yunohost/helpers
 set__use_web_account() {
     if [ -n "${use_web_account}" ]
     then
-        echo "ApplicationSetting.last.update(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)" | gitlab-rails console
+        gitlab-rails runner "ApplicationSetting.last.update!(password_authentication_enabled_for_web: $use_web_account, signup_enabled: $use_web_account)"
 
         # Update the config of the app
         ynh_app_setting_set --key=use_web_account --value=$use_web_account

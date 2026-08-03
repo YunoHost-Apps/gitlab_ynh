@@ -331,25 +331,32 @@ def update_gitlab_rb(version: str):
          "gitlab_pages['namespace_in_path'] = true"),
         (r"# gitlab_pages\['internal_gitlab_server'\] = nil",
          "gitlab_pages['internal_gitlab_server'] = \"http://127.0.0.1:__PORT__\""),
-        (r"# pages_nginx\['enable'\] = true",
-         "pages_nginx['enable'] = __PAGES_ENABLE__"),
+        (r"# gitlab_pages\['nginx'\]\['enable'\] = true",
+         "gitlab_pages['nginx']['enable'] = __PAGES_ENABLE__"),
     ]
 
+    def patch(pattern, replacement, text, **kwargs):
+        """Apply a replacement, bailing out if upstream renamed the target."""
+        text, count = re.subn(pattern, replacement, text, **kwargs)
+        if count == 0:
+            print(f"ERROR: patch pattern no longer matches upstream template: {pattern}")
+            sys.exit(1)
+        return text
+
     for pattern, replacement in replacements:
-        content = re.sub(pattern, replacement, content)
+        content = patch(pattern, replacement, content)
 
     # Insert LDAP config after "# EOS" line
-    content = re.sub(r"(^# EOS$)", r"\1" + LDAP_CONFIG, content, count=1, flags=re.MULTILINE)
+    content = patch(r"(^# EOS$)", r"\1" + LDAP_CONFIG, content, count=1, flags=re.MULTILINE)
 
-    # Add pages_nginx settings after pages_nginx['enable'] = true
+    # Add the remaining pages nginx settings after gitlab_pages['nginx']['enable']
     pages_nginx_config = """
-pages_nginx['listen_https'] = false
-pages_nginx['listen_http'] = true
-pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
-pages_nginx['listen_addresses'] = ['127.0.0.1']"""
+gitlab_pages['nginx']['listen_https'] = false
+gitlab_pages['nginx']['listen_port'] = __PORT_NGINX_PAGES__
+gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']"""
 
-    content = re.sub(
-        r"(pages_nginx\['enable'\] = __PAGES_ENABLE__)",
+    content = patch(
+        r"(gitlab_pages\['nginx'\]\['enable'\] = __PAGES_ENABLE__)",
         r"\1" + pages_nginx_config,
         content
     )
@@ -381,6 +388,9 @@ def main():
     # Latest version is the last one
     latest_version = versions[-1]
 
+    # Before manifest.toml, so a failed patch can't ship a bumped version.
+    update_gitlab_rb(latest_version)
+
     # Warm the Packages.gz cache so that every fetch_sha256 below is a dict
     # lookup instead of a sequential HTTP round-trip.
     prefetch_indexes()
@@ -410,9 +420,6 @@ def main():
 
     # Render template (reverse upgrade path so newest versions come first)
     render_manifest(latest_version, latest_sha256, list(reversed(upgrade_path_data)), latest_distros)
-
-    # Update gitlab.rb from upstream
-    update_gitlab_rb(latest_version)
 
     print("\nDone! Review changes with: git diff manifest.toml conf/gitlab.rb")
 
