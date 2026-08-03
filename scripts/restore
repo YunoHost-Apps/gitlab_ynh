@@ -104,6 +104,9 @@ ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/
 
 gitlab-rake gitlab:check SANITIZE=true
 
+# Report any encrypted value the restored gitlab-secrets.json can't decrypt
+gitlab-rake gitlab:doctor:secrets
+
 # Allow ssh for git
 usermod -a -G "ssh.app" "git"
 
