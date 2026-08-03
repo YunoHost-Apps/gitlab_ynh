@@ -71,6 +71,8 @@ fi
 
 ynh_safe_rm "/var/opt/$app"
 
+ynh_safe_rm "/var/log/$app"
+
 # Remove swap
 ynh_del_swap
 

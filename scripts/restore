@@ -70,6 +70,7 @@ ynh_script_progression "Restoring GitLab..."
 
 ynh_restore "/var/opt/$app/backups/last_gitlab_backup.tar"
 chown git:git "/var/opt/$app/backups/last_gitlab_backup.tar"
+chmod 600 "/var/opt/$app/backups/last_gitlab_backup.tar"
 
 last_backup="last"
 
