@@ -19,7 +19,7 @@ fi
 ynh_script_progression "Stopping GitLab"
 
 # I use gitlab-ctl and not ynh_systemctl or systemctl to stop the service to avoid this error: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/common_installation_problems/README.md#reconfigure-freezes-at-ruby_blocksupervise_redis_sleep-action-run during the reinstall of the app
-gitlab-ctl kill
+gitlab-ctl stop || gitlab-ctl kill
 
 #=================================================
 # REMOVE GITLAB SYSTEM ACCOUNTS
