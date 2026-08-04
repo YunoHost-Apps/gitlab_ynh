@@ -20,20 +20,23 @@ gitlab_restart() {
 	local timeout=300
 
 	# Only Puma tells us in its log when it's back up
-	if [ -z "$service" ] || [ "$service" == "puma" ]; then
-		local templog="$(mktemp)"
-		tail --follow=name --retry --lines=0 "$log_path" > "$templog" 2>&1 &
-		local pid_tail=$!
+	if [ -n "$service" ] && [ "$service" != "puma" ]; then
+		gitlab-ctl restart "$service"
+		return
 	fi
 
-	if ! gitlab-ctl restart ${service:-}; then
-		[ -n "${pid_tail:-}" ] && kill "$pid_tail" 2>/dev/null
-		[ -n "${templog:-}" ] && ynh_safe_rm "$templog"
-		tail --lines=20 "$log_path" >&2
-		return 1
-	fi
+	local templog="$(mktemp)"
+	tail --follow=name --retry --lines=0 "$log_path" > "$templog" 2>&1 &
+	local pid_tail=$!
 
-	[ -n "${templog:-}" ] || return 0
+	if [ "$service" == "puma" ]; then
+		# Puma stops slower than runit is willing to wait, and has no check
+		# script, so start returns as soon as it is spawned
+		gitlab-ctl kill puma
+		gitlab-ctl start puma
+	else
+		gitlab-ctl restart || true
+	fi
 
 	local i
 	for i in $(seq 1 $timeout)
