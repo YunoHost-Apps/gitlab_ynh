@@ -74,8 +74,8 @@ chmod 600 "/var/opt/$app/backups/last_gitlab_backup.tar"
 
 last_backup="last"
 
-gitlab-ctl stop puma
-gitlab-ctl stop sidekiq
+gitlab-ctl stop puma || gitlab-ctl kill puma
+gitlab-ctl stop sidekiq || gitlab-ctl kill sidekiq
 
 # Use gitlab-rake to backup
 # Doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html#restore-for-omnibus-gitlab-installations
