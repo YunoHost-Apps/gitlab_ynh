@@ -2361,17 +2361,16 @@ gitlab_pages['namespace_in_path'] = true
 ################################################################################
 
 ##! All the settings defined in the "GitLab Nginx" section are also available in
-##! this "GitLab Pages NGINX" section, using the key `pages_nginx`.  However,
+##! this "GitLab Pages NGINX" section, using the key `gitlab_pages['nginx']`.  However,
 ##! those settings should be explicitly set. That is, settings given as
 ##! `nginx['some_setting']` WILL NOT be automatically replicated as
-##! `pages_nginx['some_setting']` and should be set separately.
+##! `gitlab_pages['nginx']['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
-pages_nginx['enable'] = __PAGES_ENABLE__
-pages_nginx['listen_https'] = false
-pages_nginx['listen_http'] = true
-pages_nginx['listen_port'] = __PORT_NGINX_PAGES__
-pages_nginx['listen_addresses'] = ['127.0.0.1']
+gitlab_pages['nginx']['enable'] = __PAGES_ENABLE__
+gitlab_pages['nginx']['listen_https'] = false
+gitlab_pages['nginx']['listen_port'] = __PORT_NGINX_PAGES__
+gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 
 # gitlab_rails['pages_path'] = "/var/opt/gitlab/gitlab-rails/shared/pages"
 
@@ -2498,19 +2497,35 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 # gitlab_kas['extra_config_command'] = nil
 
 ################################################################################
+## GitLab KAS NGINX
+################################################################################
+
+##! All the settings defined in the "GitLab Nginx" section are also available in
+##! this "GitLab KAS NGINX" section, using the key `gitlab_kas['nginx']`.  However,
+##! those settings should be explicitly set. That is, settings given as
+##! `nginx['some_setting']` WILL NOT be automatically replicated as
+##! `gitlab_kas['nginx']['some_setting']` and should be set separately.
+
+##! Below you can find settings that are exclusive to "GitLab KAS NGINX"
+# gitlab_kas['nginx']['enable'] = false
+# gitlab_kas['nginx']['host'] = "kas.gitlab.example.com"
+# gitlab_kas['nginx']['port'] = 80
+# gitlab_kas['nginx']['https'] = false
+
+################################################################################
 ## Registry NGINX
 ################################################################################
 
 ##! All the settings defined in the "GitLab Nginx" section are also available in
-##! this "Registry NGINX" section, using the key `registry_nginx`.  However, those
+##! this "Registry NGINX" section, using the key `registry['nginx']`.  However, those
 ##! settings should be explicitly set. That is, settings given as
 ##! `nginx['some_setting']` WILL NOT be automatically replicated as
-##! `registry_nginx['some_setting']` and should be set separately.
+##! `registry['nginx']['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "Registry NGINX"
-# registry_nginx['enable'] = false
+# registry['nginx']['enable'] = false
 
-# registry_nginx['proxy_set_headers'] = {
+# registry['nginx']['proxy_set_headers'] = {
 #  "Host" => "$http_host",
 #  "X-Real-IP" => "$remote_addr",
 #  "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
@@ -2520,7 +2535,7 @@ pages_nginx['listen_addresses'] = ['127.0.0.1']
 
 ##! When the registry is automatically enabled using the same domain as `external_url`,
 ##! it listens on this port
-# registry_nginx['listen_port'] = 5050
+# registry['nginx']['listen_port'] = 5050
 
 ################################################################################
 ## Prometheus
@@ -3715,6 +3730,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 ## When enabled, gitlab-ctl reconfigure will:
 ##   1. Add an NGINX reverse proxy that routes the external URL to the OpenBao service.
 ##   2. Auto-configure gitlab_rails['openbao'] URLs (url + internal_url).
+##   3. Generate a ready-to-use Helm values file at the path below.
 ## Use https:// in external_url to enable TLS. When letsencrypt['enable'] is true, the
 ## OpenBao hostname is automatically added as a SAN to the Let's Encrypt certificate.
 # oak['components']['openbao']['enable'] = true
@@ -3725,5 +3741,7 @@ package['modify_kernel_parameters'] = __MODIFY_KERNEL_PARAMETERS__
 # oak['components']['openbao']['ssl_certificate_key'] = '/etc/gitlab/ssl/openbao.example.com.key'
 ## Redirect HTTP to HTTPS (enabled automatically when using Let's Encrypt):
 # oak['components']['openbao']['redirect_http_to_https'] = true
+## Path where the generated Helm values file is written.
+# oak['components']['openbao']['helm_values_path'] = '/etc/gitlab/openbao-helm-values.yaml'
 
 from_file '/etc/gitlab/gitlab-persistent.rb'

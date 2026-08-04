@@ -29,6 +29,8 @@ fi
 
 chmod 755 $install_dir
 
+ynh_safe_rm "/var/opt/$app/backups/last_gitlab_backup.tar"
+
 # Use gitlab-backup to backup
 # For the complete doc: https://docs.gitlab.com/ce/raketasks/backup_restore.html
 # For the filename: https://docs.gitlab.com/ce/raketasks/backup_restore.html#backup-filename

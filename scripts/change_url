@@ -52,7 +52,7 @@ ynh_hide_warnings gitlab-ctl reconfigure
 #=================================================
 ynh_script_progression "Waiting for GitLab..."
 
-ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
+gitlab_restart
 
 #=================================================
 # END OF SCRIPT

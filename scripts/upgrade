@@ -164,31 +164,61 @@ last_version=$gitlab_version
 # we need to follow a specific path described here https://gitlab-com.gitlab.io/support/toolbox/upgrade-path/
 # A.last -> B.first -> -> B.X -> B.Y -> B.last
 
+# Status 3 and 6 are 'finished' and 'finalized'
+pending_background_migrations() {
+	gitlab-psql -t -A -F '|' -c "SELECT job_class_name, table_name, column_name, job_arguments FROM batched_background_migrations WHERE status NOT IN (3, 6);"
+}
+
+# https://docs.gitlab.com/ee/update/background_migrations.html
+finish_background_migrations() {
+	local counter=0
+	while [ -n "$(pending_background_migrations)" ] && [ $counter -lt 120 ]
+	do
+		counter=$((counter + 1))
+		ynh_print_info "Wait for the migration in the background to finish"
+		sleep 10
+	done
+
+	# What's left is stuck, finish it synchronously
+	local class table column args
+	while IFS='|' read -r class table column args
+	do
+		ynh_print_info "Finalizing $class"
+		# rake splits its args on commas, escape the ones in the json
+		if ! gitlab-rake "gitlab:background_migrations:finalize:main[$class,$table,$column,${args//,/\\,}]"
+		then
+			ynh_print_warn "Could not finalize $class, see /admin/background_migrations"
+		fi
+	done < <(pending_background_migrations)
+}
+
+# GitLab generates mattermost secrets even when it's disabled, and 19.0 refuses
+# to install as long as a single mattermost key is left in the config
+# https://forum.gitlab.com/t/mattermost-blocking-the-upgrade-from-18-to-19/134464/2
+drop_mattermost_config() {
+	local file
+	local tempfile="$(mktemp)"
+
+	for file in "$config_path/gitlab-secrets.json" /opt/gitlab/embedded/nodes/*.json
+	do
+		[ -e "$file" ] || continue
+		# Write through cat to keep the original owner and permissions
+		jq 'del(.mattermost) | del(.normal.mattermost)' "$file" > "$tempfile" && cat "$tempfile" > "$file"
+	done
+
+	ynh_safe_rm "$tempfile"
+}
+
 # While the current version is not the last version, do an upgrade
 while [ "$last_version" != "$current_version" ]
 do
-	# https://docs.gitlab.com/ee/update/background_migrations.html
-	checkBatchedBackgroundMigration=1
-
-	counter=0
-	while [ $checkBatchedBackgroundMigration -eq 1 ]
-	do
-		counter=$((counter + 1))
-		if [ $counter -gt 1200 ]
-		then
-			ynh_print_warn "Timeout: a background migration runs for at least 20min !"
-			break
-		fi
-
-		if [ $checkBatchedBackgroundMigration -eq 1 ] && gitlab-psql -c "SELECT job_class_name, table_name, column_name, job_arguments FROM batched_background_migrations WHERE status NOT IN(3, 6);" | grep -q -w 0
-		then
-			checkBatchedBackgroundMigration=0
-		fi
-		ynh_print_info "Wait for the migration in the background to finish"
-		sleep 1
-	done
+	finish_background_migrations
 
 	source_next_version
+
+	if dpkg --compare-versions "$current_version" lt 19.0 && dpkg --compare-versions "$gitlab_version" ge 19.0; then
+		drop_mattermost_config
+	fi
 
 	ynh_print_info "Upgrade from ${current_version} to ${gitlab_version}"
 
@@ -261,7 +291,7 @@ yunohost service add "gitlab-runsvdir" --log "/var/log/$app/alertmanager/current
 #=================================================
 ynh_script_progression "Restarting GitLab..."
 
-ynh_systemctl --action=restart --service="gitlab-runsvdir" --log_path="/var/log/$app/puma/current" --wait_until="Listening on http://127.0.0.1:$port_puma" --timeout=300
+gitlab_restart puma
 
 #=================================================
 # HANDLE GITLAB PAGES
