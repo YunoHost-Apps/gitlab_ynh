@@ -309,12 +309,12 @@ def update_gitlab_rb(version: str):
          "sidekiq['listen_port'] = __PORT_SIDEKIQ__"),
 
         # Nginx settings
-        (r"# nginx\['client_max_body_size'\] = .*",
-         "nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'"),
-        (r"# nginx\['listen_port'\] = .*",
-         "nginx['listen_port'] = __PORT__"),
-        (r"# nginx\['listen_https'\] = .*",
-         "nginx['listen_https'] = false"),
+        (r"# gitlab_rails\['nginx'\]\['client_max_body_size'\] = .*",
+         "gitlab_rails['nginx']['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'"),
+        (r"# gitlab_rails\['nginx'\]\['listen_port'\] = .*",
+         "gitlab_rails['nginx']['listen_port'] = __PORT__"),
+        (r"# gitlab_rails\['nginx'\]\['listen_https'\] = .*",
+         "gitlab_rails['nginx']['listen_https'] = false"),
 
         # Kernel parameters
         (r"# package\['modify_kernel_parameters'\] = .*",

@@ -325,6 +325,15 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['microsoft_graph_mailer_azure_ad_endpoint'] = "https://login.microsoftonline.com"
 # gitlab_rails['microsoft_graph_mailer_graph_endpoint'] = "https://graph.microsoft.com"
 
+### Amazon SES Mailer
+###! Allows delivery of emails using the Amazon SES API.
+###! Docs: https://docs.gitlab.com/omnibus/settings/amazon_ses_mailer.html
+# gitlab_rails['amazon_ses_mailer_enabled'] = false
+# gitlab_rails['amazon_ses_mailer_region'] = "YOUR-AWS-REGION"
+# gitlab_rails['amazon_ses_mailer_role_arn'] = "arn:aws:iam::123456789012:role/your-role"
+# gitlab_rails['amazon_ses_mailer_access_key_id'] = "YOUR-AWS-ACCESS-KEY-ID"
+# gitlab_rails['amazon_ses_mailer_secret_access_key'] = "YOUR-AWS-SECRET-ACCESS-KEY"
+
 ################################################################
 ## Reply by email
 ################################################################
@@ -951,6 +960,20 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 #   }
 # }
 
+#### NATS (audit event streaming)
+####! When 'servers' is empty or absent, GitLab falls back to the Sidekiq
+####! delivery path. 'stream_replicas' defaults to 1; set to 3 when clustered.
+# gitlab_rails['nats'] = {
+#   'servers' => ['tls://nats.example.com:4222'],
+#   'connect_timeout' => 2,
+#   'stream_replicas' => 3,
+#   'tls' => {
+#     'ca_file' => '/path/to/ca.crt',
+#     'cert' => '/path/to/tls.crt',
+#     'key' => '/path/to/tls.key'
+#   }
+# }
+
 #### OpenBao (GitLab Secret Manager)
 #### Beta: these attributes are subject to change without
 ####       a breaking change announcement.
@@ -1119,6 +1142,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_repository_cache_tls_client_key_file'] = nil
 # gitlab_rails['redis_workhorse_instance'] = nil
 # gitlab_rails['redis_workhorse_sentinels'] = nil
+# gitlab_rails['redis_workhorse_sentinels_username'] = nil
 # gitlab_rails['redis_workhorse_sentinels_password'] = nil
 # gitlab_rails['redis_workhorse_sentinels_ssl'] = false
 # gitlab_rails['redis_workhorse_sentinels_tls_ca_cert_file'] = nil
@@ -1425,6 +1449,7 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_workhorse['redis_ssl'] = false
 # gitlab_workhorse['redis_cluster_nodes'] = []
 # gitlab_workhorse['redis_sentinels'] = []
+# gitlab_workhorse['redis_sentinels_username'] = nil
 # gitlab_workhorse['redis_sentinels_password'] = nil
 # gitlab_workhorse['redis_sentinels_ssl'] = false
 # gitlab_workhorse['redis_sentinels_tls_ca_cert_file'] = nil
@@ -1681,6 +1706,11 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['home'] = "/var/opt/gitlab/postgresql"
 # postgresql['user_path'] = "/opt/gitlab/embedded/bin:/opt/gitlab/bin:$PATH"
 # postgresql['sql_user'] = "gitlab"
+##! Enforce Least Privileged Access by revoking the implicit PUBLIC CONNECT
+##! privilege on managed databases and granting CONNECT only to the roles that
+##! need it (plus pgbouncer). Defaults to false so upgrades are unaffected.
+##! See https://docs.gitlab.com/omnibus/settings/database.html
+# postgresql['restrict_database_access'] = false
 # postgresql['max_connections'] = 400
 # postgresql['md5_auth_cidr_addresses'] = []
 # postgresql['trust_auth_cidr_addresses'] = []
@@ -1774,6 +1804,9 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 # postgresql['sql_replication_user'] = "gitlab_replicator"
 # postgresql['sql_replication_password'] = "md5 hash of postgresql password" # You can generate with `gitlab-ctl pg-password-md5 <dbuser>`
 # postgresql['wal_keep_segments'] = 10
+###! wal_keep_size is the PostgreSQL 13 and later replacement for wal_keep_segments, expressed in MB.
+###! If wal_keep_size is not set, Omnibus derives it from wal_keep_segments as wal_keep_segments * 16 MB (the default 10 segments becomes 160 MB).
+# postgresql['wal_keep_size'] = 160
 # postgresql['max_standby_archive_delay'] = "30s"
 # postgresql['max_standby_streaming_delay'] = "30s"
 # postgresql['synchronous_commit'] = on
@@ -1957,77 +1990,80 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 ################################################################################
 ## GitLab NGINX
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html
+##! NGINX settings for the main GitLab application moved from `nginx[...]`
+##! to `gitlab_rails['nginx'][...]` in GitLab 19.2. The previous keys are
+##! deprecated, but are still applied automatically.
 ################################################################################
 
 # nginx['enable'] = true
-nginx['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
-# nginx['redirect_http_to_https'] = false
-# nginx['redirect_http_to_https_port'] = 80
+gitlab_rails['nginx']['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
+# gitlab_rails['nginx']['redirect_http_to_https'] = false
+# gitlab_rails['nginx']['redirect_http_to_https_port'] = 80
 
 ##! Most root CA's are included by default
-# nginx['ssl_client_certificate'] = "/etc/gitlab/ssl/ca.crt"
+# gitlab_rails['nginx']['ssl_client_certificate'] = "/etc/gitlab/ssl/ca.crt"
 
 ##! enable/disable 2-way SSL client authentication
-# nginx['ssl_verify_client'] = "off"
+# gitlab_rails['nginx']['ssl_verify_client'] = "off"
 
 ##! if ssl_verify_client on, verification depth in the client certificates chain
-# nginx['ssl_verify_depth'] = "1"
+# gitlab_rails['nginx']['ssl_verify_depth'] = "1"
 
-# nginx['ssl_certificate'] = "/etc/gitlab/ssl/#{node['fqdn']}.crt"
-# nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/#{node['fqdn']}.key"
-# nginx['ssl_ciphers'] = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384"
-# nginx['ssl_prefer_server_ciphers'] = "off"
+# gitlab_rails['nginx']['ssl_certificate'] = "/etc/gitlab/ssl/#{node['fqdn']}.crt"
+# gitlab_rails['nginx']['ssl_certificate_key'] = "/etc/gitlab/ssl/#{node['fqdn']}.key"
+# gitlab_rails['nginx']['ssl_ciphers'] = "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384"
+# gitlab_rails['nginx']['ssl_prefer_server_ciphers'] = "off"
 
 ##! **Recommended by: https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html
-# nginx['ssl_protocols'] = "TLSv1.2 TLSv1.3"
+# gitlab_rails['nginx']['ssl_protocols'] = "TLSv1.2 TLSv1.3"
 
 ##! **Recommended in: https://nginx.org/en/docs/http/ngx_http_ssl_module.html**
-# nginx['ssl_session_cache'] = "shared:SSL:10m"
+# gitlab_rails['nginx']['ssl_session_cache'] = "shared:SSL:10m"
 
 ##! **Recommended in: https://ssl-config.mozilla.org/#server=nginx&version=1.17.7&config=intermediate&openssl=1.1.1d&ocsp=false&guideline=5.6**
-# nginx['ssl_session_tickets'] = "off"
+# gitlab_rails['nginx']['ssl_session_tickets'] = "off"
 
 ##! **Default according to https://nginx.org/en/docs/http/ngx_http_ssl_module.html**
-# nginx['ssl_session_timeout'] = "1d"
+# gitlab_rails['nginx']['ssl_session_timeout'] = "1d"
 
-# nginx['ssl_dhparam'] = nil # Path to dhparams.pem, eg. /etc/gitlab/ssl/dhparams.pem
-# nginx['ssl_ecdh_curve'] = nil # Specifies a curve for ECDHE ciphers, eg. 'secp384r1'
-# nginx['ssl_conf_command'] = nil # Array of OpenSSL configuration commands, eg. ["Ciphersuites TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256"]
-# nginx['ssl_password_file'] = nil # Path to file with passphrases for ssl certificate secret keys
-# nginx['listen_addresses'] = ['*']
+# gitlab_rails['nginx']['ssl_dhparam'] = nil # Path to dhparams.pem, eg. /etc/gitlab/ssl/dhparams.pem
+# gitlab_rails['nginx']['ssl_ecdh_curve'] = nil # Specifies a curve for ECDHE ciphers, eg. 'secp384r1'
+# gitlab_rails['nginx']['ssl_conf_command'] = nil # Array of OpenSSL configuration commands, eg. ["Ciphersuites TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256"]
+# gitlab_rails['nginx']['ssl_password_file'] = nil # Path to file with passphrases for ssl certificate secret keys
+# gitlab_rails['nginx']['listen_addresses'] = ['*']
 
 ##! **Defaults to forcing web browsers to always communicate using only HTTPS**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/ssl/#configure-the-http-strict-transport-security-hsts
-# nginx['hsts_max_age'] = 63072000
-# nginx['hsts_include_subdomains'] = false
+# gitlab_rails['nginx']['hsts_max_age'] = 63072000
+# gitlab_rails['nginx']['hsts_include_subdomains'] = false
 
 ##! Defaults to stripping path information when making cross-origin requests
-# nginx['referrer_policy'] = 'strict-origin-when-cross-origin'
+# gitlab_rails['nginx']['referrer_policy'] = 'strict-origin-when-cross-origin'
 
 ##! **Docs: http://nginx.org/en/docs/http/ngx_http_gzip_module.html**
 # nginx['gzip_enabled'] = true
 
 ##! **Override only if you use a reverse proxy**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#setting-the-nginx-listen-port
-nginx['listen_port'] = __PORT__
+gitlab_rails['nginx']['listen_port'] = __PORT__
 
 ##! **Override only if your reverse proxy internally communicates over HTTP**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/ssl/#configure-a-reverse-proxy-or-load-balancer-ssl-termination
-nginx['listen_https'] = false
+gitlab_rails['nginx']['listen_https'] = false
 
 ##! **Override only if you use a reverse proxy with proxy protocol enabled**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#configuring-the-proxy-protocol
-# nginx['proxy_protocol'] = false
+# gitlab_rails['nginx']['proxy_protocol'] = false
 
 ##! **Set to false if you need to add your own server block with default_server**
 ##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html
-# nginx['default_server_enabled'] = true
+# gitlab_rails['nginx']['default_server_enabled'] = true
 
-# nginx['custom_gitlab_server_config'] = "location ^~ /foo-namespace/bar-project/raw/ {\n deny all;\n}\n"
+# gitlab_rails['nginx']['custom_gitlab_server_config'] = "location ^~ /foo-namespace/bar-project/raw/ {\n deny all;\n}\n"
 # nginx['custom_nginx_config'] = "include /etc/nginx/conf.d/example.conf;"
-# nginx['proxy_read_timeout'] = 3600
-# nginx['proxy_connect_timeout'] = 300
-# nginx['proxy_set_headers'] = {
+# gitlab_rails['nginx']['proxy_read_timeout'] = 3600
+# gitlab_rails['nginx']['proxy_connect_timeout'] = 300
+# gitlab_rails['nginx']['proxy_set_headers'] = {
 #  "Host" => "$http_host_with_default",
 #  "X-Real-IP" => "$remote_addr",
 #  "X-Forwarded-For" => "$proxy_add_x_forwarded_for",
@@ -2036,12 +2072,12 @@ nginx['listen_https'] = false
 # }
 # nginx['proxy_cache_path'] = 'proxy_cache keys_zone=gitlab:10m max_size=1g levels=1:2'
 # nginx['proxy_cache'] = 'gitlab'
-# nginx['proxy_custom_buffer_size'] = nil
-# nginx['http2_enabled'] = true
-# nginx['real_ip_trusted_addresses'] = []
-# nginx['real_ip_header'] = nil
-# nginx['real_ip_recursive'] = nil
-# nginx['custom_error_pages'] = {
+# gitlab_rails['nginx']['proxy_custom_buffer_size'] = nil
+# gitlab_rails['nginx']['http2_enabled'] = true
+# gitlab_rails['nginx']['real_ip_trusted_addresses'] = []
+# gitlab_rails['nginx']['real_ip_header'] = nil
+# gitlab_rails['nginx']['real_ip_recursive'] = nil
+# gitlab_rails['nginx']['custom_error_pages'] = {
 #   '404' => {
 #     'title' => 'Example title',
 #     'header' => 'Example header',
@@ -2053,7 +2089,7 @@ nginx['listen_https'] = false
 # nginx['dir'] = "/var/opt/gitlab/nginx"
 # nginx['log_directory'] = "/var/log/gitlab/nginx"
 # nginx['log_group'] = nil
-# nginx['error_log_level'] = "error"
+# gitlab_rails['nginx']['error_log_level'] = "error"
 # nginx['worker_processes'] = 4
 # nginx['worker_connections'] = 10240
 # nginx['log_format'] = '$remote_addr - $remote_user [$time_local] "$request_method $filtered_request_uri $server_protocol" $status $body_bytes_sent "$filtered_http_referer" "$http_user_agent" $gzip_ratio'
@@ -2071,7 +2107,7 @@ nginx['listen_https'] = false
 # nginx['cache_max_size'] = '5000m'
 # nginx['server_names_hash_bucket_size'] = 64
 ##! These paths have proxy_request_buffering disabled
-# nginx['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/ssh-receive-pack$|\\.git/ssh-upload-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
+# gitlab_rails['nginx']['request_buffering_off_path_regex'] = "/api/v\\d/jobs/\\d+/artifacts$|/import/gitlab_project$|\\.git/git-receive-pack$|\\.git/ssh-receive-pack$|\\.git/ssh-upload-pack$|\\.git/gitlab-lfs/objects|\\.git/info/lfs/objects/batch$"
 
 ### Nginx status
 # nginx['status'] = {
@@ -2363,7 +2399,7 @@ gitlab_pages['namespace_in_path'] = true
 ##! All the settings defined in the "GitLab Nginx" section are also available in
 ##! this "GitLab Pages NGINX" section, using the key `gitlab_pages['nginx']`.  However,
 ##! those settings should be explicitly set. That is, settings given as
-##! `nginx['some_setting']` WILL NOT be automatically replicated as
+##! `gitlab_rails['nginx']['some_setting']` WILL NOT be automatically replicated as
 ##! `gitlab_pages['nginx']['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "GitLab Pages NGINX"
@@ -2471,6 +2507,8 @@ gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 # gitlab_kas['redis_socket'] = ''
 # gitlab_kas['redis_host'] = '127.0.0.1'
 # gitlab_kas['redis_port'] = '6379'
+##! Username for Redis 6+ ACL authentication.
+# gitlab_kas['redis_username'] = nil
 # gitlab_kas['redis_password'] = nil
 
 # gitlab_kas['redis_sentinels'] = []
@@ -2503,7 +2541,7 @@ gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 ##! All the settings defined in the "GitLab Nginx" section are also available in
 ##! this "GitLab KAS NGINX" section, using the key `gitlab_kas['nginx']`.  However,
 ##! those settings should be explicitly set. That is, settings given as
-##! `nginx['some_setting']` WILL NOT be automatically replicated as
+##! `gitlab_rails['nginx']['some_setting']` WILL NOT be automatically replicated as
 ##! `gitlab_kas['nginx']['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "GitLab KAS NGINX"
@@ -2539,7 +2577,7 @@ gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 ##! All the settings defined in the "GitLab Nginx" section are also available in
 ##! this "Registry NGINX" section, using the key `registry['nginx']`.  However, those
 ##! settings should be explicitly set. That is, settings given as
-##! `nginx['some_setting']` WILL NOT be automatically replicated as
+##! `gitlab_rails['nginx']['some_setting']` WILL NOT be automatically replicated as
 ##! `registry['nginx']['some_setting']` and should be set separately.
 
 ##! Below you can find settings that are exclusive to "Registry NGINX"
