@@ -4,48 +4,8 @@ test_format = 1.0
     args.pages_enable = false
     args.pages_url = ""
 
-    preinstall = """
-    mkdir -p /etc/dpkg/dpkg.cfg.d /etc/gitlab
-    echo force-unsafe-io > /etc/dpkg/dpkg.cfg.d/02-unsafe-io
-    cat > /etc/gitlab/gitlab-persistent.rb <<'EOF'
-postgresql['synchronous_commit'] = 'off'
-prometheus_monitoring['enable'] = false
-EOF
-    """
-
     # -------------------------------
     # Commits to test upgrade from
     # -------------------------------
 
     test_upgrade_from.4de0c3b.name = "Upgrade from 18.11.3"
-
-[pages]
-    args.pages_enable = true
-    args.pages_url = "domain.tld"
-
-    preinstall = """
-    mkdir -p /etc/dpkg/dpkg.cfg.d /etc/gitlab
-    echo force-unsafe-io > /etc/dpkg/dpkg.cfg.d/02-unsafe-io
-    cat > /etc/gitlab/gitlab-persistent.rb <<'EOF'
-postgresql['synchronous_commit'] = 'off'
-prometheus_monitoring['enable'] = false
-EOF
-    """
-
-    only = ["install.root"]
-
-[enterprise]
-    args.pages_enable = false
-    args.pages_url = ""
-    args.gitlab_edition = "Enterprise"
-
-    preinstall = """
-    mkdir -p /etc/dpkg/dpkg.cfg.d /etc/gitlab
-    echo force-unsafe-io > /etc/dpkg/dpkg.cfg.d/02-unsafe-io
-    cat > /etc/gitlab/gitlab-persistent.rb <<'EOF'
-postgresql['synchronous_commit'] = 'off'
-prometheus_monitoring['enable'] = false
-EOF
-    """
-
-    only = ["install.root"]
