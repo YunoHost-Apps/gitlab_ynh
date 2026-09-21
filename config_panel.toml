@@ -1,25 +1,32 @@
 version = "1.0"
 
 [main]
-name = "GitLab configuration"
+name.en = "GitLab configuration"
+name.fr = "Configuration de GitLab"
 
     [main.users]
-    name = "External users"
+    name.en = "External users"
+    name.fr = "Utilisateurs externes"
 
         [main.users.use_web_account]
-        ask = "Authorized external user creation?"
+        ask.en = "Authorized external user creation?"
+        ask.fr = "Création d'utilisateurs externes autorisée ?"
         type = "boolean"
 
     [main.pages]
     name = "GitLab Pages"
 
         [main.pages.pages_enable]
-        ask = "Enable GitLab Pages?"
+        ask.en = "Enable GitLab Pages?"
+        ask.fr = "Activer GitLab Pages ?"
         type = "boolean"
-        help = "GitLab Pages allows you to publish static websites directly from a repository."
+        help.en = "GitLab Pages allows you to publish static websites directly from a repository."
+        help.fr = "GitLab Pages vous permet de publier des sites web statiques directement à partir d'un dépôt."
 
         [main.pages.pages_url]
-        ask = "Domain for GitLab Pages"
+        ask.en = "Domain for GitLab Pages"
+        ask.fr = "Domaine pour GitLab Pages"
         type = "string"
         optional = true
-        help = "Requires a dedicated domain (e.g., pages.example.com)."
+        help.en = "Requires a dedicated domain (e.g., pages.example.com)."
+        help.fr = "Nécessite un domaine dédié (par exemple, pages.example.com)."
