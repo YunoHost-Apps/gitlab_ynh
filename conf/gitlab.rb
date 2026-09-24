@@ -334,6 +334,18 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['amazon_ses_mailer_access_key_id'] = "YOUR-AWS-ACCESS-KEY-ID"
 # gitlab_rails['amazon_ses_mailer_secret_access_key'] = "YOUR-AWS-SECRET-ACCESS-KEY"
 
+### Mobile push notifications
+###! Delivery of mobile push notifications through the Apple Push Notification
+###! service (APNs), using Apple provider token (p8) authentication. Delivery
+###! is skipped when no key is configured. The auth key path, key ID, and
+###! team ID must all be set together. The topic defaults to
+###! "com.gitlab-mobile.app" when unset.
+###! Docs: https://docs.gitlab.com/omnibus/settings/mobile_push.html
+# gitlab_rails['mobile_push_apns_auth_key_path'] = "/etc/gitlab/mobile_push_apns_auth_key.p8"
+# gitlab_rails['mobile_push_apns_key_id'] = "YOUR-APNS-KEY-ID"
+# gitlab_rails['mobile_push_apns_team_id'] = "YOUR-APPLE-TEAM-ID"
+# gitlab_rails['mobile_push_apns_topic'] = "com.gitlab-mobile.app"
+
 ################################################################
 ## Reply by email
 ################################################################
@@ -425,6 +437,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['object_store']['objects']['terraform_state']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['ci_secure_files']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['agent_plan_content']['bucket'] = nil
+# gitlab_rails['object_store']['objects']['ci_catalog_bundles']['bucket'] = nil
 # gitlab_rails['object_store']['objects']['pages']['bucket'] = nil
 
 ### Job Artifacts
@@ -545,6 +558,23 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['agent_plan_content_object_store_enabled'] = false
 # gitlab_rails['agent_plan_content_object_store_remote_directory'] = "agent-plan-content"
 # gitlab_rails['agent_plan_content_object_store_connection'] = {
+#   'provider' => 'AWS',
+#   'region' => 'eu-west-1',
+#   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
+#   'aws_secret_access_key' => 'AWS_SECRET_ACCESS_KEY',
+#   # # The below options configure an S3 compatible host instead of AWS
+#   # 'host' => 's3.amazonaws.com',
+#   # 'aws_signature_version' => 4, # For creation of signed URLs. Set to 2 if provider does not support v4.
+#   # 'endpoint' => 'https://s3.amazonaws.com', # default: nil - Useful for S3 compliant services such as DigitalOcean Spaces
+#   # 'path_style' => false # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
+# }
+
+### CI Catalog Bundles
+# gitlab_rails['ci_catalog_bundles_enabled'] = true
+# gitlab_rails['ci_catalog_bundles_storage_path'] = "/var/opt/gitlab/gitlab-rails/shared/ci_catalog_bundles"
+# gitlab_rails['ci_catalog_bundles_object_store_enabled'] = false
+# gitlab_rails['ci_catalog_bundles_object_store_remote_directory'] = "ci-catalog-bundles"
+# gitlab_rails['ci_catalog_bundles_object_store_connection'] = {
 #   'provider' => 'AWS',
 #   'region' => 'eu-west-1',
 #   'aws_access_key_id' => 'AWS_ACCESS_KEY_ID',
@@ -922,6 +952,15 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['clickhouse_databases']['main']['url'] = 'https://example.com/path'
 # gitlab_rails['clickhouse_databases']['main']['username'] = 'gitlab'
 # gitlab_rails['clickhouse_databases']['main']['password'] = 'password'
+
+### GitLab Managed Settings
+###! Settings listed here override the value stored in the database.
+###! They cannot be changed from the Admin UI or API.
+###! Docs: https://docs.gitlab.com/omnibus/settings/configuration.html#managed-settings
+# gitlab_rails['managed_settings']['installation']['managed_by'] = 'GitLab Omnibus'
+# gitlab_rails['managed_settings']['settings'] = {
+#   'sidekiq_timezone_override' => 'Europe/London'
+# }
 
 ### GitLab Redis settings
 ###! Connect to your own Redis instance
@@ -2571,6 +2610,17 @@ gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 # gitlab_rails['orbit_secret'] = nil
 
 ################################################################################
+## GitLab Artifact Registry
+##! EXPERIMENTAL: GitLab.com-only, subject to change. Not installed or packaged
+##! by omnibus. These settings connect GitLab Rails to a separately-run Artifact
+##! Registry service, for hybrid deployments only.
+################################################################################
+
+# gitlab_rails['artifact_registry']['api_url'] = 'https://artifact-registry.example.com'
+##! Path to an operator-supplied file holding the service token for the internal API.
+# gitlab_rails['artifact_registry']['service_token_file'] = '/etc/gitlab/artifact-registry/.gitlab_artifact_registry_secret'
+
+################################################################################
 ## Registry NGINX
 ################################################################################
 
@@ -2809,6 +2859,9 @@ gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 # gitlab_exporter['home'] = "/var/opt/gitlab/gitlab-exporter"
 
 ##! Advanced settings. Should be changed only if absolutely needed.
+##! Deprecated: `server_name` has no effect. As of GitLab 19.3, which ships
+##! gitlab-exporter 17.0.0, the metrics server always uses WEBrick. This
+##! setting will be removed in 20.0.
 # gitlab_exporter['server_name'] = 'webrick'
 # gitlab_exporter['listen_address'] = 'localhost'
 # gitlab_exporter['listen_port'] = '9168'
