@@ -246,6 +246,28 @@ def compare_versions(v1: str, v2: str) -> int:
     return len(p1) - len(p2)
 
 
+def override_latest(path_latest: str, override: str) -> str:
+    """Validate a manual latest-version override and return it.
+
+    path.json pins every stop to the newest patch known when it was generated, so
+    it trails fresh patch releases by up to a day. Overriding lets an urgent patch
+    ship before that, but only within the same minor: the required stops live in
+    upstream's upgrade_path.yml at minor granularity, and path.json no longer says
+    which ones they are, so jumping a minor here could silently skip one.
+    """
+    if path_latest.split(".")[:2] != override.split(".")[:2]:
+        print(f"Error: --latest-version {override} is not in the same minor as "
+              f"{path_latest}; that risks skipping a required stop")
+        sys.exit(1)
+
+    if compare_versions(override, path_latest) <= 0:
+        print(f"Error: --latest-version {override} is not newer than {path_latest}")
+        sys.exit(1)
+
+    print(f"Overriding latest version: {path_latest} -> {override}")
+    return override
+
+
 def render_manifest(latest_version: str, latest_sha256: dict, upgrade_path: list, latest_distros: list):
     """Render manifest.toml from template."""
     env = Environment(
@@ -372,6 +394,11 @@ def main():
     parser.add_argument("starting_version", help="Starting version (e.g., 16.11.10)")
     parser.add_argument("--latest-only", action="store_true",
                         help="Only update latest version, skip upgrade path")
+    parser.add_argument("--latest-version", metavar="VERSION",
+                        help="Ship this version as the latest one instead of the last "
+                             "entry of the upgrade path. Only for urgent patch releases "
+                             "that path.json has not picked up yet; it must be a newer "
+                             "patch of the same minor.")
     args = parser.parse_args()
 
     # Fetch upgrade path
@@ -379,6 +406,9 @@ def main():
         versions = [args.starting_version]
     else:
         versions = fetch_upgrade_path(args.starting_version)
+
+    if args.latest_version:
+        versions[-1] = override_latest(versions[-1], args.latest_version)
 
     print(f"\nVersions to process: {len(versions)}")
     for v in versions:
