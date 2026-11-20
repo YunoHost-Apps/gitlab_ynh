@@ -38,7 +38,7 @@
 ## GitLab URL
 ##! URL on which GitLab will be reachable.
 ##! For more details on configuring external_url see:
-##! https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
+##! https://docs.gitlab.com/omnibus/settings/configuration/#configure-the-external-url-for-gitlab
 ##!
 ##! Note: During installation/upgrades, the value of the environment variable
 ##! EXTERNAL_URL will be used to populate/replace this value.
@@ -448,7 +448,7 @@ external_url '__GENERATED_EXTERNAL_URL__'
 # gitlab_rails['artifacts_enabled'] = true
 # gitlab_rails['artifacts_path'] = "/var/opt/gitlab/gitlab-rails/shared/artifacts"
 ###! Job artifacts Object Store
-###! Docs: https://docs.gitlab.com/ee/administration/job_artifacts.html#using-object-storage
+###! Docs: https://docs.gitlab.com/administration/cicd/job_artifacts/#using-object-storage
 # gitlab_rails['artifacts_object_store_enabled'] = false
 # gitlab_rails['artifacts_object_store_proxy_download'] = false
 ###! Docs: https://docs.gitlab.com/administration/object_storage/#allow-client-override-for-proxy-download
@@ -637,6 +637,11 @@ external_url '__GENERATED_EXTERNAL_URL__'
 
 ### Usage Statistics
 # gitlab_rails['usage_ping_enabled'] = true
+
+##! Shared secret for the Service Ping internal API. Generated if unset.
+##! Base64 encoded, exactly 32 bytes. Must match on every Rails node.
+##! Docs: https://docs.gitlab.com/administration/settings/usage_statistics/
+# gitlab_rails['service_ping_secret'] = nil
 
 ### GitLab Mattermost
 ###! Set this to the externally reachable URL of your standalone Mattermost
@@ -1003,6 +1008,14 @@ gitlab_rails['gitlab_shell_ssh_port'] = __SSH_PORT__
 # gitlab_rails['redis_connect_timeout'] = nil
 # gitlab_rails['redis_read_timeout'] = nil
 # gitlab_rails['redis_write_timeout'] = nil
+
+#### Authenticate to Redis with a rotating token (for example Microsoft Entra). Requires TLS.
+####! Docs: https://docs.gitlab.com/administration/redis/credentials_provider/
+# gitlab_rails['redis_credentials_provider'] = {
+#   'provider' => 'azure',
+#   'resource' => 'https://redis.azure.com',
+#   'scope' => 'https://redis.azure.com/.default'
+# }
 
 #### Redis local UNIX socket (will be disabled if TCP method is used)
 # gitlab_rails['redis_socket'] = "/var/opt/gitlab/redis/redis.socket"
@@ -1608,7 +1621,10 @@ puma['port'] = __PORT_PUMA__
 
 ##! Service name used to register Puma as a Consul service
 # puma['consul_service_name'] = 'rails'
-##! Semantic metadata used when registering Puma as a Consul service
+##! Semantic metadata used when registering Puma as a Consul service.
+##! The service always carries `metrics_path`, the path the Rails metrics
+##! are served at under the relative URL, which Prometheus service discovery
+##! scrapes. A `metrics_path` key set here replaces it.
 # puma['consul_service_meta'] = {}
 
 ################################################################################
@@ -2036,7 +2052,7 @@ sidekiq['listen_port'] = __PORT_SIDEKIQ__
 
 ################################################################################
 ## GitLab Web server
-##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#using-a-non-bundled-web-server
+##! Docs: https://docs.gitlab.com/omnibus/settings/nginx/#use-a-non-bundled-web-server
 ################################################################################
 
 ##! When bundled nginx is disabled we need to add the external webserver user to
@@ -2106,7 +2122,7 @@ gitlab_rails['nginx']['client_max_body_size'] = '__CLIENT_MAX_BODY_SIZE__'
 # nginx['gzip_enabled'] = true
 
 ##! **Override only if you use a reverse proxy**
-##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#setting-the-nginx-listen-port
+##! Docs: https://docs.gitlab.com/omnibus/settings/nginx/#set-the-nginx-listen-port
 gitlab_rails['nginx']['listen_port'] = __PORT__
 
 ##! **Override only if your reverse proxy internally communicates over HTTP**
@@ -2114,7 +2130,7 @@ gitlab_rails['nginx']['listen_port'] = __PORT__
 gitlab_rails['nginx']['listen_https'] = false
 
 ##! **Override only if you use a reverse proxy with proxy protocol enabled**
-##! Docs: https://docs.gitlab.com/omnibus/settings/nginx.html#configuring-the-proxy-protocol
+##! Docs: https://docs.gitlab.com/omnibus/settings/nginx/#configure-the-proxy-protocol
 # gitlab_rails['nginx']['proxy_protocol'] = false
 
 ##! **Set to false if you need to add your own server block with default_server**
@@ -2412,7 +2428,7 @@ gitlab_pages['internal_gitlab_server'] = "http://127.0.0.1:__PORT__" # Defaults 
 ##! enable `FF_ENABLE_RATE_LIMITER=true` environment variable to
 ##! reject requests.
 
-##! Rate limits as described in https://docs.gitlab.com/ee/administration/pages/#rate-limits
+##! Rate limits as described in https://docs.gitlab.com/administration/pages/rate-limits/
 
 ##! Rate limit HTTP requests per second from a single IP, 0 means is disabled
 # gitlab_pages['rate_limit_source_ip'] = 50.0
@@ -2915,6 +2931,9 @@ gitlab_pages['nginx']['listen_addresses'] = ['127.0.0.1']
 # gitlab_exporter['probe_elasticsearch'] = false
 # gitlab_exporter['elasticsearch_url'] = 'http://localhost:9200'
 # gitlab_exporter['elasticsearch_authorization'] = 'Basic <yourbase64encodedcredentials>'
+
+##! Manage gitlab-exporter Geo node status probes.
+# gitlab_exporter['probe_geo'] = false
 
 ##! Service name used to register GitLab Exporter as a Consul service
 # gitlab_exporter['consul_service_name'] = 'gitlab-exporter'
