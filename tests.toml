@@ -8,4 +8,4 @@ test_format = 1.0
     # Commits to test upgrade from
     # -------------------------------
 
-    test_upgrade_from.4de0c3b.name = "Upgrade from 18.11.3"
+    test_upgrade_from.33766db.name = "Upgrade from 19.5.3"
